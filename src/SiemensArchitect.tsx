@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import './siemens-architect.css'
 import TeamcenterInfrastructure from './TeamcenterInfrastructure'
+import TeamcenterDeepDive from './TeamcenterDeepDive'
 
 type Product = 'teamcenter' | 'polarion'
 type View = 'logical' | 'deployment' | 'infra'
@@ -105,7 +106,10 @@ export default function SiemensArchitect({onHome}:{onHome:()=>void}) {
       {tab==='map'&&<>
         <div className="sa-map-head"><p>{config.description}</p><div className="sa-switch" role="group" aria-label="구성도 보기 방식"><button onClick={()=>setView('logical')} className={view==='logical'?'on':''}>논리 구조</button><button onClick={()=>setView('deployment')} className={view==='deployment'?'on':''}>배포 구역</button>{product==='teamcenter'&&<button onClick={()=>setView('infra')} className={view==='infra'?'on':''}>인프라 구성도</button>}</div></div>
         {view==='infra'&&product==='teamcenter'?
-          <TeamcenterInfrastructure/>
+          <>
+            <TeamcenterDeepDive/>
+            <details className="sa-legacy-overview"><summary>간단한 4계층 설명도 보기 <ChevronDown size={15}/></summary><TeamcenterInfrastructure/></details>
+          </>
           :view==='logical'?
           <div className="sa-map">
             <div className="sa-map-legend"><span><i/> SELECT A COMPONENT</span><span>각 요소를 눌러 역할 확인</span></div>

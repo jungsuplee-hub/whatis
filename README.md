@@ -14,6 +14,9 @@
 - **비전공자 친화적인 콘텐츠**: src/lessonContent.ts가 36개 전체 주제의 쉬운 질문/설명/일상 비유/주의점을 관리하고, src/data.ts가 정확한 기술 정보·출처·단계별 구조를 관리
 - **Siemens Solution Architect**: Teamcenter 2606 및 Polarion ALM 2606 중심의 공개 가능한 개념형 아키텍처 가이드. 논리/배포 영역 시각화, 선택형 구성요소 설명, 설계 검토 체크리스트, 양 제품 간 연계 검토 도식을 제공합니다. Opcenter는 후속 확장 대상입니다.
 - **Teamcenter 인프라 탐색**: Client / Web / Enterprise / Resource의 4계층과 FMS·캐시·볼륨·검색·연동·인증·운영을 클릭하는 독립형 인프라 구성도. 제품 정보 조회·CAD 파일 접근·외부 연계의 요청 경로를 선택할 수 있으며 HA/DR·보안·성능 설계 질문을 표시합니다. 공개 Siemens 설명과 Microsoft/AWS 참조 아키텍처를 참고한 교육용 도식이며, 설치 가이드 또는 확정 서버 수/지원 구성으로 주장하지 않습니다. 소스: src/TeamcenterInfrastructure.tsx.
+- **Teamcenter 2606 심화 아키텍처**: 사용자가 작성한 2026년 3월 Google Drawing을 서비스 수준의 도식으로 재구성했습니다. src/TeamcenterDeepDive.tsx 에서 Client/Web/Enterprise/Resource 19개 서비스 노드, 16개 연결, 4개 업무 흐름, 포트 검색/근거 분류, 제품 Copilot·자체호스팅 사례·Microsoft 365 Copilot·별도 MCP 확장 흐름, 사전 색인/실시간 추론 구분, 운영 점검 항목을 제공합니다. 기존 간단 4계층 설명도는 접어서 남겨두었습니다.
+- **포트 근거와 기밀 보호**: 도면 기입 예시(*) / 일반 표준 포트(†) / 환경 확인 필요를 분리했습니다. 공식 기본값으로 제시하지 않으며 불명확한 포트 숫자는 만들지 않습니다. GitHub Pages에는 사용자 도면의 사내 호스트명·주소 또는 재배포가 제한된 Siemens 내부 설치도/절차/파라미터를 옮기지 않았습니다. 특정 Copilot 자체호스팅 모델 및 AI 마이크로서비스 포트는 실제 설치 버전의 플랫폼 매트릭스·배포 자료로 확인해야 합니다.
+
 - 정적 검색, 북마크(localStorage), 해시 URL 딥링크, 반응형·키보드 탐색, 움직임 줄이기 설정 지원
 - 사이트 시뮬레이션은 실제 ChatGPT 서버를 호출하지 않으며, 공개된 일반 원리를 단순화한 교육용 콘텐츠
 
