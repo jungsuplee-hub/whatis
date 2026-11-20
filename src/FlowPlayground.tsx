@@ -6,15 +6,15 @@ type Mode = 'basic' | 'tools'
 type Stage = { id: string; title: string; caption: string; detail: string; icon: typeof MessageCircle }
 const commonStart: Stage[] = [
   { id:'receive', title:'질문 수신', caption:'사용자 → 서비스', icon:MessageCircle, detail:'입력한 질문이 앱에서 처리 요청으로 전달됩니다. 실제 서비스에서는 인증·전송 등 별도 처리가 있을 수 있습니다.' },
-  { id:'context', title:'문맥 구성', caption:'지시 + 대화 이력', icon:Database, detail:'서비스는 해당 요청에 필요한 지시와 허용된 대화 맥락을 모아 모델 입력을 구성합니다. 포함되는 정보는 서비스마다 다릅니다.' },
-  { id:'tokens', title:'토큰 변환', caption:'텍스트 → 토큰', icon:Sparkles, detail:'텍스트가 토큰 ID로 변환됩니다. 토큰은 단어, 단어 일부 또는 기호일 수 있으며 모델별 분할 방식이 다릅니다.' },
-  { id:'inference', title:'모델 계산', caption:'문맥에서 예측', icon:BrainCircuit, detail:'모델이 입력 문맥을 처리하고 이어질 토큰의 확률을 계산합니다. 실제 모델 내부의 구체적인 구조와 실행 순서는 달라질 수 있습니다.' }
+  { id:'context', title:'대화 모으기', caption:'필요한 맥락', icon:Database, detail:'서비스는 해당 요청에 필요한 지시와 허용된 대화 맥락을 모아 모델 입력을 구성합니다. 포함되는 정보는 서비스마다 다릅니다.' },
+  { id:'tokens', title:'글 조각 나누기', caption:'작은 단위로', icon:Sparkles, detail:'텍스트가 토큰 ID로 변환됩니다. 토큰은 단어, 단어 일부 또는 기호일 수 있으며 모델별 분할 방식이 다릅니다.' },
+  { id:'inference', title:'다음 말 계산', caption:'이어질 내용', icon:BrainCircuit, detail:'모델이 입력 문맥을 처리하고 이어질 토큰의 확률을 계산합니다. 실제 모델 내부의 구체적인 구조와 실행 순서는 달라질 수 있습니다.' }
 ]
-const tool: Stage = { id:'tools', title:'필요 시 도구 사용', caption:'검색 · API 등', icon:Wrench, detail:'질문 해결에 외부 정보가 필요하고 기능이 제공된 경우, 모델이 도구 호출을 요청할 수 있습니다. 실제 조회와 권한 검사는 연결된 시스템이 수행합니다.' }
-const finish: Stage = { id:'reply', title:'답변 생성 · 전달', caption:'토큰 → 텍스트', icon:Send, detail:'응답 토큰을 생성하고 읽을 수 있는 텍스트로 바꿔 화면에 표시합니다. 일부 서비스에서는 결과를 순차적으로 스트리밍합니다.' }
+const tool: Stage = { id:'tools', title:'필요하면 자료 찾기', caption:'선택적 사용', icon:Wrench, detail:'질문 해결에 외부 정보가 필요하고 기능이 제공된 경우, 모델이 도구 호출을 요청할 수 있습니다. 실제 조회와 권한 검사는 연결된 시스템이 수행합니다.' }
+const finish: Stage = { id:'reply', title:'답변 보여주기', caption:'문장으로 전달', icon:Send, detail:'응답 토큰을 생성하고 읽을 수 있는 텍스트로 바꿔 화면에 표시합니다. 일부 서비스에서는 결과를 순차적으로 스트리밍합니다.' }
 const samples = [
-  { label:'일반 질문', text:'RAG가 뭔지 쉽게 설명해줘', mode:'basic' as Mode },
-  { label:'도구 사용', text:'최신 AI 뉴스를 찾아서 정리해줘', mode:'tools' as Mode }
+  { label:'일반 질문', text:'무지개는 왜 생겨?', mode:'basic' as Mode },
+  { label:'도구 사용', text:'오늘 서울 날씨를 찾아줘', mode:'tools' as Mode }
 ]
 const DEMO_MS=1850
 export default function FlowPlayground() {
@@ -22,8 +22,10 @@ export default function FlowPlayground() {
   const [mode,setMode]=useState<Mode>('basic')
   const [step,setStep]=useState(0)
   const [playing,setPlaying]=useState(true)
+  const [showDetail,setShowDetail]=useState(false)
   const stages=useMemo(()=>mode==='basic'?[...commonStart,finish]:[...commonStart,tool,finish],[mode])
   const stage=stages[Math.max(0,Math.min(step,stages.length-1))]
+  useEffect(()=>setShowDetail(false),[step,mode])
   useEffect(()=>{
     if (!playing) return
     if (step>=stages.length-1){ setPlaying(false); return }
@@ -77,10 +79,11 @@ export default function FlowPlayground() {
       </div>
       <div className="flow-focus" key={mode+'-'+step}>
         <div className={'flow-focus-visual visual-'+stage.id}><StageVisual id={stage.id} question={question}/></div>
-        <div className="flow-focus-copy">
+        <div className={"flow-focus-copy "+(showDetail?"detail-revealed":"")}>
           <span className="flow-focus-eyebrow">STEP {String(step+1).padStart(2,'0')} / {String(stages.length).padStart(2,'0')}</span>
           <h3>{stage.title}</h3>
-          <p>{stage.detail}</p>
+          <button type="button" className="flow-show-detail" onClick={()=>{setShowDetail(v=>!v);setPlaying(false)}} aria-expanded={showDetail}>{showDetail?"설명 접기":"왜 이렇게 될까?"}<ArrowRight size={15}/></button>
+          {showDetail&&<p>{stage.detail}</p>}
           {stage.id==='tools'&&<span className="flow-optional"><CircleHelp size={14}/> 모든 질문에서 도구를 호출하지는 않습니다.</span>}
           {stage.id==='tokens'&&<span className="flow-optional"><CircleHelp size={14}/> 위 조각은 실제 토크나이저 출력이 아닙니다.</span>}
         </div>
@@ -96,7 +99,7 @@ export default function FlowPlayground() {
       </div>
     </div>
     <div className="flow-legal"><CircleHelp size={15}/><p><strong>개념 시뮬레이션</strong> · 실제 ChatGPT 서버에 연결하지 않으며 질문에 대한 답을 생성하지 않습니다. 공개된 일반 원리를 단순화한 도식으로, 모델·설정·도구 사용 여부에 따라 처리 과정이 다릅니다.</p></div>
-    <div className="flow-references"><span>참고 자료</span><a href="https://help.openai.com/ko-kr/articles/7842364-how-chatgpt-and-our-foundation-models-are-developed" target="_blank" rel="noopener noreferrer">OpenAI · 모델 작동 원리 <Globe2 size={13}/></a><a href="https://help.openai.com/en/articles/4936856-understanding-and-counting-tokens" target="_blank" rel="noopener noreferrer">OpenAI · 토큰 설명 <Globe2 size={13}/></a><a href="https://platform.openai.com/docs/guides/function-calling" target="_blank" rel="noopener noreferrer">OpenAI · 도구 호출 <Globe2 size={13}/></a></div>
+    <div className="flow-references"><span>참고 자료</span><a href="https://developers.openai.com/api/docs/guides/text" target="_blank" rel="noopener noreferrer">OpenAI · 텍스트 생성 <Globe2 size={13}/></a><a href="https://huggingface.co/docs/transformers/main_classes/tokenizer" target="_blank" rel="noopener noreferrer">Hugging Face · 토큰 설명 <Globe2 size={13}/></a><a href="https://platform.openai.com/docs/guides/function-calling" target="_blank" rel="noopener noreferrer">OpenAI · 도구 호출 <Globe2 size={13}/></a></div>
   </div>
 }
 function StageVisual({id,question}:{id:string;question:string}){
