@@ -9,7 +9,7 @@ export type DiagramEdge = {
   status: 'drawing' | 'common' | 'verify'
   purpose: string
   check: string
-  route?: { start:'top'|'bottom'|'left'|'right';end:'top'|'bottom'|'left'|'right';via:[number,number][] }
+  route?: { start:'top'|'bottom'|'left'|'right';end:'top'|'bottom'|'left'|'right';via:[number,number][];startOffset?:number;endOffset?:number;label?:[number,number];hideLabel?:boolean }
 }
 
 type VisibleEdge = DiagramEdge & {
@@ -25,6 +25,7 @@ type Props = {
   selectedIds: string[]
   selectedId: string
   showAll: boolean
+  alwaysVisibleIds?:string[]
   onSelect: (edge: DiagramEdge) => void
 }
 
@@ -52,13 +53,31 @@ function routeEdge(board: HTMLDivElement, edge: DiagramEdge, index: number): Vis
   if (!from || !to) return null
 
   if (edge.route) {
-    const anchor=(r:typeof from,side:'top'|'bottom'|'left'|'right')=>{
-      if(side==='top')return [r.cx,r.y] as const
-      if(side==='bottom')return [r.cx,r.y+r.h] as const
-      if(side==='left')return [r.x,r.cy] as const
-      return [r.x+r.w,r.cy] as const
+    const anchor=(r:typeof from,side:'top'|'bottom'|'left'|'right', offset=0)=>{
+      if(side==='top')return [r.cx+offset,r.y] as const
+      if(side==='bottom')return [r.cx+offset,r.y+r.h] as const
+      if(side==='left')return [r.x,r.cy+offset] as const
+      return [r.x+r.w,r.cy+offset] as const
     }
-    const points=[anchor(from,edge.route.start),...edge.route.via,anchor(to,edge.route.end)]
+    const rawPoints=[anchor(from,edge.route.start,edge.route.startOffset),...edge.route.via,anchor(to,edge.route.end,edge.route.endOffset)]
+    // Orthogonalize the endpoint joints using the live card positions.
+    // A fixed waypoint may differ a few pixels from the measured port center
+    // (font rendering / device scale), which otherwise creates diagonal arrows.
+    const points:number[][]=[Array.from(rawPoints[0])]
+    for(let i=1;i<rawPoints.length;i++){
+      const target=Array.from(rawPoints[i])
+      const prev=points[points.length-1]
+      if(Math.abs(prev[0]-target[0])>.01 && Math.abs(prev[1]-target[1])>.01){
+        const last=i===rawPoints.length-1
+        const horizontal=last
+          ? (edge.route.end==='top'||edge.route.end==='bottom')
+          : i===1
+            ? (edge.route.start==='left'||edge.route.start==='right')
+            : true
+        points.push(horizontal?[target[0],prev[1]]:[prev[0],target[1]])
+      }
+      points.push(target)
+    }
     const path=points.map((point,i)=>(i===0?'M ':'L ')+point[0]+' '+point[1]).join(' ')
     let maxSpan=0, labelX=0,labelY=0
     for(let i=1;i<points.length;i++){
@@ -67,7 +86,7 @@ function routeEdge(board: HTMLDivElement, edge: DiagramEdge, index: number): Vis
         maxSpan=Math.abs(b[0]-a[0]);labelX=(a[0]+b[0])/2;labelY=a[1]-9
       }
     }
-    return { ...edge,path,labelX,labelY,showLabel:maxSpan>=94 }
+    return { ...edge,path,labelX:edge.route.label?.[0]??labelX,labelY:edge.route.label?.[1]??labelY,showLabel:edge.route.hideLabel?false:maxSpan>=94 }
   }
   const spread = ((index % 5) - 2) * 7
   const dx = to.cx - from.cx
@@ -119,7 +138,7 @@ function routeEdge(board: HTMLDivElement, edge: DiagramEdge, index: number): Vis
   return { ...edge, path, labelX, labelY, showLabel }
 }
 
-export default function ServiceConnections({ boardElement, edges, selectedIds, selectedId, showAll, onSelect }: Props) {
+export default function ServiceConnections({ boardElement, edges, selectedIds, selectedId, showAll, alwaysVisibleIds=[], onSelect }: Props) {
   const [layout, setLayout] = useState<{ width: number; height: number; paths: VisibleEdge[] }>({
     width: 0, height: 0, paths: [],
   })
@@ -153,6 +172,7 @@ export default function ServiceConnections({ boardElement, edges, selectedIds, s
 
   if (!layout.width || !layout.height) return null
   const active = new Set(selectedIds)
+  const pinned = new Set(alwaysVisibleIds)
   return <svg
     className="tcd-connection-layer"
     viewBox={`0 0 ${layout.width} ${layout.height}`}
@@ -168,7 +188,7 @@ export default function ServiceConnections({ boardElement, edges, selectedIds, s
       <marker id="tcd-arrow-active" markerUnits="userSpaceOnUse" viewBox="0 0 12 12" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto"><path d="M1 1.75 L11 6 L1 10.25 Z" fill="#188e78"/></marker>
       <marker id="tcd-arrow-selected" markerUnits="userSpaceOnUse" viewBox="0 0 12 12" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto"><path d="M1 1.5 L11 6 L1 10.5 Z" fill="#df873e"/></marker>
     </defs>
-    {layout.paths.filter(edge => showAll || active.has(edge.id) || edge.id === selectedId).map(edge => {
+    {layout.paths.filter(edge => showAll || active.has(edge.id) || pinned.has(edge.id) || edge.id === selectedId).map(edge => {
       const isSelected = selectedId === edge.id
       const isActive = active.has(edge.id)
       const emphasized = isSelected || isActive

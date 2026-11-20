@@ -9,21 +9,21 @@ type NodeKind='access'|'edge'|'app'|'coord'|'store'|'optional'
 type Node={id:string;title:string;subtitle:string;kind:NodeKind;x:number;y:number;port:string;role:string;review:string;icon:'globe'|'server'|'data'|'flow'|'key'|'index'}
 const IconMap={globe:Globe2,server:Server,data:Database,flow:GitBranch,key:KeyRound,index:Search}
 const nodes:Node[]=[
-  {id:'user',title:'ALM 사용자',subtitle:'Browser / Reviewers',kind:'access',x:38,y:154,port:'HTTPS',role:'요구사항·테스트·추적성 사용자',review:'외부 사용자 접근 범위와 인증 정책',icon:'globe'},
-  {id:'api',title:'API / Integration',subtitle:'REST API Consumer',kind:'access',x:38,y:333,port:'HTTPS',role:'CI/CD 및 외부 시스템 요청의 진입점',review:'PAT·서비스 계정·재시도·최소 권한',icon:'flow'},
-  {id:'idp',title:'Enterprise Identity',subtitle:'SSO / LDAP (선택)',kind:'optional',x:38,y:564,port:'구성별',role:'기업 인증·계정 경계. 사용 여부와 방식은 환경에 따라 다릅니다.',review:'SSO 로그인과 프로젝트 권한 매핑',icon:'key'},
-  {id:'lb',title:'Load Balancer',subtitle:'Cluster entry',kind:'edge',x:296,y:144,port:'80/443†',role:'사용자 요청을 정상적인 Polarion 애플리케이션 노드로 분산',review:'HTTPS/TLS, 세션, 장애 감지, failover 정책',icon:'flow'},
-  {id:'apache',title:'Apache HTTPD',subtitle:'Reverse proxy / SVN WebDAV',kind:'edge',x:496,y:144,port:'443 / 8889*',role:'웹 접근과 AJP 프록시 및 SVN 접근 경계를 담당할 수 있습니다.',review:'mod_proxy_ajp, WebDAV, reverse proxy와 TLS 종료 위치',icon:'server'},
-  {id:'coord',title:'Coordinator',subtitle:'Cluster / License control',kind:'coord',x:497,y:380,port:'2181*',role:'클러스터 노드 상태·라이선스·코디네이션 업무 처리',review:'단일 장애점, 노드 등록, ZooKeeper 도달성, 복구 절차',icon:'flow'},
-  {id:'app1',title:'Polarion Node A',subtitle:'JVM · Ehcache · REST',kind:'app',x:719,y:155,port:'AJP 8889*',role:'사용자 요청, Work Item, 요구사항·시험 작업을 처리하는 애플리케이션 노드',review:'애플리케이션 CPU/메모리, Ehcache tier, 인덱스 I/O',icon:'server'},
-  {id:'app2',title:'Polarion Node B',subtitle:'JVM · Ehcache · REST',kind:'app',x:719,y:342,port:'AJP 8889*',role:'동일 논리 인스턴스의 다른 애플리케이션 노드 (클러스터 예시)',review:'동일 릴리스·설정, 세션 정책, 노드 간 상태 정합성',icon:'server'},
-  {id:'zoo',title:'ZooKeeper',subtitle:'Coordinator / Node sessions',kind:'coord',x:1031,y:383,port:'2181*',role:'Polarion 클러스터의 코디네이션 연결에 사용',review:'코디네이터/노드 연결 구성과 네트워크 통제',icon:'flow'},
-  {id:'svn',title:'SVN Repository',subtitle:'Shared source of truth',kind:'store',x:306,y:670,port:'HTTP(S)/SVN',role:'클러스터가 공유하는 Subversion 원본 저장소',review:'백업 정합성, SVN I/O, 무결성, 접근 권한',icon:'data'},
-  {id:'shared',title:'Shared Services',subtitle:'Shared data / Cluster assets',kind:'store',x:504,y:670,port:'공유 경로',role:'클러스터가 사용하는 공유 서비스와 데이터 위치',review:'공유 데이터 마운트·권한·장애 및 복원 경계',icon:'data'},
-  {id:'pg1',title:'PostgreSQL · A',subtitle:'Node-local metadata',kind:'store',x:724,y:635,port:'5433 예시†',role:'노드 로컬 구성 예시의 PostgreSQL 저장 영역',review:'실제 DB 아키텍처와 sharedPG 적용 여부 확인',icon:'data'},
-  {id:'pg2',title:'PostgreSQL · B',subtitle:'Node-local metadata',kind:'store',x:724,y:785,port:'설정별',role:'Node B 쪽 PostgreSQL 계층 (배포 모델에 따라 달라짐)',review:'원본 SVN와 DB 간 정합성, 노드별 백업',icon:'data'},
-  {id:'idx1',title:'Lucene Index · A',subtitle:'Search index / local I/O',kind:'store',x:941,y:635,port:'파일 I/O',role:'Node A 검색 색인·질의. 독립 네트워크 서버가 아닌 색인 리소스',review:'인덱스 디스크 성능·재구축·복원',icon:'index'},
-  {id:'idx2',title:'Lucene Index · B',subtitle:'Search index / local I/O',kind:'store',x:941,y:785,port:'파일 I/O',role:'Node B 검색 색인 리소스',review:'색인 불일치·복구 시 검색 기능 재검증',icon:'index'}
+  {id:'user',title:'ALM 사용자',subtitle:'Browser / Reviewers',kind:'access',x:39,y:164,port:'HTTPS',role:'요구사항·테스트·추적성 사용자',review:'외부 사용자 접근 범위와 인증 정책',icon:'globe'},
+  {id:'api',title:'API / Integration',subtitle:'REST API Consumer',kind:'access',x:39,y:344,port:'HTTPS',role:'CI/CD 및 외부 시스템 요청의 진입점',review:'PAT·서비스 계정·재시도·최소 권한',icon:'flow'},
+  {id:'idp',title:'Enterprise Identity',subtitle:'SSO / LDAP (선택)',kind:'optional',x:39,y:542,port:'구성별',role:'기업 인증·계정 경계. 사용 여부와 방식은 환경에 따라 다릅니다.',review:'SSO 로그인과 프로젝트 권한 매핑',icon:'key'},
+  {id:'lb',title:'Load Balancer',subtitle:'Cluster entry',kind:'edge',x:295,y:160,port:'80/443†',role:'사용자 요청을 정상적인 Polarion 애플리케이션 노드로 분산',review:'HTTPS/TLS, 세션, 장애 감지, failover 정책',icon:'flow'},
+  {id:'apache',title:'Apache HTTPD',subtitle:'Reverse proxy / SVN WebDAV',kind:'edge',x:496,y:160,port:'443 / 8889*',role:'웹 접근과 AJP 프록시 및 SVN 접근 경계를 담당할 수 있습니다.',review:'mod_proxy_ajp, WebDAV, reverse proxy와 TLS 종료 위치',icon:'server'},
+  {id:'coord',title:'Coordinator',subtitle:'Cluster / License control',kind:'coord',x:1016,y:160,port:'2181*',role:'클러스터 노드 상태·라이선스·코디네이션 업무 처리',review:'단일 장애점, 노드 등록, ZooKeeper 도달성, 복구 절차',icon:'flow'},
+  {id:'app1',title:'Polarion Node A',subtitle:'JVM · Ehcache · REST',kind:'app',x:711,y:160,port:'AJP 8889*',role:'사용자 요청, Work Item, 요구사항·시험 작업을 처리하는 애플리케이션 노드',review:'애플리케이션 CPU/메모리, Ehcache tier, 인덱스 I/O',icon:'server'},
+  {id:'app2',title:'Polarion Node B',subtitle:'JVM · Ehcache · REST',kind:'app',x:711,y:356,port:'AJP 8889*',role:'동일 논리 인스턴스의 다른 애플리케이션 노드 (클러스터 예시)',review:'동일 릴리스·설정, 세션 정책, 노드 간 상태 정합성',icon:'server'},
+  {id:'zoo',title:'ZooKeeper',subtitle:'Embedded coordinator role',kind:'coord',x:1016,y:354,port:'2181*',role:'Polarion 클러스터의 코디네이션 연결에 사용',review:'코디네이터/노드 연결 구성과 네트워크 통제',icon:'flow'},
+  {id:'svn',title:'SVN Repository',subtitle:'Shared source of truth',kind:'store',x:305,y:692,port:'HTTP(S)/SVN',role:'클러스터가 공유하는 Subversion 원본 저장소',review:'백업 정합성, SVN I/O, 무결성, 접근 권한',icon:'data'},
+  {id:'shared',title:'Shared Services',subtitle:'Shared files · cluster assets',kind:'store',x:506,y:692,port:'공유 경로',role:'클러스터가 사용하는 공유 서비스와 데이터 위치',review:'공유 데이터 마운트·권한·장애 및 복원 경계',icon:'data'},
+  {id:'pg1',title:'PostgreSQL · A',subtitle:'Node-local metadata',kind:'store',x:715,y:628,port:'5433 예시†',role:'노드 로컬 구성 예시의 PostgreSQL 저장 영역',review:'실제 DB 아키텍처와 sharedPG 적용 여부 확인',icon:'data'},
+  {id:'pg2',title:'PostgreSQL · B',subtitle:'Node-local metadata',kind:'store',x:715,y:788,port:'설정별',role:'Node B 쪽 PostgreSQL 계층 (배포 모델에 따라 달라짐)',review:'원본 SVN와 DB 간 정합성, 노드별 백업',icon:'data'},
+  {id:'idx1',title:'Lucene Index · A',subtitle:'Search index / local I/O',kind:'store',x:939,y:628,port:'파일 I/O',role:'Node A 검색 색인·질의. 독립 네트워크 서버가 아닌 색인 리소스',review:'인덱스 디스크 성능·재구축·복원',icon:'index'},
+  {id:'idx2',title:'Lucene Index · B',subtitle:'Search index / local I/O',kind:'store',x:939,y:788,port:'파일 I/O',role:'Node B 검색 색인 리소스',review:'색인 불일치·복구 시 검색 기능 재검증',icon:'index'}
 ]
 type Edge=DiagramEdge
 const edges:Edge[]=[
@@ -34,14 +34,14 @@ const edges:Edge[]=[
  {id:'pl05',from:'apache',to:'app2',port:'8889*',proto:'AJP (example)',status:'drawing',purpose:'웹 프록시가 Polarion Node B로 요청 전달',check:'노드별 실제 AJP 바인딩/설정 확인'},
  {id:'pl06',from:'app1',to:'coord',port:'2181*',proto:'ZooKeeper',status:'drawing',purpose:'클러스터 Node A 코디네이션',check:'coordinator 주소/포트는 배포 구성에서 확인'},
  {id:'pl07',from:'app2',to:'coord',port:'2181*',proto:'ZooKeeper',status:'drawing',purpose:'클러스터 Node B 코디네이션',check:'애플리케이션 노드와 coordinator 사이 실제 연결 확인'},
- {id:'pl08',from:'coord',to:'zoo',port:'2181*',proto:'ZooKeeper logical',status:'verify',purpose:'Coordinator에서 관리되는 ZooKeeper 역할',check:'다이어그램 상 논리 구분이며 별도 서버라는 뜻은 아님'},
+ {id:'pl08',from:'coord',to:'zoo',port:'2181*',proto:'ZooKeeper logical',status:'verify',purpose:'Coordinator 내부의 ZooKeeper 논리 역할 · 별도 물리 서버를 의미하지 않음',check:'Coordinator와 ZooKeeper는 동일 논리 그룹으로 표현하며 물리 배치는 설치 구성에서 확인'},
  {id:'pl09',from:'app1',to:'svn',port:'HTTP(S)/SVN',proto:'SVN access',status:'verify',purpose:'Node A가 공유 Subversion에 접근',check:'클러스터가 공유 저장소 하나를 사용'},
  {id:'pl10',from:'app2',to:'svn',port:'HTTP(S)/SVN',proto:'SVN access',status:'verify',purpose:'Node B가 공유 Subversion에 접근',check:'네트워크/서비스 계정 인증 확인'},
  {id:'pl11',from:'app1',to:'pg1',port:'설정값',proto:'PostgreSQL',status:'verify',purpose:'Node A의 PostgreSQL 데이터 접근',check:'5433은 일부 구성 참고값. DB 서버 배치·지원 방식 별도 확인'},
  {id:'pl12',from:'app2',to:'pg2',port:'설정값',proto:'PostgreSQL',status:'verify',purpose:'Node B의 PostgreSQL 데이터 접근',check:'sharedPG 사용 여부에 따라 토폴로지 변경 필요'},
  {id:'pl13',from:'app1',to:'idx1',port:'Local I/O',proto:'Lucene index',status:'verify',purpose:'Node A 검색 색인 접근',check:'Lucene은 무조건 네트워크 포트로 호출하는 서비스가 아님'},
  {id:'pl14',from:'app2',to:'idx2',port:'Local I/O',proto:'Lucene index',status:'verify',purpose:'Node B 검색 색인 접근',check:'로컬/공유 스토리지 구성을 검증'},
- {id:'pl15',from:'coord',to:'shared',port:'공유 경로',proto:'Shared services',status:'verify',purpose:'Coordinator의 공유 구성/데이터 접근',check:'공유 서비스 서버·공유 폴더 설계를 별도로 확정'},
+ {id:'pl15',from:'coord',to:'shared',port:'공유 경로',proto:'Shared services',status:'verify',purpose:'클러스터 공통 파일·자원 사용 경계의 개념적 관계',check:'공유 리소스 접근은 배포 모델마다 다르며 Coordinator가 별도 공유 DB를 반드시 사용하는 것은 아님'},
  {id:'pl16',from:'app1',to:'shared',port:'공유 경로',proto:'Shared services',status:'verify',purpose:'Node A가 공유 서비스 데이터에 접근',check:'마운트 위치와 권한을 검증'},
  {id:'pl17',from:'app2',to:'shared',port:'공유 경로',proto:'Shared services',status:'verify',purpose:'Node B가 공유 서비스 데이터에 접근',check:'가용성/지연/동기화를 검증'},
  {id:'pl18',from:'idp',to:'apache',port:'설정별',proto:'SSO integration',status:'verify',purpose:'인증 연계 선택 구성',check:'인증 제품 및 프로토콜 지원은 환경에서 확인'}
@@ -50,15 +50,38 @@ const flows=[
  {id:'workitem',name:'Work Item 편집',description:'사용자 → Web → Node → Shared SVN',edges:['pl01','pl03','pl04','pl09'],nodes:['user','lb','apache','app1','svn']},
  {id:'rest',name:'REST API 호출',description:'외부 도구 → LB → Node B',edges:['pl02','pl03','pl05','pl12'],nodes:['api','lb','apache','app2','pg2']},
  {id:'search',name:'검색·추적성',description:'사용자 → Node A → Lucene',edges:['pl01','pl03','pl04','pl13'],nodes:['user','lb','apache','app1','idx1']},
- {id:'cluster',name:'클러스터 / 장애 조치',description:'두 노드 → Coordinator · Shared Services',edges:['pl06','pl07','pl08','pl15','pl16','pl17'],nodes:['app1','app2','coord','zoo','shared']}
+ {id:'cluster',name:'클러스터 / 장애 조치',description:'Node A/B → Coordinator(ZooKeeper) · 공유 자원',edges:['pl06','pl07','pl08','pl15','pl16','pl17'],nodes:['app1','app2','coord','zoo','shared']}
 ]
 const zones=[
  {title:'USER & INTEGRATIONS',description:'ACCESS / UNTRUSTED',className:'access',x:18,y:65,w:229,h:825},
- {title:'ENTRY / SHARED WEB',description:'HTTPS · APACHE · COORDINATION',className:'entry',x:265,y:65,w:415,h:445},
- {title:'POLARION APPLICATION CLUSTER',description:'TWO APPLICATION NODES · EXAMPLE',className:'app',x:689,y:65,w:292,h:446},
- {title:'PERSISTENCE / SEARCH',description:'SVN · SHARED DATA · LOCAL I/O',className:'data',x:265,y:536,w:950,h:351},
- {title:'COORDINATION',description:'LOGICAL ROLE · ZOOKEEPER',className:'coord',x:998,y:65,w:217,h:445},
+ {title:'ENTRY / SHARED WEB',description:'HTTPS · REVERSE PROXY · SVN WebDAV',className:'entry',x:265,y:65,w:415,h:445},
+ {title:'POLARION APPLICATION CLUSTER',description:'TWO APPLICATION NODES · EXAMPLE',className:'app',x:689,y:65,w:310,h:445},
+ {title:'PERSISTENCE / SEARCH',description:'SVN · SHARED FILES · NODE-LOCAL DB / INDEX',className:'data',x:265,y:550,w:953,h:375},
+ {title:'COORDINATION',description:'COORDINATOR · EMBEDDED ZOOKEEPER',className:'coord',x:1003,y:65,w:215,h:445},
 ]
+// Explicit orthogonal service corridors. Application nodes avoid the other node's
+// cards and database/index lines enter their own resources. These are logical paths,
+// not verified physical network circuits.
+const polarionRoutes:Record<string,NonNullable<DiagramEdge['route']>>={
+ pl01:{start:'right',end:'left',via:[[251,224],[251,220]],hideLabel:true},
+ pl02:{start:'right',end:'left',startOffset:-20,endOffset:25,via:[[255,384],[255,245]],hideLabel:true},
+ pl03:{start:'right',end:'left',via:[],hideLabel:true},
+ pl04:{start:'right',end:'left',startOffset:-18,endOffset:-18,via:[],hideLabel:true},
+ pl05:{start:'right',end:'left',startOffset:28,endOffset:0,via:[[692,248],[692,416]],hideLabel:true},
+ pl06:{start:'right',end:'left',startOffset:-23,endOffset:-24,via:[[953,197],[953,196]],hideLabel:true},
+ pl07:{start:'right',end:'left',startOffset:-17,endOffset:28,via:[[976,399],[976,248]],hideLabel:true},
+ pl08:{start:'bottom',end:'top',via:[],hideLabel:true},
+ pl09:{start:'left',end:'top',startOffset:-32,endOffset:-33,via:[[703,188],[703,527],[362,527],[362,673]],hideLabel:true},
+ pl10:{start:'right',end:'top',startOffset:32,endOffset:33,via:[[912,448],[912,553],[428,553],[428,673]],hideLabel:true},
+ pl11:{start:'right',end:'top',startOffset:36,endOffset:-29,via:[[920,256],[920,600],[776,600]],hideLabel:true},
+ pl12:{start:'right',end:'top',startOffset:-29,endOffset:26,via:[[925,387],[925,765],[831,765]],hideLabel:true},
+ pl13:{start:'right',end:'top',startOffset:7,via:[[969,227],[969,598],[1029,598]],hideLabel:true},
+ pl14:{start:'right',end:'left',startOffset:38,via:[[934,454],[934,849]],hideLabel:true},
+ pl15:{start:'right',end:'bottom',via:[[1225,220],[1225,924],[596,924],[596,830]],hideLabel:true},
+ pl16:{start:'bottom',end:'top',startOffset:-54,endOffset:-35,via:[[705,285],[705,514],[561,514],[561,672]],hideLabel:true},
+ pl17:{start:'left',end:'top',startOffset:36,endOffset:35,via:[[678,452],[678,570],[631,570],[631,673]],hideLabel:true},
+ pl18:{start:'right',end:'bottom',via:[[266,601],[266,310],[586,310]],hideLabel:true}
+}
 const reviews=[
  {name:'가용성·장애 조치',kicker:'HIGH AVAILABILITY',body:'Coordinator, Shared Services, LB, Application Nodes의 단일 장애점을 구분하고 failover 결과를 실제 업무 흐름으로 검증합니다.'},
  {name:'원본 및 색인 복구',kicker:'DATA INTEGRITY',body:'Subversion 원본, PostgreSQL, Lucene 색인, 공유 데이터의 정합성과 복원 순서를 별도로 검증합니다.'},
@@ -73,13 +96,14 @@ export default function PolarionArchitecture(){
  const [selectedNode,setSelectedNode]=useState('app1')
  const [selectedEdge,setSelectedEdge]=useState('pl04')
  const [quick,setQuick]=useState<{kind:'component'|'connection';id:string}|null>(null)
- const [allEdges,setAllEdges]=useState(true)
+ const [allEdges,setAllEdges]=useState(false)
  const [board,setBoard]=useState<HTMLDivElement|null>(null)
  const [scrollArea,setScrollArea]=useState<HTMLDivElement|null>(null)
  const [scale,setScale]=useState(1)
  const [query,setQuery]=useState('')
  const [filter,setFilter]=useState<'all'|Edge['status']>('all')
  const [opened,setOpened]=useState(-1)
+ const routedEdges=useMemo(()=>edges.map(e=>({...e,route:polarionRoutes[e.id]})),[])
  const edge=edges.find(e=>e.id===selectedEdge)!
  const active=flows.find(f=>f.id===flow)!
  useLayoutEffect(()=>{
@@ -139,23 +163,25 @@ export default function PolarionArchitecture(){
       <div className="pol-flows">{flows.map(f=><button type="button" className={f.id===flow?'active':''} onClick={()=>{setFlow(f.id);setSelectedNode(f.nodes[0]);setSelectedEdge(f.edges[0])}} key={f.id}>{f.name}</button>)}</div>
     </div>
     <div className="pol-canvas-frame">
-      <div className="pol-canvas-toolbar"><span><Network size={15}/> POLARION ARCHITECTURE / CLUSTER VIEW</span><button type="button" onClick={()=>setAllEdges(!allEdges)}>{allEdges?'주요 흐름만':'전체 연결 보기'}</button></div>
-      <div className="pol-canvas-jumps" aria-label="구성도 영역 빠른 이동"><span>빠른 이동</span>{([{id:'user',label:'접속'},{id:'lb',label:'웹'},{id:'app1',label:'앱 클러스터'},{id:'svn',label:'데이터'},{id:'zoo',label:'Coordinator'}] as const).map(x=><button type="button" key={x.id} onClick={()=>jump(x.id)}>{x.label}</button>)}</div>
+      <div className="pol-canvas-toolbar"><span><Network size={15}/> POLARION ARCHITECTURE / CLUSTER VIEW</span><button type="button" onClick={()=>setAllEdges(!allEdges)}>{allEdges?'핵심 연결만 보기':'모든 연결 18개 보기'}</button></div>
+      <div className="pol-canvas-jumps" aria-label="구성도 영역 빠른 이동"><span>빠른 이동</span>{([{id:'user',label:'접속'},{id:'lb',label:'웹'},{id:'app1',label:'앱 클러스터'},{id:'svn',label:'데이터'},{id:'coord',label:'Coordinator'}] as const).map(x=><button type="button" key={x.id} onClick={()=>jump(x.id)}>{x.label}</button>)}</div>
       <div className="pol-canvas-scroll" ref={setScrollArea} role="region" tabIndex={0} aria-label="Polarion 연결선이 그려진 인터랙티브 인프라 구성도">
         <div className="pol-canvas-scale" style={{width:1240*scale,height:966*scale}}>
         <div className="pol-canvas" ref={setBoard} style={{transform:'scale('+scale+')',transformOrigin:'top left'}}>
           <div className="pol-grid"/>
           {zones.map(z=><div key={z.title} className={'pol-zone pol-zone-'+z.className} style={{left:z.x,top:z.y,width:z.w,height:z.h}}><strong>{z.title}</strong><small>{z.description}</small></div>)}
+          <div className="pol-data-subzone pol-data-subzone-common"><span>SHARED · ALL NODES</span></div>
+          <div className="pol-data-subzone pol-data-subzone-local"><span>NODE A · LOCAL DATA</span><span>NODE B · LOCAL DATA</span></div>
           {nodes.map(n=>{const Icon=IconMap[n.icon];return <button type="button" data-service={n.id} key={n.id} style={{left:n.x,top:n.y}} className={'pol-node pol-node-'+n.kind+(active.nodes.includes(n.id)?' in-flow':'')+(n.id===selectedNode?' chosen':'')} onClick={()=>chooseNode(n.id)} aria-pressed={selectedNode===n.id}>
              <span className="pol-node-identity"><Icon size={19}/><span>{n.kind==='optional'?'OPTIONAL':n.kind==='store'?'DATA':n.kind==='app'?'APPLICATION':'SERVICE'}</span><i/></span>
              <strong>{n.title}</strong><small>{n.subtitle}</small><span className="pol-node-port">{n.port}</span>
            </button>})}
-          <ServiceConnections boardElement={board} edges={edges} selectedIds={active.edges} selectedId={selectedEdge} showAll={allEdges} onSelect={goEdge}/>
-          <div className="pol-canvas-note">CONCEPTUAL CLUSTER · NOT A NETWORK FIREWALL RULESET</div>
+          <ServiceConnections boardElement={board} edges={routedEdges} selectedIds={active.edges} selectedId={selectedEdge} showAll={allEdges} alwaysVisibleIds={['pl01','pl03','pl04','pl05','pl06','pl07','pl08']} onSelect={goEdge}/>
+          <div className="pol-canvas-note">LOGICAL CLUSTER · COORDINATOR/ZooKeeper ARE RELATED ROLES, NOT TWO REQUIRED SERVERS</div>
         </div>
         </div>
       </div>
-      <div className="pol-canvas-footer"><span><i className="pol-legend-dot"/> 선택 흐름</span><span><i className="pol-legend-line"/> 기타 확인된 관계</span><span><i className="pol-legend-dash"/> 설정별 확인</span><small>서비스·연결선 클릭 → 상세 패널 · 모바일: 좌우 스크롤</small></div>
+      <div className="pol-canvas-footer"><span><i className="pol-legend-dot"/> 선택 흐름</span><span><i className="pol-legend-line"/> 기타 논리 연결</span><span><i className="pol-legend-dash"/> 설정별 확인</span><small>서비스·연결선 클릭 → 상세 패널 · 모바일: 좌우 스크롤</small></div>
     </div>
    </>}
    {tab==='connections'&&<>
