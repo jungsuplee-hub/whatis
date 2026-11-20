@@ -132,3 +132,26 @@
  .behind-description{grid-template-columns:1fr}
  .behind-why,.behind-tech-open{grid-column:1;justify-self:start;grid-row:auto}
 }
+
+/* Directory overview: actual topic names, never a manually maintained teaser list. */
+.topic-directory .directory-item{
+  height:auto; min-height:145px; padding:21px 23px; align-items:center; gap:14px;
+}
+.topic-directory .directory-item .directory-titles{gap:6px;min-width:0}
+.topic-directory .directory-item .directory-tech-list{
+  display:block; margin-top:6px;
+  font:650 12.5px/1.75 'DM Sans','Pretendard Variable','Noto Sans KR',sans-serif;
+  color:#536f5b; letter-spacing:-.16px; overflow-wrap:break-word; word-break:keep-all;
+}
+.topic-directory .directory-count{flex-shrink:0; align-self:center}
+.topic-directory .directory-item>svg{flex-shrink:0}
+@media(max-width:760px){
+  .topic-directory .directory-item{min-height:125px;padding:17px 15px;gap:10px}
+  .topic-directory .directory-item .directory-tech-list{font-size:12.5px;line-height:1.65;margin-top:4px}
+}
+@media(max-width:450px){
+  .topic-directory .directory-item{padding:16px 13px;gap:8px;min-height:115px}
+  .topic-directory .directory-item .directory-tech-list{font-size:12px;line-height:1.65}
+  .topic-directory .directory-count{font-size:9px}
+  .topic-directory .directory-item>svg{width:16px}
+}

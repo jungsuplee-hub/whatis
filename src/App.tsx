@@ -150,7 +150,7 @@ function HomePage({onTopic,onCategory,onSearch}:{onTopic:(t:Topic)=>void;onCateg
     <section className="topic-directory">
       <div className="directory-head"><div><span>03 / 관심 있는 것부터</span><h2>AI 이야기 골라보기</h2></div><button onClick={onSearch}><Search size={18}/> 모든 글 검색</button></div>
       <div className="directory-grid">{grouped.map((c,i)=><button key={c.id} onClick={()=>onCategory(c)} className={'directory-item d-'+i}>
-        <span className="directory-num">{String(i+1).padStart(2,'0')}</span><div className="directory-titles"><strong>{navLabel(c.id)}</strong><span>{c.title}</span></div><span className="directory-count">{generalTopics.filter(t=>t.category===c.id).length}개 이야기</span><ArrowUpRight size={20}/></button>)}</div>
+        <span className="directory-num">{String(i+1).padStart(2,'0')}</span><div className="directory-titles"><strong>{navLabel(c.id)}</strong><span>{c.title}</span><div className="directory-tech-list" aria-label="설명하는 기술">{generalTopics.filter(t=>t.category===c.id).map(technicalName).join(" · ")}</div></div><span className="directory-count">{generalTopics.filter(t=>t.category===c.id).length}개 이야기</span><ArrowUpRight size={20}/></button>)}</div>
     </section>
   </>
 }
