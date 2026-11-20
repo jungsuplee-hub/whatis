@@ -2,16 +2,17 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   Activity, ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Bookmark, BookmarkCheck,
-  BookOpen, Box, BrainCircuit, Check, CheckCircle2, ChevronLeft, ChevronRight,
-  CircleHelp, ClipboardCheck, Compass, Cpu, Database, ExternalLink, Factory,
-  GitBranch, Globe2, Hash, Home, Image, Layers3,
-  Lightbulb, Menu, MessageSquareText, Network, Orbit, PlugZap,
+  Box, BrainCircuit, Check, CheckCircle2, ChevronLeft, ChevronRight,
+  CircleHelp, ClipboardCheck, Cpu, Database, ExternalLink, Factory,
+  GitBranch, Globe2, Hash, Image, Layers3,
+  Lightbulb, MessageSquareText, Network, Orbit, PlugZap,
   Search, Scissors, Server, Share2, ShieldCheck, SlidersHorizontal, Sparkles, TerminalSquare,
   ThumbsUp, Workflow, Wrench, X, FlaskConical, Blocks, ChartNoAxesCombined, Clock3
 } from 'lucide-react'
 import { categories, categoryById, generalTopics, siemensTopics, siemensSolutions, topicById } from './data'
 import type { Area, Category, Topic } from './data'
 import './styles.css'
+import FlowPlayground from './FlowPlayground'
 
 const icons: Record<string, LucideIcon> = {
   brain: BrainCircuit, sparkles: Sparkles, database: Database, workflow: Workflow,
@@ -42,7 +43,6 @@ function App() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [selectedStage, setSelectedStage] = useState(0)
-  const [mobileMenu, setMobileMenu] = useState(false)
   const [favorites, setFavorites] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('whatis:favorites') || '[]') as string[] } catch { return [] }
   })
@@ -50,7 +50,6 @@ function App() {
   const mainRef = useRef<HTMLElement>(null)
   const navigate = (next: Route) => {
     setRoute(next)
-    setMobileMenu(false)
     setSearchOpen(false)
     setQuery('')
     setSelectedStage(0)
@@ -59,7 +58,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
   useEffect(() => {
-    const handler = () => { setRoute(parseRoute()); setSelectedStage(0); setMobileMenu(false); window.scrollTo(0, 0) }
+    const handler = () => { setRoute(parseRoute()); setSelectedStage(0); window.scrollTo(0, 0) }
     window.addEventListener('hashchange', handler)
     return () => window.removeEventListener('hashchange', handler)
   }, [])
@@ -67,7 +66,7 @@ function App() {
     const handler = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setSearchOpen(true) }
       if (event.key === '/' && !(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)) { event.preventDefault(); setSearchOpen(true) }
-      if (event.key === 'Escape') { setSearchOpen(false); setMobileMenu(false) }
+      if (event.key === 'Escape') { setSearchOpen(false) }
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
@@ -103,7 +102,6 @@ function App() {
 
   return <div className="app-shell">
     <header className="topbar">
-      <button className="mobile-toggle icon-button" aria-label="메뉴 열기" onClick={() => setMobileMenu(true)}><Menu size={22}/></button>
       <button className="brand" onClick={() => home('general')} aria-label="WHATIS 홈">
         <span className="brand-mark"><span className="brand-mark-inside">w<span>.</span></span></span>
         <span className="brand-word">whatis<span className="brand-period">.</span><small>VISUAL TECHNOLOGY GUIDE</small></span>
@@ -115,44 +113,12 @@ function App() {
         </div>
       </div>
       <div className="topbar-end">
-        <button className="search-trigger" onClick={() => setSearchOpen(true)} aria-label="기술 검색 열기"><Search size={17}/><span>무엇이 궁금하신가요?</span><kbd>⌘ K</kbd></button>
-        <a className="github-link" href="https://github.com/jungsuplee-hub/whatis" target="_blank" rel="noopener noreferrer" title="GitHub 저장소"><Globe2 size={18}/></a>
+        <button className="search-trigger" onClick={() => setSearchOpen(true)} aria-label="기술 검색 열기"><Search size={17}/><span>AI 개념 검색...</span><kbd>⌘ K</kbd></button>
+        <button className="header-bookmark" onClick={() => navigate({area: route.area, page: "saved"})} aria-label="저장한 개념 보기" title="저장한 개념"><Bookmark size={18}/>{saved.length > 0 && <span className="header-bookmark-dot"/>}</button>
       </div>
     </header>
 
     <div className="layout">
-      {mobileMenu && <button className="menu-backdrop" onClick={() => setMobileMenu(false)} aria-label="메뉴 닫기"/>}
-      <aside className={'sidebar ' + (mobileMenu ? 'sidebar-open' : '')}>
-        <div className="sidebar-scroll">
-          <div className="sidebar-mobile-head"><span>탐색하기</span><button className="icon-button" onClick={() => setMobileMenu(false)} aria-label="닫기"><X size={20}/></button></div>
-          <p className="sidebar-label">EXPLORE</p>
-          <button className={'side-home ' + (route.page === 'home' ? 'active' : '')} onClick={() => home()}><Home size={18}/><span>홈 · 전체 보기</span><ChevronRight size={16} className="side-arrow"/></button>
-          <button className={'side-home ' + (route.page === 'saved' ? 'active' : '')} onClick={() => navigate({ area: route.area, page: 'saved' })}><Bookmark size={18}/><span>저장한 개념</span><span className="side-count">{saved.length}</span></button>
-          <div className="side-divider"/>
-          <div className="sidebar-heading"><span>{route.area === 'general' ? 'GENERAL AI' : 'SIEMENS SOFTWARE'}</span><span>{route.area === 'siemens' ? 'SOON' : String(currentTopics.length).padStart(2,'0') + ' TOPICS'}</span></div>
-          {route.area === 'siemens' && <p className="sidebar-soon-note">제품별 기술 문서는 이후 확장됩니다. 현재는 일반 AI 영역을 이용해 주세요.</p>}
-          <div className="sidebar-group">
-            {currentCategories.map(category => {
-              const catTopics = currentTopics.filter(t => t.category === category.id)
-              const activeCategory = route.page === 'category' && route.id === category.id
-              const activeTopic = route.page === 'topic' && currentTopic?.category === category.id
-              return <div className="side-section" key={category.id}>
-                <button className={'side-category ' + ((activeCategory || activeTopic) ? 'group-active' : '')} onClick={() => goCategory(category)}>
-                  <span className={'side-category-icon tone-' + category.color}><Icon name={category.icon} size={17}/></span>
-                  <span>{category.title}</span><span className="side-count">{catTopics.length}</span>
-                </button>
-                {(activeCategory || activeTopic) && <div className="side-subtopics">
-                  {catTopics.map(t => <button key={t.id} className={'side-topic ' + (route.page === 'topic' && route.id === t.id ? 'topic-active' : '')} onClick={() => goTopic(t)}><span className="side-topic-dot"/>{t.title}</button>)}
-                </div>}
-              </div>
-            })}
-          </div>
-          <div className="sidebar-bottom">
-            <div className="sidebar-tip"><div className="tip-icon"><Lightbulb size={17}/></div><strong>읽는 것보다, 보는 것.</strong><p>각 개념의 구조도를 클릭하며 흐름을 따라가 보세요.</p></div>
-            <p className="sidebar-foot">© 2026 WHATIS · Visual knowledge</p>
-          </div>
-        </div>
-      </aside>
       <main className="main" ref={mainRef} tabIndex={-1}>
         {route.page === 'home' && (route.area === 'siemens' ? <SiemensPreview goGeneral={() => switchArea('general')}/> : <HomePage area={route.area} list={currentTopics} groups={currentCategories} goTopic={goTopic} goCategory={goCategory} onSearch={() => setSearchOpen(true)}/>) }
         {route.page === 'category' && currentCategory && <CategoryPage category={currentCategory} list={currentTopics.filter(t => t.category === currentCategory.id)} goTopic={goTopic} goHome={() => home()}/>}
@@ -197,89 +163,26 @@ function SiemensPreview({ goGeneral }: { goGeneral: () => void }) {
     </section>
   </>
 }
-function HomePage({ area, list, groups, goTopic, goCategory, onSearch }: { area: Area; list: Topic[]; groups: Category[]; goTopic: (t: Topic) => void; goCategory: (c: Category) => void; onSearch: () => void }) {
-  const siemens = area === 'siemens'
-  const primary = siemens ? ['teamcenter','polarion','nx','simcenter'] : ['rag','llm','ai-agent','mcp']
-  const featured = primary.map(id => topicById(id)).filter((t): t is Topic => Boolean(t))
+
+function HomePage({ list, groups, goTopic, goCategory, onSearch }: { area: Area; list: Topic[]; groups: Category[]; goTopic: (t: Topic) => void; goCategory: (c: Category) => void; onSearch: () => void }) {
+  const examples=['llm','tokens','ai-agent'].map(id=>topicById(id)).filter((t):t is Topic=>Boolean(t))
   return <>
-    <div className="page-topline"><div className="topline-breadcrumb"><span>KNOWLEDGE BASE</span><ChevronRight size={14}/><strong>{siemens ? 'Siemens Technology' : 'General AI'}</strong></div><span className="topline-note"><span className="status-dot"/> VISUAL EXPLAINER</span></div>
-    <section className={'hero ' + (siemens ? 'hero-siemens' : '')}>
-      <div className="hero-text">
-        <div className="hero-eyebrow"><span className="eyebrow-mark">✳</span> A BETTER WAY TO UNDERSTAND TECH <span className="eyebrow-line"/></div>
-        <h1>{siemens ? <>Siemens 기술,<br/><em>연결해서</em> 이해하다.</> : <>어려운 AI 기술,<br/><em>그림으로</em> 이해하다.</>}</h1>
-        <p>{siemens ? 'Teamcenter, Polarion, NX부터 제조 솔루션까지. 흩어진 개념을 하나의 흐름으로 이해해 보세요.' : 'LLM, RAG, Agent, MCP까지. 어렵게 느껴지는 기술을 복잡한 문장 대신 명확한 구조와 흐름으로 설명합니다.'}</p>
-        <div className="hero-actions">
-          <button className="button-primary" onClick={() => goTopic(featured[0])}>첫 번째 개념 살펴보기 <ArrowRight size={18}/></button>
-          <button className="button-ghost" onClick={onSearch}><Search size={17}/> 개념 검색</button>
-        </div>
-        <div className="hero-bottomline"><span><CheckCircle2 size={14}/> 단계별 인터랙티브 구조도</span><span><CheckCircle2 size={14}/> 공식 문서 기반</span></div>
-      </div>
-      <HeroArtwork siemens={siemens} onOpen={goTopic}/>
+    <section className="home-intro">
+      <span className="home-intro-tag"><span className="intro-star">✳</span> WHATIS · VISUAL AI GUIDE</span>
+      <h1>질문 한 줄, 그 뒤에서는<br/><em>어떤 일이 일어날까?</em></h1>
+      <p>ChatGPT에 질문을 보내면 일어나는 일을 단계별 애니메이션으로 살펴보세요.</p>
     </section>
-    <div className="metric-strip">
-      <div><strong>{list.length.toString().padStart(2,'0')}<span>+</span></strong><small>TECH CONCEPTS</small></div>
-      <div><strong>{groups.length.toString().padStart(2,'0')}</strong><small>TECH CATEGORIES</small></div>
-      <div><strong>100<span>%</span></strong><small>VISUAL EXPLANATIONS</small></div>
-      <div className="metric-copy"><span className="metric-copy-icon"><Lightbulb size={22}/></span><p>단순 용어 풀이를 넘어<br/><strong>기술이 작동하는 방식</strong>까지</p></div>
-    </div>
-    <section className="section-block">
-      <SectionHeader eyebrow="01 / EXPLORE BY CATEGORY" title="관심 있는 분야부터 시작하세요" description="어떤 기술이 궁금한가요? 주제별로 정리한 지식 지도를 탐색해 보세요."/>
-      <div className="category-grid">
-        {groups.map((c,i) => <button key={c.id} className={'category-card category-' + c.color} onClick={() => goCategory(c)}>
-          <div className="category-card-top"><span className="category-number">0{i+1}</span><ArrowUpRight size={21}/></div>
-          <div className="category-symbol"><Icon name={c.icon} size={27}/></div>
-          <div className="category-card-content"><h3>{c.title}</h3><p>{c.caption}</p><div className="category-card-footer">{list.filter(t => t.category === c.id).length}개 기술 보기 <ArrowRight size={16}/></div></div>
-        </button>)}
-      </div>
-    </section>
-    {!siemens && <section className="section-block">
-      <SectionHeader eyebrow="02 / THE BIG PICTURE" title="기술은 서로 연결되어 있습니다" description="하나의 기술이 다른 기술 위에서 어떻게 발전하는지 살펴보세요."/>
-      <div className="evolution-card">
-        <div className="evolution-top"><div><span className="mini-eyebrow">TECHNOLOGY EVOLUTION</span><h3>AI에서 AI Agent까지</h3></div><span className="evolution-hint"><MouseGuide/> 클릭해서 더 알아보기</span></div>
-        <div className="evolution-flow">
-          {['ai','machine-learning','deep-learning','llm','ai-agent'].map((id,i) => {
-            const t = topicById(id)!
-            return <div className="evolution-flow-item" key={id}>{i>0 && <div className="evolution-connector"><ArrowRight size={19}/></div>}<button onClick={() => goTopic(t)} className={'evolution-node evol-'+i}><span className="evolution-step">0{i+1}</span><Icon name={t.icon} size={25}/><strong>{t.title}</strong><span>{t.english}</span></button></div>
-          })}
-        </div>
-        <p className="evolution-caption"><Lightbulb size={16}/> 위 흐름은 개념 간 관계를 단순화한 학습용 도식이며, 기술의 유일한 발전 경로를 뜻하지 않습니다.</p>
-      </div>
-    </section>}
-    <section className="section-block section-featured">
-      <SectionHeader eyebrow={siemens ? '02 / START HERE' : '03 / POPULAR TOPICS'} title={siemens ? '먼저 알아두면 좋은 Siemens 기술' : '이 개념부터 알아보세요'} description="많이 연결되는 핵심 기술을 골랐습니다. 카드를 누르면 단계별 구조도와 활용 사례를 볼 수 있습니다."/>
-      <div className="featured-grid">{featured.map((t,i) => <button key={t.id} className="featured-card" onClick={() => goTopic(t)}>
-        <div className="featured-card-top"><span className={'featured-icon tone-' + (categoryById(t.category)?.color || 'blue')}><Icon name={t.icon} size={25}/></span><span className="featured-index">0{i+1} / 04</span></div>
-        <span className="featured-category">{categoryById(t.category)?.title}</span><h3>{t.title}</h3><p>{t.summary}</p><div className="featured-bottom"><span>{t.stages.length}단계 구조도</span><span className="featured-arrow"><ArrowUpRight size={20}/></span></div>
+    <FlowPlayground/>
+    <div className="home-quick-links"><span>함께 읽으면 좋은 개념</span>{examples.map(t=><button key={t.id} onClick={()=>goTopic(t)}>{t.title}<ArrowUpRight size={15}/></button>)}</div>
+    <section className="home-catalog" id="topics">
+      <div className="home-catalog-head"><div><span>EXPLORE THE LIBRARY</span><h2>AI 기술 더 알아보기</h2><p>핵심 개념 {list.length}개를 주제별로 정리했습니다.</p></div><button onClick={onSearch}><Search size={17}/> 기술 검색</button></div>
+      <div className="home-catalog-grid">{groups.map(c=><button className="home-catalog-card" key={c.id} onClick={()=>goCategory(c)}>
+        <span className={'home-catalog-icon tone-'+c.color}><Icon name={c.icon} size={23}/></span>
+        <span className="home-catalog-text"><strong>{c.title}</strong><small>{c.caption}</small></span>
+        <span className="home-catalog-count">{list.filter(t=>t.category===c.id).length}</span><ArrowRight size={17} className="home-catalog-arrow"/>
       </button>)}</div>
     </section>
-    <section className="closing-banner"><div className="closing-icon"><BookOpen size={28}/></div><div><span>LEARN VISUALLY, UNDERSTAND DEEPLY.</span><h3>아는 기술이 하나씩 연결될 때, 전체 그림이 보입니다.</h3><p>어렵게 외우지 말고 구조를 따라 이해해 보세요.</p></div><button onClick={onSearch}>기술 찾기 <ArrowRight size={18}/></button></section>
   </>
-}
-function MouseGuide() { return <Compass size={15}/> }
-function HeroArtwork({ siemens, onOpen }: { siemens: boolean; onOpen: (t: Topic) => void }) {
-  const nodes = siemens ? [
-    {id:'teamcenter',name:'Teamcenter',sub:'PLM · PRODUCT DATA',place:'hero-node-1'},
-    {id:'polarion',name:'Polarion',sub:'ALM · REQUIREMENTS',place:'hero-node-2'},
-    {id:'nx',name:'NX',sub:'CAD · ENGINEERING',place:'hero-node-3'},
-    {id:'opcenter',name:'Opcenter',sub:'MANUFACTURING',place:'hero-node-4'}
-  ] : [
-    {id:'llm',name:'LLM',sub:'LANGUAGE MODEL',place:'hero-node-1'},
-    {id:'embeddings',name:'Embeddings',sub:'VECTOR REPRESENTATION',place:'hero-node-2'},
-    {id:'rag',name:'RAG',sub:'KNOWLEDGE RETRIEVAL',place:'hero-node-3'},
-    {id:'ai-agent',name:'AI Agent',sub:'TOOL USE · REASONING',place:'hero-node-4'}
-  ]
-  return <div className="hero-art" aria-label="기술 관계 시각화">
-    <div className="hero-art-noise"/><div className="hero-art-top"><span><span className="hero-live-dot"/> CONCEPT RELATION MAP</span><span>01 / 04</span></div>
-    <svg className="hero-connection-lines" viewBox="0 0 570 430" fill="none" aria-hidden="true" preserveAspectRatio="none">
-      <path d="M288 216 C190 216 196 98 110 97 M288 216 C365 216 368 98 463 97 M288 216 C182 216 196 340 106 340 M288 216 C375 216 381 340 464 340" stroke="#91abc1" strokeWidth="1.5" strokeDasharray="5 7" opacity=".48"/>
-      <circle cx="288" cy="216" r="90" stroke="#6384a7" strokeWidth="1" opacity=".23"/>
-      <circle cx="288" cy="216" r="134" stroke="#6384a7" strokeWidth="1" opacity=".12"/>
-      <circle cx="288" cy="216" r="175" stroke="#6384a7" strokeWidth="1" strokeDasharray="3 8" opacity=".18"/>
-    </svg>
-    <div className="hero-core"><div className="hero-core-logo"><BrainCircuit size={33}/></div><span>{siemens ? 'DIGITAL' : 'ARTIFICIAL'}</span><strong>{siemens ? 'ENTERPRISE' : 'INTELLIGENCE'}</strong><div className="core-orbit orbit-1"/><div className="core-orbit orbit-2"/></div>
-    {nodes.map((n,i) => <button key={n.id} className={'hero-graph-node '+n.place} onClick={() => onOpen(topicById(n.id)!)}><span className="hero-graph-icon"><Icon name={topicById(n.id)!.icon} size={17}/></span><strong>{n.name}</strong><small>{n.sub}</small><span className="hero-graph-bubble">0{i+1}</span></button>)}
-    <div className="hero-art-bottom"><span><span className="hero-art-block"/> INTERACTIVE KNOWLEDGE GRAPH</span><span><span className="tiny-dot"/> CONNECTED</span></div>
-  </div>
 }
 function SectionHeader({eyebrow,title,description}:{eyebrow:string;title:string;description:string}) {
   return <div className="section-header"><span className="section-eyebrow">{eyebrow}</span><h2>{title}</h2><p>{description}</p></div>
