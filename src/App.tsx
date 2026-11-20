@@ -7,7 +7,9 @@ import SiemensArchitect from './SiemensArchitect'
 import { categories, categoryById, generalTopics, topicById } from './data'
 import type { Topic, Area, Category } from './data'
 import { lessons } from './lessonContent'
+import { examplesForTopic } from './serviceExamples'
 import './editorial.css'
+import './service-examples.css'
 import './home-polish.css'
 import './mobile-clarity.css'
 
@@ -194,6 +196,7 @@ function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{to
   const phase=topic.stages[step]
   const lesson=lessons[topic.id]
   const category=categoryById(topic.category)!
+  const serviceExamples=examplesForTopic(topic.id)
   const related=topic.related.map(id=>topicById(id)).filter((t):t is Topic=>Boolean(t)).slice(0,4)
   useEffect(()=>{
     const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -233,6 +236,21 @@ function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{to
       </div>
     </div>
     <p className="visual-note"><CircleHelp size={15}/> 이해를 돕는 단순화된 시각 예시입니다. 실제 제품의 내부 동작과 정확히 일치하지 않을 수 있습니다.</p>
+    {serviceExamples.length>0&&<section className="service-examples" aria-labelledby="service-examples-title">
+      <div className="service-examples-header">
+        <div><span className="service-examples-kicker">REAL-WORLD EXAMPLES</span><h2 id="service-examples-title">이 기술을 만날 수 있는 서비스</h2><p>실제 서비스·개발 도구·공식 자료에서 어떻게 활용되는지 살펴보세요.</p></div>
+        <span className="service-examples-count">{serviceExamples.length} EXAMPLES</span>
+      </div>
+      <div className="service-examples-grid">
+        {serviceExamples.map(service=><a key={service.name+service.url} className="service-example-card" href={service.url} target="_blank" rel="noopener noreferrer" aria-label={service.name+' 공식 사이트 새 창에서 열기'}>
+          <span className="service-example-type">{service.kind}</span>
+          <h3>{service.name}</h3>
+          <p>{service.description}</p>
+          <span className="service-example-link">공식 사이트 보기 <ExternalLink size={15}/></span>
+        </a>)}
+      </div>
+      <p className="service-examples-note">기술의 활용을 이해하기 위한 사례입니다. 모든 서비스가 같은 방식으로 작동하는 것은 아니며, 이용 요금·가입 및 제공 기능은 해당 사이트에서 확인해 주세요.</p>
+    </section>}
     <div className="lesson-read-more">
       <div className="lesson-read-more-head"><span>궁금한 내용만 펼쳐 읽어보세요</span><span>DETAILS</span></div>
       <details><summary><span className="detail-index">01</span><span>일상에서 어떤 모습일까?</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>{lesson?.familiar||topic.analogy}</p><p className="detail-annotation">{topic.analogy}</p></div></details>
