@@ -17,10 +17,12 @@ npm run build
 ```
 
 ## GitHub Pages
-- Vite base: `/whatis/`
-- GitHub Settings → Pages → **Build and deployment / Source: GitHub Actions** 선택
-- `main` 푸시마다 `.github/workflows/pages.yml`이 `dist`를 빌드·배포합니다.
-- 예상 사이트 주소: https://jungsuplee-hub.github.io/whatis/
+- 배포 주소: https://jungsuplee-hub.github.io/whatis/
+- 배포 방식: `main` 브랜치의 **/(root)** 정적 파일. GitHub Settings → Pages → Build and deployment → Deploy from a branch → `main` / `/(root)`.
+- `npm run build` 실행 시 Vite 빌드 결과인 `dist/`와 함께, Pages가 바로 실행할 수 있도록 저장소 루트의 `index.html`·`assets/`·`favicon.svg`를 동기화합니다.
+- 배포할 때는 **`npm run build` 후 변경된 소스와 루트 배포 파일을 모두 커밋·푸시**합니다.
+- `.github/workflows/pages.yml`은 푸시된 빌드 산출물이 원본 소스와 일치하는지 검사합니다.
+- Vite base: `/whatis/`; 프런트엔드 원본 템플릿: `site/index.html`.
 - 기술 상세 주소 예: `https://jungsuplee-hub.github.io/whatis/#general/rag`
 
 ## Content maintenance
