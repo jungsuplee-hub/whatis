@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import {
-  ArrowRight, ArrowUpRight, Check, ChevronLeft, ChevronRight, CircleHelp,
-  CornerDownLeft, FileText, Globe2, Layers3, MessageSquareText, Pause,
-  Play, RotateCcw, Sparkles, WandSparkles
-} from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Check, ChevronLeft, ChevronRight, CircleHelp, Pause, Play, RotateCcw, Sparkles, WandSparkles } from 'lucide-react'
+import QuestionJourney from './QuestionJourney'
 import './conversation.css'
 import HiddenTechAtlas from './HiddenTechAtlas'
 
@@ -52,26 +49,6 @@ const EXPAND_HELP:Record<PhaseName,string>={
   answer:'만들어진 토큰을 사람이 읽을 수 있는 글로 표시해요. 일부 서비스에서는 완성되기 전에 답변을 순서대로 보여줘요.',
   complete:'하나의 답변이 화면에 표시됐어요. 그럴듯한 말이라도 사실 확인이 필요할 수 있어요.'
 }
-function EngineVisual({phase,active}:{phase:PhaseName;active:boolean}){
-  return <div className={'cinema-engine-art art-'+phase} aria-hidden="true">
-    {phase==='typing'&&<div className="engine-await"><span className="await-prompt">?</span><span className="await-dots"><i/><i/><i/></span></div>}
-    {phase==='sending'&&<div className="engine-send"><span className="send-card"><MessageSquareText size={28}/></span><span className="send-track"/><span className="send-target"><CornerDownLeft size={23}/></span></div>}
-    {phase==='context'&&<div className="engine-context"><div className="context-paper paper-a"><MessageSquareText size={19}/><span>질문</span></div><div className="context-paper paper-b"><Layers3 size={19}/><span>지시</span></div><div className="context-paper paper-c"><FileText size={19}/><span>문맥</span></div><div className="context-join"><ArrowRight size={21}/></div><div className="context-result"><span/><span/><span/></div></div>}
-    {phase==='tokens'&&<div className="engine-tokens"><div className="tokens-intro">“사람이 쓰는 글”</div><div className="token-guideline"/><div className="token-pieces"><span>01</span><span>02</span><span>03</span><span>04</span></div><div className="token-under">작은 조각으로</div></div>}
-    {(phase==='compute'||phase==='answer')&&<div className="engine-model">
-      <svg viewBox="0 0 310 230" className="model-lines">
-        <g stroke="#8baa99" strokeWidth="1.35" opacity=".55">
-          {Array.from({length:4},(_,a)=>Array.from({length:5},(_,b)=><line key={a+'-'+b} x1={45+a*69} y1={35+b*40} x2={45+(a+1)*69} y2={35+((b+1)%5)*40}/>))}
-        </g>
-        {Array.from({length:5},(_,row)=>Array.from({length:4},(_,col)=><circle key={row+'-'+col} cx={45+col*69} cy={35+row*40} r={col===1?8:6} fill={col%2===0?'#daeadf':'#8cb5a4'} stroke="#aacaba" strokeWidth="2" className={'model-dot dot-phase-'+((row+col)%4)}/>))}
-      </svg>
-      <div className="model-center-glow"><Sparkles size={21}/></div>
-      <div className="model-token-flow"><span>문맥</span><ArrowRight size={12}/><span>다음 말</span><ArrowRight size={12}/><span>예측</span></div>
-    </div>}
-    {phase==='search'&&<div className="engine-search"><div className="search-globe"><Globe2 size={34}/></div><div className="search-ray"/><div className="search-docs"><div><FileText size={16}/><span/></div><div><FileText size={16}/><span/></div><div><FileText size={16}/><span/></div></div></div>}
-    {phase==='complete'&&<div className="engine-complete"><span className="complete-circle"><Check size={38}/></span><span>DONE</span></div>}
-    <span className={'art-signal '+(active?'signal-active':'')}/></div>
-}
 export default function FlowPlayground() {
   const [episode,setEpisode]=useState<Episode>(DEMOS[0])
   const [elapsed,setElapsed]=useState(0)
@@ -93,6 +70,8 @@ export default function FlowPlayground() {
   const inputValue=editing?draft:stage==='typing'?sliceChars(episode.question,scene.local/scene.duration):''
   const response=stage==='complete'?episode.answer:stage==='answer'?sliceChars(episode.answer,scene.local/scene.duration):''
   const active=playing&&!finished
+  const journeyProgress=scene.duration>0?Math.max(0,Math.min(1,scene.local/scene.duration)):1
+  const simulatedQuestion=stage==='typing'?sliceChars(episode.question,journeyProgress):episode.question
 
   useEffect(()=>{
     const media=window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -178,7 +157,7 @@ export default function FlowPlayground() {
       <div className="cinema-behind">
         <div className="behind-top"><span className="behind-top-marker"/><span>BEHIND THE ANSWER</span><span>{String(scene.index+1).padStart(2,'0')} / {String(phases.length).padStart(2,'0')}</span></div>
         <div className="behind-illustration">
-          <EngineVisual phase={stage} active={active}/>
+          <QuestionJourney key={episode.id+'-'+stage} stage={stage} episode={episode} progress={journeyProgress} partialAnswer={response} partialQuestion={simulatedQuestion}/>
           <span className="behind-corner corner-tl"/><span className="behind-corner corner-br"/>
         </div>
         <div className="behind-description">

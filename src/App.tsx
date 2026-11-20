@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, ArrowUpRight, Bookmark, BookmarkCheck, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, ExternalLink, Layers3, Pause, Play, Search, Share2, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUpRight, Bookmark, BookmarkCheck, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, ExternalLink, Pause, Play, Search, Share2, X } from 'lucide-react'
 import FlowPlayground from './FlowPlayground'
 import ConceptMotion from './ConceptMotion'
-import { categories, categoryById, generalTopics, siemensSolutions, topicById } from './data'
+import TopicStageScene from './TopicStageScene'
+import SiemensArchitect from './SiemensArchitect'
+import { categories, categoryById, generalTopics, topicById } from './data'
 import type { Topic, Area, Category } from './data'
 import { lessons } from './lessonContent'
 import './editorial.css'
 import './home-polish.css'
+import './mobile-clarity.css'
 
 type Route = {area: Area; page:'home'|'category'|'topic'|'saved';id?:string}
 const routeFromHash = ():Route => {
@@ -20,6 +23,22 @@ const routeFromHash = ():Route => {
   return {area,page:'home'}
 }
 const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/category/'+r.id:r.page==='saved'?'/saved':'')
+const technicalName = (t:Topic) => ({
+  ai:'AI', 'machine-learning':'Machine Learning', 'deep-learning':'Deep Learning',
+  'neural-networks':'Neural Network', 'supervised-learning':'Supervised Learning',
+  'generative-ai':'Generative AI', llm:'LLM', transformer:'Transformer',
+  tokens:'Token', 'prompt-engineering':'Prompt Engineering', multimodal:'Multimodal AI',
+  embeddings:'Embedding', 'vector-database':'Vector DB', 'semantic-search':'Semantic Search',
+  chunking:'Chunking', rag:'RAG', 'ai-agent':'AI Agent', 'function-calling':'Function Calling',
+  mcp:'MCP', orchestration:'Orchestration', 'context-memory':'Context & Memory',
+  'fine-tuning':'Fine-tuning', rlhf:'RLHF', quantization:'Quantization',
+  distillation:'Distillation', 'training-vs-inference':'Training / Inference',
+  'model-serving':'Model Serving', 'model-evaluation':'Model Evaluation',
+  'ai-safety':'AI Safety', observability:'Observability',
+  hallucination:'Hallucination', 'image-generation':'Image Generation',
+  'speech-to-text':'Speech to Text', 'search-vs-ai':'Search vs AI',
+  'personal-data':'Data Privacy', 'ai-limitations':'AI Limitations'
+} as Record<string,string>)[t.id]||t.title
 const friendly = (t:Topic) => lessons[t.id]?.heading||t.title
 const simple = (t:Topic) => lessons[t.id]?.short||t.summary
 const grouped=categories.filter(c=>c.area==='general')
@@ -78,7 +97,7 @@ function App(){
         <button type="button" className="site-brand" onClick={home} aria-label="WHATIS 첫 화면">whatis<span>.</span></button>
         <nav className="site-nav" aria-label="주제별 메뉴">
           <button type="button" className={route.area==='general'?'active':''} onClick={home}>일반 AI</button>
-          <button type="button" className={route.area==='siemens'?'active':''} onClick={()=>navigate({area:'siemens',page:'home'})}>Siemens <span className="nav-soon">준비 중</span></button>
+          <button type="button" className={route.area==='siemens'?'active':''} onClick={()=>navigate({area:'siemens',page:'home'})}>Siemens <span className="nav-soon">ARCHITECT</span></button>
         </nav>
         <div className="header-actions">
           <button type="button" aria-label="AI 기술 검색" className="header-icon" onClick={()=>setSearchOpen(true)}><Search size={20}/></button>
@@ -88,7 +107,7 @@ function App(){
     </header>
     <main className="site-main">
       {route.page==='home'&&route.area==='general'&&<HomePage onTopic={openTopic} onCategory={openCategory} onSearch={()=>setSearchOpen(true)}/>}
-      {route.page==='home'&&route.area==='siemens'&&<SiemensPreview onHome={home}/>}
+      {route.page==='home'&&route.area==='siemens'&&<SiemensArchitect onHome={home}/>}
       {route.page==='category'&&category&&<TopicCollection key={category.id} category={category} onTopic={openTopic} onHome={home}/>}
       {route.page==='saved'&&<SavedCollection ids={saved} onTopic={openTopic} onHome={home}/>}
       {route.page==='topic'&&topic&&<TopicLesson key={topic.id} topic={topic} onHome={home} onCategory={()=>openCategory(categoryById(topic.category)!)} onTopic={openTopic} bookmarked={saved.includes(topic.id)} onBookmark={()=>favorite(topic.id)}/>}
@@ -122,7 +141,7 @@ function HomePage({onTopic,onCategory,onSearch}:{onTopic:(t:Topic)=>void;onCateg
       <div className="section-identity"><span>02 / 한 장으로 이해하기</span><h2>그 다음은, 이 질문들.</h2></div>
       <div className="story-grid">
         {featuredIds.map((id,i)=>{const t=topicById(id)!;return <button key={id} className={'story-tile story-'+i} onClick={()=>onTopic(t)}>
-          <span className="story-tile-top"><span>{String(i+1).padStart(2,'0')}</span><ArrowUpRight size={19}/></span>
+          <span className="story-tile-top"><span>{technicalName(t)}</span><ArrowUpRight size={19}/></span>
           <ConceptMotion category={t.category} topicId={t.id} compact label={t.title+' 애니메이션 예시'}/>
           <div className="story-tile-bottom"><strong>{friendly(t)}</strong><span>보러 가기 <ArrowRight size={15}/></span></div>
         </button>})}
@@ -131,7 +150,7 @@ function HomePage({onTopic,onCategory,onSearch}:{onTopic:(t:Topic)=>void;onCateg
     <section className="topic-directory">
       <div className="directory-head"><div><span>03 / 관심 있는 것부터</span><h2>AI 이야기 골라보기</h2></div><button onClick={onSearch}><Search size={18}/> 모든 글 검색</button></div>
       <div className="directory-grid">{grouped.map((c,i)=><button key={c.id} onClick={()=>onCategory(c)} className={'directory-item d-'+i}>
-        <span className="directory-num">{String(i+1).padStart(2,'0')}</span><strong>{navLabel(c.id)}</strong><span className="directory-count">{generalTopics.filter(t=>t.category===c.id).length}개 이야기</span><ArrowUpRight size={20}/></button>)}</div>
+        <span className="directory-num">{String(i+1).padStart(2,'0')}</span><div className="directory-titles"><strong>{navLabel(c.id)}</strong><span>{c.title}</span></div><span className="directory-count">{generalTopics.filter(t=>t.category===c.id).length}개 이야기</span><ArrowUpRight size={20}/></button>)}</div>
     </section>
   </>
 }
@@ -143,20 +162,19 @@ const navLabel=(id:string):string=>({
 function TopicCards({items,onTopic}:{items:Topic[];onTopic:(t:Topic)=>void}){
   return <div className="lesson-grid">{items.map((t,i)=><button key={t.id} className={'lesson-tile lesson-'+(i%4)} onClick={()=>onTopic(t)}>
     <div className="lesson-preview lesson-poster">
-      <span className="lesson-poster-id">{t.english}</span>
-      <strong className="lesson-poster-index">{String(i+1).padStart(2,'0')}</strong>
-      <span className="lesson-poster-dot"/>
-      <span className="lesson-poster-line"/>
+      <div className="lesson-poster-top"><span className="lesson-poster-category">{categoryById(t.category)?.title}</span><span className="lesson-poster-number">{String(i+1).padStart(2,'0')}</span></div>
+      <strong className="lesson-poster-term">{technicalName(t)}</strong>
+      <span className="lesson-poster-english">{t.title}</span>
       <span className="lesson-poster-subtitle">{t.stages[0]?.name} <ArrowRight size={13}/> {t.stages[t.stages.length-1]?.name}</span>
     </div>
-    <div className="lesson-tile-text"><span>{String(i+1).padStart(2,'0')} / {t.title}</span><strong>{friendly(t)}</strong><span className="lesson-arrow"><ArrowUpRight size={22}/></span></div>
+    <div className="lesson-tile-text"><strong>{friendly(t)}</strong><span className="lesson-arrow"><ArrowUpRight size={22}/></span></div>
   </button>)}</div>
 }
 function TopicCollection({category,onTopic,onHome}:{category:Category;onTopic:(t:Topic)=>void;onHome:()=>void}){
   const list=generalTopics.filter(t=>t.category===category.id)
   return <section className="collection-page">
     <button className="back-link" onClick={onHome}><ArrowLeft size={17}/> 모든 이야기</button>
-    <header className="collection-head"><div><span className="kicker">CURIOUS ABOUT AI / {String(list.length).padStart(2,'0')} STORIES</span><h1>{navLabel(category.id)}</h1><p>읽지 않아도 이해할 수 있게, 먼저 그림을 눌러보세요.</p></div><div className="collection-motion"><ConceptMotion category={category.id} label={category.title+' 움직이는 예시'}/></div></header>
+    <header className="collection-head"><div><span className="kicker">CURIOUS ABOUT AI / {String(list.length).padStart(2,'0')} STORIES</span><h1>{navLabel(category.id)}</h1><span className="collection-tech-label">{category.title}</span><p>한 가지씩 선택하고, 움직이는 단계로 이해해 보세요.</p></div><div className="collection-motion"><ConceptMotion category={category.id} label={category.title+' 움직이는 예시'}/></div></header>
     <TopicCards items={list} onTopic={onTopic}/>
   </section>
 }
@@ -190,7 +208,7 @@ function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{to
   return <article className="lesson-page">
     <div className="lesson-navigation"><button className="back-link" onClick={onCategory}><ArrowLeft size={16}/> {navLabel(topic.category)}</button><button className="back-home" onClick={onHome}>전체 보기</button></div>
     <header className="lesson-head">
-      <div><span className="kicker">A CLOSER LOOK · {category.title}</span><h1>{friendly(topic)}</h1><p>{simple(topic)}</p></div>
+      <div><span className="kicker">A CLOSER LOOK · {category.title}</span><span className="lesson-tech-heading">{technicalName(topic)}</span><h1>{friendly(topic)}</h1><p>{simple(topic)}</p></div>
       <div className="lesson-actions">
         <button onClick={onBookmark} aria-label={bookmarked?'저장 취소':'글 저장'} title={bookmarked?'저장됨':'저장하기'}>{bookmarked?<BookmarkCheck size={19}/>:<Bookmark size={19}/>}<span>{bookmarked?'저장됨':'저장'}</span></button>
         <button onClick={copy} aria-label="링크 복사"><Share2 size={19}/><span>{copied?'복사됨':'공유'}</span></button>
@@ -199,13 +217,7 @@ function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{to
     <div className="lesson-visual">
       <div className="lesson-visual-body">
         <div className="visual-overline"><span><i/> ANIMATED EXPLANATION</span><span>{step+1} / {topic.stages.length}</span></div>
-        {['search-vs-ai','image-generation','hallucination','speech-to-text','tokens','personal-data'].includes(topic.id)
-          ? <ConceptMotion category={topic.category} topicId={topic.id} step={step} label={topic.title+' 전용 애니메이션'}/>
-          : <div className="subject-process" aria-label={topic.title+' 고유 처리 흐름'}>
-              <span className="subject-process-tag">THIS CONCEPT · {topic.english}</span>
-              <div className="subject-process-track">{topic.stages.map((s,i)=><span className={'subject-process-pill '+(i===step?'now':'')} key={i}><small>{String(i+1).padStart(2,'0')}</small>{s.name}</span>)}</div>
-              <div className="subject-process-focus" key={step}><span>{String(step+1).padStart(2,'0')}</span><strong>{phase.name}</strong><small>{phase.note}</small></div>
-            </div>}
+        <TopicStageScene topic={topic} step={step}/>
         <div className="lesson-visual-caption"><span>{String(step+1).padStart(2,'0')}</span><div><strong>{phase.name}</strong><small>{phase.note}</small></div></div>
       </div>
       <div className="lesson-sequence">
@@ -231,8 +243,5 @@ function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{to
     </div>
     {related.length>0&&<section className="next-stories"><div className="next-head"><span>RELATED STORIES</span><h2>다음에는 이것도 살펴보세요</h2></div><div className="next-grid">{related.map(t=><button key={t.id} onClick={()=>onTopic(t)}><span>{friendly(t)}</span><ArrowUpRight size={18}/></button>)}</div></section>}
   </article>
-}
-function SiemensPreview({onHome}:{onHome:()=>void}){
-  return <section className="siemens-placeholder"><span className="kicker">COMING LATER</span><Layers3 size={47}/><h1>Siemens 이야기는<br/>다음에 만나요.</h1><p>Teamcenter, Polarion, Opcenter를 솔루션별로 정리할 예정입니다.</p><div className="siemens-chips">{siemensSolutions.map(s=><span key={s.id}>{s.name}</span>)}</div><button onClick={onHome}>일반 AI 둘러보기 <ArrowRight size={17}/></button></section>
 }
 export default App
