@@ -6,6 +6,7 @@ import { categories, categoryById, generalTopics, siemensSolutions, topicById } 
 import type { Topic, Area, Category } from './data'
 import { lessons } from './lessonContent'
 import './editorial.css'
+import './home-polish.css'
 
 type Route = {area: Area; page:'home'|'category'|'topic'|'saved';id?:string}
 const routeFromHash = ():Route => {
@@ -110,15 +111,15 @@ function App(){
 function HomePage({onTopic,onCategory,onSearch}:{onTopic:(t:Topic)=>void;onCategory:(c:Category)=>void;onSearch:()=>void}){
   return <>
     <section className="magazine-hero">
-      <div className="hero-number"><span className="hero-number-dot"/> A LITTLE CURIOUS ABOUT AI?</div>
-      <h1>어렵게 배우지 말고,<br/><em>눈으로 이해해요.</em></h1>
-      <p>AI가 대답하는 모습을 직접 눌러보고 따라가 보세요.</p>
+      <div className="hero-number"><span className="hero-number-dot"/> AN INTERACTIVE JOURNEY INTO AI</div>
+      <h1>질문을 보내면,<br/><em>안에서는 무슨 일이?</em></h1>
+      <p>채팅창에서 출발해 답변이 완성될 때까지. 직접 따라가 보세요.</p>
       <div className="hero-scribble" aria-hidden="true"><span>?</span><span>→</span><span>!</span></div>
     </section>
     <div className="exhibit-label"><span><i/> 01 / 먼저 체험하기</span><span>화면을 눌러보세요</span></div>
     <FlowPlayground/>
     <section className="feature-explore">
-      <div className="section-identity"><span>02 / 한 장으로 이해하기</span><h2>이런 것도 궁금했나요?</h2></div>
+      <div className="section-identity"><span>02 / 한 장으로 이해하기</span><h2>그 다음은, 이 질문들.</h2></div>
       <div className="story-grid">
         {featuredIds.map((id,i)=>{const t=topicById(id)!;return <button key={id} className={'story-tile story-'+i} onClick={()=>onTopic(t)}>
           <span className="story-tile-top"><span>{String(i+1).padStart(2,'0')}</span><ArrowUpRight size={19}/></span>

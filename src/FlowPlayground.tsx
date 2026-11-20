@@ -1,122 +1,204 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowRight, BrainCircuit, Check, ChevronLeft, ChevronRight, CircleHelp, Database, Globe2, MessageCircle, Pause, Play, RotateCcw, Send, Sparkles, Wrench } from 'lucide-react'
-import './flow.css'
+import {
+  ArrowRight, ArrowUpRight, Check, ChevronLeft, ChevronRight, CircleHelp,
+  CornerDownLeft, FileText, Globe2, Layers3, MessageSquareText, Pause,
+  Play, RotateCcw, Sparkles, WandSparkles
+} from 'lucide-react'
+import './conversation.css'
 
-type Mode = 'basic' | 'tools'
-type Stage = { id: string; title: string; caption: string; detail: string; icon: typeof MessageCircle }
-const commonStart: Stage[] = [
-  { id:'receive', title:'질문 수신', caption:'사용자 → 서비스', icon:MessageCircle, detail:'입력한 질문이 앱에서 처리 요청으로 전달됩니다. 실제 서비스에서는 인증·전송 등 별도 처리가 있을 수 있습니다.' },
-  { id:'context', title:'대화 모으기', caption:'필요한 맥락', icon:Database, detail:'서비스는 해당 요청에 필요한 지시와 허용된 대화 맥락을 모아 모델 입력을 구성합니다. 포함되는 정보는 서비스마다 다릅니다.' },
-  { id:'tokens', title:'글 조각 나누기', caption:'작은 단위로', icon:Sparkles, detail:'텍스트가 토큰 ID로 변환됩니다. 토큰은 단어, 단어 일부 또는 기호일 수 있으며 모델별 분할 방식이 다릅니다.' },
-  { id:'inference', title:'다음 말 계산', caption:'이어질 내용', icon:BrainCircuit, detail:'모델이 입력 문맥을 처리하고 이어질 토큰의 확률을 계산합니다. 실제 모델 내부의 구체적인 구조와 실행 순서는 달라질 수 있습니다.' }
+type Episode = { question:string; answer:string; mode:'standard'|'search'; id:string }
+type PhaseName = 'typing'|'sending'|'context'|'tokens'|'compute'|'search'|'answer'|'complete'
+type Phase = { id:PhaseName; label:string; hint:string; duration:number }
+const DEMOS: Episode[] = [
+  { id:'rainbow',question:'무지개는 왜 생겨?',answer:'햇빛이 공기 중 물방울을 통과하면서 여러 색으로 나뉘기 때문이에요. 그래서 비가 온 뒤에 무지개를 볼 수 있어요. 🌈',mode:'standard' },
+  { id:'mistake',question:'AI는 왜 틀린 답을 할까?',answer:'AI는 문맥에 어울리는 말을 만들어 내지만, 모든 사실을 확인하는 것은 아니에요. 그래서 중요한 내용은 출처를 확인해야 해요.',mode:'standard' },
+  { id:'weather',question:'오늘 서울 날씨 알려줘',answer:'최신 날씨를 알려면 외부 날씨 정보를 조회해야 해요. 이 체험은 실제 날씨를 조회하지 않는 애니메이션이에요.',mode:'search' }
 ]
-const tool: Stage = { id:'tools', title:'필요하면 자료 찾기', caption:'선택적 사용', icon:Wrench, detail:'질문 해결에 외부 정보가 필요하고 기능이 제공된 경우, 모델이 도구 호출을 요청할 수 있습니다. 실제 조회와 권한 검사는 연결된 시스템이 수행합니다.' }
-const finish: Stage = { id:'reply', title:'답변 보여주기', caption:'문장으로 전달', icon:Send, detail:'응답 토큰을 생성하고 읽을 수 있는 텍스트로 바꿔 화면에 표시합니다. 일부 서비스에서는 결과를 순차적으로 스트리밍합니다.' }
-const samples = [
-  { label:'일반 질문', text:'무지개는 왜 생겨?', mode:'basic' as Mode },
-  { label:'도구 사용', text:'오늘 서울 날씨를 찾아줘', mode:'tools' as Mode }
+const CUSTOM_ANSWER='이 화면에서는 실제 AI에 질문을 보내지 않아요. 대신 질문이 처리되고 답변이 한 부분씩 나타나는 모습을 보여드리고 있어요.'
+const PHASES: Phase[] = [
+  {id:'typing',label:'질문 입력',hint:'궁금한 것을 입력해요',duration:1650},
+  {id:'sending',label:'질문 전송',hint:'질문이 전달돼요',duration:900},
+  {id:'context',label:'문맥 구성',hint:'질문과 필요한 대화 내용을 모아요',duration:1500},
+  {id:'tokens',label:'토큰 변환',hint:'글을 작은 단위로 바꿔요',duration:1450},
+  {id:'compute',label:'모델 계산',hint:'이어질 말을 계산해요',duration:2050},
+  {id:'answer',label:'답변 생성',hint:'말이 조금씩 나타나요',duration:4200},
+  {id:'complete',label:'완성',hint:'하나의 답변이 만들어졌어요',duration:0}
 ]
-const DEMO_MS=1850
-export default function FlowPlayground() {
-  const [question,setQuestion]=useState(samples[0].text)
-  const [mode,setMode]=useState<Mode>('basic')
-  const [step,setStep]=useState(0)
-  const [playing,setPlaying]=useState(true)
-  const [showDetail,setShowDetail]=useState(false)
-  const stages=useMemo(()=>mode==='basic'?[...commonStart,finish]:[...commonStart,tool,finish],[mode])
-  const stage=stages[Math.max(0,Math.min(step,stages.length-1))]
-  useEffect(()=>setShowDetail(false),[step,mode])
-  useEffect(()=>{
-    if (!playing) return
-    if (step>=stages.length-1){ setPlaying(false); return }
-    const handle=window.setTimeout(()=>setStep(s=>s+1),DEMO_MS)
-    return ()=>window.clearTimeout(handle)
-  },[playing,step,stages.length])
-  const restart=()=>{if(!question.trim())return;setStep(0);setPlaying(true)}
-  const changeMode=(value:Mode)=>{setMode(value);setStep(0);setPlaying(false)}
-  const jump=(next:number)=>{setStep(Math.max(0,Math.min(next,stages.length-1)));setPlaying(false)}
-  const selectSample=(index:number)=>{const x=samples[index];setQuestion(x.text);setMode(x.mode);setStep(0);setPlaying(true)}
-  const togglePlay=()=>{
-    if(!question.trim())return
-    if(playing){setPlaying(false)}
-    else if(step===stages.length-1){setStep(0);setPlaying(true)}
-    else setPlaying(true)
+const TOOL_PHASE:Phase={id:'search',label:'외부 정보',hint:'필요한 경우 도구를 사용할 수 있어요',duration:1600}
+const TICK=48
+function sceneAt(ms:number, phases:Phase[]) {
+  let start=0
+  for(let i=0;i<phases.length;i++){
+    const item=phases[i]
+    if(item.duration===0 || ms<start+item.duration){
+      return {phase:item,index:i,local:Math.max(0,ms-start),start,duration:item.duration}
+    }
+    start+=item.duration
   }
-  return <div className="flow-demo" id="how-it-works">
-    <div className="flow-demo-head">
-      <div className="flow-demo-eyebrow"><span className="live-indicator"/> INTERACTIVE SIMULATION <span className="flow-demo-head-caption">실제 요청이 아닌 시각화 예시</span></div>
-      <div className="flow-mode-switch" role="group" aria-label="처리 흐름 유형">
-        <button type="button" className={mode==='basic'?'active':''} aria-pressed={mode==='basic'} onClick={()=>changeMode('basic')}>일반 답변</button>
-        <button type="button" className={mode==='tools'?'active':''} aria-pressed={mode==='tools'} onClick={()=>changeMode('tools')}>도구 사용 시</button>
-      </div>
-    </div>
-    <form className="flow-prompt" onSubmit={e=>{e.preventDefault();restart()}}>
-      <span className="flow-prompt-icon"><MessageCircle size={20}/></span>
-      <label className="visually-hidden" htmlFor="flow-question">시뮬레이션에 사용할 예시 질문</label>
-      <input id="flow-question" maxLength={150} value={question} onChange={e=>{setQuestion(e.target.value);setPlaying(false)}} placeholder="질문을 입력해 보세요" autoComplete="off"/>
-      <button className="flow-prompt-submit" type="submit" disabled={!question.trim()}><span>흐름 보기</span><ArrowRight size={17}/></button>
-    </form>
-    <div className="flow-sample-row">
-      <span>예시</span>
-      {samples.map((sample,i)=><button key={sample.label} type="button" onClick={()=>selectSample(i)}>{sample.label} <ArrowRight size={12}/></button>)}
-    </div>
-    <div className="flow-stage" aria-label="AI 질문 처리 흐름">
-      <div className="flow-stage-top"><span className="flow-stage-caption">PROCESS FLOW</span><span className="flow-stage-status"><span className={'flow-status-dot '+(playing?'is-playing':'')}/>{playing?'흐름 재생 중':step===stages.length-1?'시뮬레이션 완료':'일시정지'}</span></div>
-      <div className={'flow-timeline '+(mode==='tools'?'has-tools':'')}>
-        {stages.map((s,i)=>{
-          const StageIcon=s.icon
-          const active=i===step
-          return <div className="flow-timeline-item" key={s.id}>
-            <button type="button" onClick={()=>jump(i)} aria-pressed={active} aria-label={s.title+' 단계 보기'} className={'flow-node '+(active?'is-active':i<step?'is-complete':'')}>
-              <span className="flow-node-circle">{i<step?<Check size={22}/>:<StageIcon size={23}/>}</span>
-              <span className="flow-node-title">{s.title}</span>
-              <span className="flow-node-caption">{s.caption}</span>
-              <span className="flow-node-number">{String(i+1).padStart(2,'0')}</span>
-            </button>
-            {i<stages.length-1 && <div className={'flow-node-link '+(i<step?'is-complete':i===step&&playing?'is-running':'')} aria-hidden="true"><div className="flow-link-dot"/></div>}
-          </div>
-        })}
-      </div>
-      <div className="flow-focus" key={mode+'-'+step}>
-        <div className={'flow-focus-visual visual-'+stage.id}><StageVisual id={stage.id} question={question}/></div>
-        <div className={"flow-focus-copy "+(showDetail?"detail-revealed":"")}>
-          <span className="flow-focus-eyebrow">STEP {String(step+1).padStart(2,'0')} / {String(stages.length).padStart(2,'0')}</span>
-          <h3>{stage.title}</h3>
-          <button type="button" className="flow-show-detail" onClick={()=>{setShowDetail(v=>!v);setPlaying(false)}} aria-expanded={showDetail}>{showDetail?"설명 접기":"왜 이렇게 될까?"}<ArrowRight size={15}/></button>
-          {showDetail&&<p>{stage.detail}</p>}
-          {stage.id==='tools'&&<span className="flow-optional"><CircleHelp size={14}/> 모든 질문에서 도구를 호출하지는 않습니다.</span>}
-          {stage.id==='tokens'&&<span className="flow-optional"><CircleHelp size={14}/> 위 조각은 실제 토크나이저 출력이 아닙니다.</span>}
-        </div>
-      </div>
-      <div className="flow-stage-footer">
-        <span className="flow-progress-label"><span className="flow-progress-ring"/> {step+1} / {stages.length} 단계</span>
-        <div className="flow-progress-dots">{stages.map((s,i)=><button key={s.id} aria-label={String(i+1)+'단계'} title={s.title} onClick={()=>jump(i)} className={step===i?'on':''}/>)}</div>
-        <div className="flow-controls">
-          <button type="button" className="flow-control-small" onClick={()=>jump(step-1)} disabled={step===0} aria-label="이전 단계"><ChevronLeft size={17}/></button>
-          <button type="button" className="flow-control-primary" onClick={togglePlay}>{playing?<><Pause size={15}/> 일시정지</>:step===stages.length-1?<><RotateCcw size={15}/> 다시 보기</>:<><Play size={15}/> 계속 보기</>}</button>
-          <button type="button" className="flow-control-small" onClick={()=>jump(step+1)} disabled={step===stages.length-1} aria-label="다음 단계"><ChevronRight size={17}/></button>
-        </div>
-      </div>
-    </div>
-    <div className="flow-legal"><CircleHelp size={15}/><p><strong>개념 시뮬레이션</strong> · 실제 ChatGPT 서버에 연결하지 않으며 질문에 대한 답을 생성하지 않습니다. 공개된 일반 원리를 단순화한 도식으로, 모델·설정·도구 사용 여부에 따라 처리 과정이 다릅니다.</p></div>
-    <div className="flow-references"><span>참고 자료</span><a href="https://developers.openai.com/api/docs/guides/text" target="_blank" rel="noopener noreferrer">OpenAI · 텍스트 생성 <Globe2 size={13}/></a><a href="https://huggingface.co/docs/transformers/main_classes/tokenizer" target="_blank" rel="noopener noreferrer">Hugging Face · 토큰 설명 <Globe2 size={13}/></a><a href="https://platform.openai.com/docs/guides/function-calling" target="_blank" rel="noopener noreferrer">OpenAI · 도구 호출 <Globe2 size={13}/></a></div>
-  </div>
+  const last=phases[phases.length-1]
+  return {phase:last,index:phases.length-1,local:0,start,duration:0}
 }
-function StageVisual({id,question}:{id:string;question:string}){
-  switch(id){
-    case 'receive': return <div className="visual-receive">
-      <div className="visual-chat-bubble"><span className="visual-chat-user">사용자</span><p>{question||'질문을 입력해 주세요'}</p></div>
-      <div className="visual-send-path"><span/><span/><span/></div><div className="visual-mini-server"><MessageCircle size={28}/></div>
-    </div>
-    case 'context': return <div className="visual-context">
-      <div className="visual-context-chip"><span className="visual-chip-dot blue"/> 대화 맥락</div>
-      <div className="visual-context-chip"><span className="visual-chip-dot violet"/> 요청 지시</div>
-      <div className="visual-context-chip"><span className="visual-chip-dot mint"/> 사용자 질문</div>
-      <ArrowRight size={22} className="visual-context-arrow"/><div className="visual-context-stack"><span/><span/><span/></div>
-    </div>
-    case 'tokens': return <div className="visual-tokens"><div className="visual-tokens-before">자연어 텍스트</div><ArrowRight size={20}/><div className="visual-token-chips"><span>토큰 A</span><span>토큰 B</span><span>토큰 C</span><span>…</span></div></div>
-    case 'inference': return <div className="visual-inference"><span className="visual-orbit ring-a"/><span className="visual-orbit ring-b"/><span className="visual-neuron n1"/><span className="visual-neuron n2"/><span className="visual-neuron n3"/><span className="visual-neuron n4"/><span className="visual-inference-core"><BrainCircuit size={37}/></span><span className="visual-inference-label">NEXT TOKEN</span></div>
-    case 'tools': return <div className="visual-tools"><div className="visual-tool-box"><BrainCircuit size={25}/><span>모델</span></div><span className="visual-tools-arrows"><ArrowRight size={20}/><ArrowRight size={20}/></span><div className="visual-tool-box external"><Wrench size={25}/><span>외부 도구</span></div></div>
-    default: return <div className="visual-reply"><div className="visual-answer-icon"><Sparkles size={20}/></div><div className="visual-reply-lines"><span/><span/><span/><span/></div><span className="visual-reply-tag">답변 전달</span></div>
+function sliceChars(s:string,progress:number) {
+  return Array.from(s).slice(0,Math.floor(Array.from(s).length*Math.max(0,Math.min(1,progress)))).join('')
+}
+const EXPAND_HELP:Record<PhaseName,string>={
+  typing:'이 장면은 사용자가 질문을 작성하는 모습을 보여줘요.',
+  sending:'입력한 질문이 AI를 사용하는 서비스에 전달되는 과정을 표현했어요.',
+  context:'서비스는 현재 질문과 필요한 지시·대화 내용을 묶어 모델 입력을 구성할 수 있어요. 포함되는 정보는 설정과 서비스에 따라 달라요.',
+  tokens:'모델이 텍스트를 처리하기 위해 작은 숫자 단위로 바꾸는 과정을 나타냈어요. 화면의 조각은 실제 토크나이저 결과가 아닌 예시예요.',
+  compute:'언어 모델은 앞 문맥을 바탕으로 다음에 이어질 토큰의 확률을 계산해요. 이 장면은 비공개 사고 과정이나 실제 서버 내부를 보여주는 것이 아니에요.',
+  search:'도구가 제공되고 필요한 경우 검색·API 등을 호출할 수 있어요. 이 시뮬레이션은 실제 네트워크 조회를 하지 않아요.',
+  answer:'만들어진 토큰을 사람이 읽을 수 있는 글로 표시해요. 일부 서비스에서는 완성되기 전에 답변을 순서대로 보여줘요.',
+  complete:'하나의 답변이 화면에 표시됐어요. 그럴듯한 말이라도 사실 확인이 필요할 수 있어요.'
+}
+function EngineVisual({phase,active}:{phase:PhaseName;active:boolean}){
+  return <div className={'cinema-engine-art art-'+phase} aria-hidden="true">
+    {phase==='typing'&&<div className="engine-await"><span className="await-prompt">?</span><span className="await-dots"><i/><i/><i/></span></div>}
+    {phase==='sending'&&<div className="engine-send"><span className="send-card"><MessageSquareText size={28}/></span><span className="send-track"/><span className="send-target"><CornerDownLeft size={23}/></span></div>}
+    {phase==='context'&&<div className="engine-context"><div className="context-paper paper-a"><MessageSquareText size={19}/><span>질문</span></div><div className="context-paper paper-b"><Layers3 size={19}/><span>지시</span></div><div className="context-paper paper-c"><FileText size={19}/><span>문맥</span></div><div className="context-join"><ArrowRight size={21}/></div><div className="context-result"><span/><span/><span/></div></div>}
+    {phase==='tokens'&&<div className="engine-tokens"><div className="tokens-intro">“사람이 쓰는 글”</div><div className="token-guideline"/><div className="token-pieces"><span>01</span><span>02</span><span>03</span><span>04</span></div><div className="token-under">작은 조각으로</div></div>}
+    {(phase==='compute'||phase==='answer')&&<div className="engine-model">
+      <svg viewBox="0 0 310 230" className="model-lines">
+        <g stroke="#8baa99" strokeWidth="1.35" opacity=".55">
+          {Array.from({length:4},(_,a)=>Array.from({length:5},(_,b)=><line key={a+'-'+b} x1={45+a*69} y1={35+b*40} x2={45+(a+1)*69} y2={35+((b+1)%5)*40}/>))}
+        </g>
+        {Array.from({length:5},(_,row)=>Array.from({length:4},(_,col)=><circle key={row+'-'+col} cx={45+col*69} cy={35+row*40} r={col===1?8:6} fill={col%2===0?'#daeadf':'#8cb5a4'} stroke="#aacaba" strokeWidth="2" className={'model-dot dot-phase-'+((row+col)%4)}/>))}
+      </svg>
+      <div className="model-center-glow"><Sparkles size={21}/></div>
+      <div className="model-token-flow"><span>문맥</span><ArrowRight size={12}/><span>다음 말</span><ArrowRight size={12}/><span>예측</span></div>
+    </div>}
+    {phase==='search'&&<div className="engine-search"><div className="search-globe"><Globe2 size={34}/></div><div className="search-ray"/><div className="search-docs"><div><FileText size={16}/><span/></div><div><FileText size={16}/><span/></div><div><FileText size={16}/><span/></div></div></div>}
+    {phase==='complete'&&<div className="engine-complete"><span className="complete-circle"><Check size={38}/></span><span>DONE</span></div>}
+    <span className={'art-signal '+(active?'signal-active':'')}/></div>
+}
+export default function FlowPlayground() {
+  const [episode,setEpisode]=useState<Episode>(DEMOS[0])
+  const [elapsed,setElapsed]=useState(0)
+  const [playing,setPlaying]=useState(true)
+  const [draft,setDraft]=useState('')
+  const [editing,setEditing]=useState(false)
+  const [showWhy,setShowWhy]=useState(false)
+  const [reduced,setReduced]=useState(false)
+
+  const phases=useMemo(()=>episode.mode==='search'?[...PHASES.slice(0,5),TOOL_PHASE,...PHASES.slice(5)]:PHASES,[episode.mode])
+  const total=phases.reduce((sum,p)=>sum+p.duration,0)
+  const scene=sceneAt(elapsed,phases)
+  const stage=scene.phase.id
+  const hasSent=scene.index>=1
+  const composing=stage==='answer'||stage==='complete'
+  const finished=stage==='complete'
+  const percent=total?Math.min(100,elapsed/total*100):0
+  const inputValue=editing?draft:stage==='typing'?sliceChars(episode.question,scene.local/scene.duration):''
+  const response=stage==='complete'?episode.answer:stage==='answer'?sliceChars(episode.answer,scene.local/scene.duration):''
+  const active=playing&&!finished
+
+  useEffect(()=>{
+    const media=window.matchMedia('(prefers-reduced-motion: reduce)')
+    const sync=()=>setReduced(media.matches)
+    sync()
+    media.addEventListener?.('change',sync)
+    return()=>media.removeEventListener?.('change',sync)
+  },[])
+  useEffect(()=>{if(reduced)setPlaying(false)},[reduced])
+  useEffect(()=>{
+    if(!playing||reduced||finished)return
+    const timer=window.setInterval(()=>setElapsed(ms=>Math.min(total,ms+TICK)),TICK)
+    return()=>window.clearInterval(timer)
+  },[playing,reduced,finished,total])
+  useEffect(()=>{if(finished)setPlaying(false)},[finished])
+  useEffect(()=>setShowWhy(false),[stage])
+
+  const playEpisode=(next:Episode,fromSend=false)=>{
+    setEpisode(next);setElapsed(fromSend?PHASES[0].duration:0);setDraft('');setEditing(false);setShowWhy(false);setPlaying(true)
   }
+  const send=()=>{
+    const q=(editing?draft:inputValue||episode.question).trim()
+    if(!q)return
+    const canned=DEMOS.find(x=>x.question===q)
+    const next=canned??{id:'custom',question:q,answer:CUSTOM_ANSWER,mode:episode.mode}
+    playEpisode(next,true)
+  }
+  const jump=(index:number)=>{
+    setElapsed(phases.slice(0,index).reduce((sum,p)=>sum+p.duration,0))
+    setPlaying(false);setEditing(false);setDraft('')
+  }
+  const toggle=()=>{
+    if(finished){playEpisode(episode);return}
+    setPlaying(x=>!x);setEditing(false)
+  }
+  const onChangeDraft=(value:string)=>{setDraft(value);setEditing(true);setPlaying(false)}
+  return <section className="chat-cinema" id="how-it-works" aria-label="AI 질문 처리 체험">
+    <div className="cinema-topline">
+      <div className="cinema-tag"><span className="cinema-tag-light"/> INTERACTIVE STORY <span className="cinema-tag-separator">/</span> 01</div>
+      <div className="cinema-top-actions"><span className="cinema-simulation">실제 AI 연결 없는 시뮬레이션</span><button type="button" className="cinema-replay" onClick={()=>playEpisode(episode)}><RotateCcw size={15}/> 처음부터</button></div>
+    </div>
+    <div className="cinema-panes">
+      <div className="cinema-chat">
+        <div className="cinema-chat-heading"><span className="chat-mini-mark"><Sparkles size={16}/></span><strong>대화</strong><span className="chat-demo-tag">DEMO</span><span className="chat-window-dots"><i/><i/><i/></span></div>
+        <div className="cinema-conversation" aria-live="off">
+          {!hasSent&&<div className="conversation-welcome">
+            <div className="welcome-symbol"><WandSparkles size={31}/></div>
+            <strong>무엇이 궁금하세요?</strong><span>하나의 질문이 답이 되는 과정을 살펴보세요.</span>
+          </div>}
+          {hasSent&&<div className="cinema-messages">
+            <div className="cinema-user-line"><div className="cinema-user-bubble">{episode.question}</div></div>
+            <div className="cinema-ai-line">
+              <div className="ai-avatar"><Sparkles size={17}/></div>
+              <div className="ai-message-body">
+                {!composing&&<div className="cinema-working"><span className="working-dots"><i/><i/><i/></span><span>{scene.phase.hint}</span></div>}
+                {composing&&<div className="cinema-answer-text">{response}{!finished&&<span className="cinema-type-caret"/>}</div>}
+                {finished&&<>
+                  <div className="message-complete"><Check size={13}/> 답변 완성</div>
+                  <a className="cinema-learn-next" href={'#general/'+(episode.id==='mistake'?'hallucination':episode.id==='weather'?'function-calling':'llm')}>이 뒤에 숨은 AI 기술 알아보기 <ArrowUpRight size={16}/></a>
+                </>}
+              </div>
+            </div>
+          </div>}
+        </div>
+        <div className="cinema-compose-wrap">
+          <div className="cinema-presets" role="group" aria-label="예시 질문 선택">
+            {DEMOS.map((d,i)=><button key={d.id} onClick={()=>playEpisode(d)} className={episode.id===d.id?'chosen':''}>{i===0?'🌈 ':i===1?'💭 ':'🔎 '}{i===0?'무지개':i===1?'AI는 왜 틀릴까?':'도구 사용'}<ArrowUpRight size={13}/></button>)}
+          </div>
+          <form onSubmit={e=>{e.preventDefault();send()}} className={'cinema-composer '+(stage==='typing'&&!editing?'composer-typing':'')}>
+            <label htmlFor="cinema-question" className="cinema-visually-hidden">질문을 입력해 처리 과정 체험하기</label>
+            <input id="cinema-question" value={inputValue} onFocus={()=>{if(!editing&&stage==='typing'){setEditing(true);setDraft('');setPlaying(false)}}} onChange={e=>onChangeDraft(e.target.value)} placeholder="질문을 입력해 보세요" maxLength={170} autoComplete="off"/>
+            <button type="submit" className="cinema-send-btn" disabled={editing&&!draft.trim()} aria-label="질문 전송"><ArrowRight size={19}/></button>
+          </form>
+          <p className="cinema-input-foot">답변은 미리 준비된 예시입니다. 직접 쓴 질문에는 실제 답변이 생성되지 않습니다.</p>
+        </div>
+      </div>
+      <div className="cinema-behind">
+        <div className="behind-top"><span className="behind-top-marker"/><span>BEHIND THE ANSWER</span><span>{String(scene.index+1).padStart(2,'0')} / {String(phases.length).padStart(2,'0')}</span></div>
+        <div className="behind-illustration">
+          <EngineVisual phase={stage} active={active}/>
+          <span className="behind-corner corner-tl"/><span className="behind-corner corner-br"/>
+        </div>
+        <div className="behind-description">
+          <span className="behind-kicker">지금 일어나는 일</span>
+          <h3 key={stage}>{scene.phase.label}<span className="heading-signal">.</span></h3>
+          <p>{scene.phase.hint}</p>
+          <button type="button" className="behind-why" onClick={()=>{setShowWhy(v=>!v);setPlaying(false)}} aria-expanded={showWhy}>{showWhy?'설명 접기':'왜 이렇게 될까?'} <ArrowUpRight size={15}/></button>
+          {showWhy&&<div className="behind-extra">{EXPAND_HELP[stage]}</div>}
+        </div>
+      </div>
+    </div>
+    <div className="cinema-controls">
+      <div className="cinema-control-top">
+        <div className="cinema-timeline-label"><span className={'timeline-live '+(active?'on':'')}/><span>{finished?'체험이 끝났어요':playing?'재생 중':'멈춤'}</span></div>
+        <div className="cinema-transport">
+          <button onClick={()=>jump(Math.max(0,scene.index-1))} aria-label="이전 장면"><ChevronLeft size={18}/></button>
+          <button className="transport-main" onClick={toggle}>{playing?<Pause size={14}/>:finished?<RotateCcw size={14}/>:<Play size={14}/>} {playing?'멈추기':finished?'다시 보기':'이어 보기'}</button>
+          <button onClick={()=>jump(Math.min(phases.length-1,scene.index+1))} aria-label="다음 장면"><ChevronRight size={18}/></button>
+        </div>
+      </div>
+      <div className="cinema-progress" role="group" aria-label="애니메이션 단계 선택">
+        {phases.map((p,i)=><button key={p.id} type="button" className={'cinema-step '+(i===scene.index?'current':i<scene.index?'passed':'')} onClick={()=>jump(i)} title={p.label} aria-label={p.label+' 단계로 이동'} aria-pressed={i===scene.index}>
+          <span className="cinema-step-bar"><span style={{width:i<scene.index?'100%':i===scene.index?(p.duration?scene.local/p.duration*100:100)+'%':'0%'}}/></span>
+          <span className="cinema-step-name">{p.label}</span>
+        </button>)}
+      </div>
+    </div>
+    <div className="cinema-note"><CircleHelp size={14}/><span>공개된 기술 원리를 단순화한 애니메이션입니다. 실제 ChatGPT의 비공개 내부 동작이나 사고 과정을 재현한 것은 아닙니다.</span><span className="cinema-progress-value">{Math.round(percent)}%</span></div>
+    <details className="cinema-sources"><summary>참고 자료</summary><a href="https://developers.openai.com/api/docs/guides/text" target="_blank" rel="noopener noreferrer">OpenAI · Text generation</a><a href="https://huggingface.co/docs/transformers/main_classes/tokenizer" target="_blank" rel="noopener noreferrer">Hugging Face · Tokenization</a><a href="https://developers.openai.com/api/docs/guides/function-calling" target="_blank" rel="noopener noreferrer">OpenAI · Function calling</a></details>
+  </section>
 }
