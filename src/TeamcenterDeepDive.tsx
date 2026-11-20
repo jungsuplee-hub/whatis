@@ -3,7 +3,7 @@ import {
   ArrowDown, ArrowRight, ChevronDown, CircleAlert,
   Layers3, Search, ShieldCheck, Sparkles, Waypoints
 } from 'lucide-react'
-import TeamcenterConnections from './TeamcenterConnections'
+import ServiceConnections from './ServiceConnections'
 import './teamcenter-deep-dive.css'
 
 type Tier='client'|'web'|'enterprise'|'resource'|'ai'
@@ -165,7 +165,7 @@ export default function TeamcenterDeepDive(){
           </button>)}</div>
           {i<3&&<div className="tcd-tier-connector"><ArrowDown size={17}/><span>{i===0?'Client → Web':i===1?'Web → Enterprise':'Enterprise → Resource'}</span></div>}
         </div>)}
-        <TeamcenterConnections boardElement={boardElement} edges={links} selectedIds={activeFlow.edges} selectedId={linkId} showAll={showAllEdges} onSelect={chooseLink}/>
+        <ServiceConnections boardElement={boardElement} edges={links} selectedIds={activeFlow.edges} selectedId={linkId} showAll={showAllEdges} onSelect={chooseLink}/>
       </div>
         </div>
         <p className="tcd-diagram-hint">↔ 모바일에서는 구성도를 좌우로 이동할 수 있습니다. 연결선을 누르면 출발지·목적지·포트 정보를 확인할 수 있습니다.</p>

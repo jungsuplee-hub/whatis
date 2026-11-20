@@ -6,6 +6,7 @@ import {
 import './siemens-architect.css'
 import TeamcenterInfrastructure from './TeamcenterInfrastructure'
 import TeamcenterDeepDive from './TeamcenterDeepDive'
+import PolarionArchitecture from './PolarionArchitecture'
 
 type Product = 'teamcenter' | 'polarion'
 type View = 'logical' | 'deployment' | 'infra'
@@ -81,7 +82,7 @@ export default function SiemensArchitect({onHome}:{onHome:()=>void}) {
   const config=products[product]
   const node=config.nodes.find(n=>n.id===selected)??config.nodes[0]
   const completed=useMemo(()=>config.decisions.reduce((n,d)=>n+(checks[product+'-'+d.kind]?1:0),0),[checks,config,product])
-  const pick=(next:Product)=>{setProduct(next);setSelected('experience');setView(next==='teamcenter'?'infra':'logical');setTab('map')}
+  const pick=(next:Product)=>{setProduct(next);setSelected('experience');setView('infra');setTab('map')}
   return <section className="sa-page">
     <div className="sa-path"><button type="button" onClick={onHome}><ArrowRight size={15}/> 일반 AI</button><span>/</span><strong>Siemens Architecture</strong></div>
     <header className="sa-intro">
@@ -104,12 +105,12 @@ export default function SiemensArchitect({onHome}:{onHome:()=>void}) {
         </div>
       </div>
       {tab==='map'&&<>
-        <div className="sa-map-head"><p>{config.description}</p><div className="sa-switch" role="group" aria-label="구성도 보기 방식"><button onClick={()=>setView('logical')} className={view==='logical'?'on':''}>논리 구조</button><button onClick={()=>setView('deployment')} className={view==='deployment'?'on':''}>배포 구역</button>{product==='teamcenter'&&<button onClick={()=>setView('infra')} className={view==='infra'?'on':''}>인프라 구성도</button>}</div></div>
-        {view==='infra'&&product==='teamcenter'?
-          <>
+        <div className="sa-map-head"><p>{config.description}</p><div className="sa-switch" role="group" aria-label="구성도 보기 방식"><button onClick={()=>setView('logical')} className={view==='logical'?'on':''}>논리 구조</button><button onClick={()=>setView('deployment')} className={view==='deployment'?'on':''}>배포 구역</button><button onClick={()=>setView('infra')} className={view==='infra'?'on':''}>인프라 구성도</button></div></div>
+        {view==='infra'?
+          product==='teamcenter'? <>
             <TeamcenterDeepDive/>
             <details className="sa-legacy-overview"><summary>간단한 4계층 설명도 보기 <ChevronDown size={15}/></summary><TeamcenterInfrastructure/></details>
-          </>
+          </> : <PolarionArchitecture/>
           :view==='logical'?
           <div className="sa-map">
             <div className="sa-map-legend"><span><i/> SELECT A COMPONENT</span><span>각 요소를 눌러 역할 확인</span></div>

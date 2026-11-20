@@ -33,13 +33,15 @@ function getRelativeRect(board: HTMLDivElement, id: string) {
   if (!el) return null
   const box = el.getBoundingClientRect()
   const root = board.getBoundingClientRect()
+  const sx = board.clientWidth / Math.max(1, root.width)
+  const sy = board.clientHeight / Math.max(1, root.height)
   return {
-    x: box.left - root.left,
-    y: box.top - root.top,
-    w: box.width,
-    h: box.height,
-    cx: box.left - root.left + box.width / 2,
-    cy: box.top - root.top + box.height / 2,
+    x: (box.left - root.left) * sx,
+    y: (box.top - root.top) * sy,
+    w: box.width * sx,
+    h: box.height * sy,
+    cx: (box.left - root.left + box.width / 2) * sx,
+    cy: (box.top - root.top + box.height / 2) * sy,
   }
 }
 
@@ -98,7 +100,7 @@ function routeEdge(board: HTMLDivElement, edge: DiagramEdge, index: number): Vis
   return { ...edge, path, labelX, labelY, showLabel }
 }
 
-export default function TeamcenterConnections({ boardElement, edges, selectedIds, selectedId, showAll, onSelect }: Props) {
+export default function ServiceConnections({ boardElement, edges, selectedIds, selectedId, showAll, onSelect }: Props) {
   const [layout, setLayout] = useState<{ width: number; height: number; paths: VisibleEdge[] }>({
     width: 0, height: 0, paths: [],
   })
@@ -136,7 +138,7 @@ export default function TeamcenterConnections({ boardElement, edges, selectedIds
     className="tcd-connection-layer"
     viewBox={`0 0 ${layout.width} ${layout.height}`}
     preserveAspectRatio="none"
-    aria-label="Teamcenter 서비스 간 연결선과 통신 방향"
+    aria-label="서비스 간 통신 방향과 연결선"
     role="group"
   >
     <defs>
