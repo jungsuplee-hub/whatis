@@ -76,7 +76,6 @@ export default function HiddenTechAtlas({index,onIndexChange}:{index:number;onIn
         <button type="button" className="atlas-expand" onClick={()=>setExplain(e=>!e)} aria-expanded={explain}>{explain?'비유 접기':'생활 속 비유로 이해하기'} <ArrowRight size={16}/></button>
         {explain&&<p className="atlas-analogy">{active.analogy}</p>}
         <div className="atlas-bottom">
-          <a href={active.source} target="_blank" rel="noopener noreferrer">공식·기술 자료 <ArrowRight size={14}/></a>
           <div className="atlas-arrows"><button type="button" onClick={()=>choose(index-1)} aria-label="이전 기술"><ChevronLeft size={20}/></button><button type="button" onClick={()=>choose(index+1)} aria-label="다음 기술"><ChevronRight size={20}/></button></div>
         </div>
       </div>

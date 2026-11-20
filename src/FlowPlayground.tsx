@@ -188,6 +188,5 @@ export default function FlowPlayground() {
     </div>
     <HiddenTechAtlas index={techIndex} onIndexChange={setTechIndex}/>
     <div className="cinema-note"><CircleHelp size={14}/><span>공개된 기술 원리를 단순화한 애니메이션입니다. 실제 ChatGPT의 비공개 내부 동작이나 사고 과정을 재현한 것은 아닙니다.</span><span className="cinema-progress-value">{Math.round(percent)}%</span></div>
-    <details className="cinema-sources"><summary>참고 자료</summary><a href="https://developers.openai.com/api/docs/guides/text" target="_blank" rel="noopener noreferrer">OpenAI · Text generation</a><a href="https://huggingface.co/docs/transformers/main_classes/tokenizer" target="_blank" rel="noopener noreferrer">Hugging Face · Tokenization</a><a href="https://developers.openai.com/api/docs/guides/function-calling" target="_blank" rel="noopener noreferrer">OpenAI · Function calling</a></details>
   </section>
 }

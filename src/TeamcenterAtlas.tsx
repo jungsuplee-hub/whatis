@@ -121,7 +121,7 @@ export default function TeamcenterAtlas({
        </button>
       })}
       <ServiceConnections boardElement={board} edges={routedEdges} selectedIds={activeFlow.edges} selectedId={selectedEdge} showAll={showAll} onSelect={onEdge}/>
-      <div className="tca-board-footer">FOUR-TIER LOGICAL REFERENCE · NOT A VERIFIED INSTALLATION BLUEPRINT</div>
+      <div className="tca-board-footer">FOUR-TIER LOGICAL MAP · NOT A VERIFIED INSTALLATION BLUEPRINT</div>
     </div>
    </div>
   </div>

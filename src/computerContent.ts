@@ -34,7 +34,7 @@ export const computerTopics:ComputerTopic[]=[
   stage('기계 명령','ISA','CPU가 이해하는 명령어 형태로 표현합니다.'),
   stage('하드웨어 해석','Decoder','명령어를 실행 장치가 처리할 수 있도록 해석합니다.'),
   stage('실제 실행','마이크로아키텍처','파이프라인, 캐시, 실행 장치의 구성이 성능에 영향을 줍니다.')
- ],'PDF의 전통적인 RISC/CISC 대비는 역사적 설명입니다. 현대 CPU는 두 계열 모두 복잡한 내부 최적화를 사용합니다.'),
+ ],'전통적인 RISC/CISC 대비만으로 현대 CPU의 동작을 설명하기는 어렵습니다. 두 계열 모두 복잡한 내부 최적화를 사용합니다.'),
  topic('cpu-pipeline','parallel','파이프라인이 빨라지는 원리','Instruction Pipeline','하나의 명령이 끝나기를 기다리지 않고 다음 명령의 단계를 겹쳐 처리합니다.','24–27쪽','파이프라인은 각 명령의 완료 시간보다 단위 시간당 처리량을 높이는 데 주로 기여합니다.',[
   stage('첫 명령','Fetch','첫 번째 명령어가 인출 단계에 들어옵니다.'),
   stage('동시에 진행','Fetch + Decode','첫 명령이 해독되는 동안 다음 명령을 읽어옵니다.'),
@@ -88,7 +88,7 @@ export const computerTopics:ComputerTopic[]=[
   stage('선택','Scheduler','정책과 우선순위에 따라 실행할 스레드를 고릅니다.'),
   stage('전환','Context Switch','필요하면 기존 스레드 상태를 저장하고 다음 상태를 복원합니다.'),
   stage('실행·재대기','Run / Wait','작업이 실행되다가 I/O 대기·시간 할당 종료 등으로 상태가 바뀝니다.')
- ],'PDF에는 특정 OS의 스케줄러를 단일 알고리즘으로 단순화한 설명이 있습니다. 실제 정책은 운영체제·버전·작업 특성에 따라 다릅니다.'),
+ ],'운영체제의 스케줄링 정책은 제품·버전·작업 특성에 따라 다르며 단일 알고리즘으로 일반화하기 어렵습니다.'),
  topic('synchronization','operating','서로 기다리다 멈추는 이유','Mutex · Semaphore · Deadlock','공유 자원을 동시에 사용하는 작업에는 순서와 접근 제어가 필요합니다.','86–98쪽','교착상태는 여러 작업이 서로가 가진 자원을 기다리며 진행하지 못하는 상황입니다.',[
   stage('공유 자원','Critical Section','여러 스레드가 같은 데이터나 장치를 사용합니다.'),
   stage('진입 제어','Mutex / Semaphore','특정 순간에 접근할 수 있는 작업을 제한합니다.'),
@@ -160,7 +160,7 @@ export const computerTopics:ComputerTopic[]=[
   stage('복구 목표','RPO / RTO','허용할 데이터 손실 시점과 서비스 복구 시간을 정합니다.'),
   stage('복제·백업','Recovery Assets','복원에 필요한 데이터와 시스템 구성 정보를 준비합니다.'),
   stage('복구 훈련','DR Drill','실제로 복구 절차가 동작하는지 반복해서 검증합니다.')
- ],'RPO와 RTO는 이 페이지에서 덧붙인 현대적 DR 운영 용어로, PDF 목차의 DRS 논점을 실무 관점에서 확장한 항목입니다.'),
+ ],'RPO는 허용 가능한 데이터 복구 시점, RTO는 목표 복구 시간이며 실제 운영 요구사항에 맞게 설정해야 합니다.'),
  topic('utility-computing','cloud','컴퓨팅을 필요할 때 쓰는 방법','Utility Computing · Virtualization','서버 자원을 고정된 물리 장치 대신 필요에 따라 제공하는 방식으로 발전했습니다.','205–219쪽','인프라 자원 제공과 사용량 관리가 서비스의 일부가 됩니다.',[
   stage('자원 추상화','Resource Pool','물리적 계산 자원을 논리적으로 관리합니다.'),
   stage('요청','Provisioning','필요한 양의 계산 자원을 요청합니다.'),
@@ -178,7 +178,7 @@ export const computerTopics:ComputerTopic[]=[
   stage('그리드','Distributed Resources','여러 시스템·기관의 계산 자원을 연계하는 형태가 있습니다.'),
   stage('클라우드','On-demand Service','계산·저장·플랫폼 등을 필요에 따라 API와 서비스 형태로 제공합니다.'),
   stage('현대적 운영','Automation','자동화·계측·유연한 확장 등이 중요한 요소입니다.')
- ],'PDF의 클라우드 사례와 서비스 시장 설명은 작성 당시의 역사적 사례입니다. 본 화면은 기본 원리만 재구성했습니다.')
+ ],'클라우드 서비스의 구현 방식과 시장 사례는 시간에 따라 바뀌므로 기본 개념과 개별 제품 구현을 구분해야 합니다.')
 ]
 export const computerById=Object.fromEntries(computerTopics.map(t=>[t.id,t])) as Record<string,ComputerTopic|undefined>
 export const computerChapterById=Object.fromEntries(computerChapters.map(t=>[t.id,t])) as Record<string,ComputerChapter|undefined>

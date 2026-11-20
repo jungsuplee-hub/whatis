@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import {
-  ArrowLeftRight, ArrowRight, Boxes, ChevronDown, CircleHelp, Database, ExternalLink,
+  ArrowLeftRight, ArrowRight, Boxes, ChevronDown, CircleHelp, Database,
   GitBranch, Globe2, Link2, LockKeyhole, ScanSearch, Server, ShieldCheck
 } from 'lucide-react'
 import './siemens-architect.css'
@@ -59,15 +59,6 @@ const products:Record<Product,{
     ]
   }
 }
-const sources=[
-  {name:'Teamcenter 2606 · Siemens 공식 소개',url:'https://blogs.sw.siemens.com/teamcenter/teamcenter-2606/'},
-  {name:'Active Workspace · Siemens 공식 소개',url:'https://blogs.sw.siemens.com/teamcenter/teamcenter-active-workspace-strategy/'},
-  {name:'Teamcenter 기본 아키텍처 · Microsoft Learn',url:'https://learn.microsoft.com/en-us/azure/architecture/example-scenario/manufacturing/teamcenter-baseline'},
-  {name:'Teamcenter 고가용성 참조 아키텍처 · AWS',url:'https://docs.aws.amazon.com/reference-architecture-diagrams/latest/siemens-teamcenter-plm/siemens-teamcenter-plm.html'},
-  {name:'Teamcenter FMS · Siemens 공개 설명',url:'https://blogs.sw.siemens.com/teamcenter/store-and-forward-with-file-management-system-fms/'},
-  {name:'Polarion ALM 2606 · Siemens 공식 소개',url:'https://blogs.sw.siemens.com/polarion/polarion-alm-2606-whats-new-and-noteworthy/'},
-  {name:'Polarion ALM · Siemens 제품 페이지',url:'https://www.siemens.com/en-us/products/polarion/application-lifecycle-management-alm/'}
-]
 const relationNodes=[
   {title:'제품 변경',subtitle:'Teamcenter',details:'부품·제품 구조와 변경 관리의 맥락'},
   {title:'요구사항·검증',subtitle:'Polarion',details:'요구사항, 테스트, 추적 가능한 업무 항목'},
@@ -87,7 +78,7 @@ export default function SiemensArchitect({onHome}:{onHome:()=>void}) {
     <div className="sa-path"><button type="button" onClick={onHome}><ArrowRight size={15}/> 일반 AI</button><span>/</span><strong>Siemens Architecture</strong></div>
     <header className="sa-intro">
       <div><span className="sa-eyebrow"><span className="sa-on"/> SOLUTION ARCHITECT NOTES · 2026</span><h1>아키텍처를<br/><em>눈으로 설계하다.</em></h1><p>Teamcenter와 Polarion. 어디에 무엇을 배치하고, 무엇을 확인해야 할까요?</p></div>
-      <div className="sa-version-plate"><span>REFERENCE RELEASES</span><strong>2606 <span>/</span> 2606</strong><small>Teamcenter · Polarion ALM</small><p>확인한 자료 기준 버전이며, 실제 적용 시 지원 매트릭스와 최신 패치를 재검증하세요.</p></div>
+      <div className="sa-version-plate"><span>PRODUCT RELEASES</span><strong>2606 <span>/</span> 2606</strong><small>Teamcenter · Polarion ALM</small><p>아키텍처 설명에 사용하는 버전입니다. 실제 적용 시 지원 매트릭스와 최신 패치를 확인하세요.</p></div>
     </header>
     <div className="sa-products" role="group" aria-label="솔루션 선택">
       {(['teamcenter','polarion'] as Product[]).map(v=><button key={v} className={'sa-product '+(product===v?'selected':'')} onClick={()=>pick(v)} aria-pressed={product===v}>
@@ -141,7 +132,6 @@ export default function SiemensArchitect({onHome}:{onHome:()=>void}) {
         <p className="sa-bridge-caption">이 그림은 통합 검토용 개념도입니다. 지원되는 실제 연계 방식과 데이터 매핑은 별도 설계·시험이 필요합니다.</p>
       </div>}
     </div>
-    <section className="sa-sources"><div><span>02 / REFERENCES</span><h2>확인할 공식 자료</h2><p>공개 페이지에는 공개 가능한 원칙과 독자적 도식만 싣습니다. 접근이 제한된 설치·배포 문서의 원문, 비공개 구성도와 상세 파라미터는 게시하지 않았습니다.</p></div><div>{sources.map((s,i)=><a href={s.url} key={s.url} target="_blank" rel="noopener noreferrer"><span>{String(i+1).padStart(2,'0')}</span><strong>{s.name}</strong><ExternalLink size={17}/></a>)}</div></section>
     <footer className="sa-disclaimer"><LockKeyhole size={17}/><span>이 페이지는 솔루션 아키텍트의 학습과 설계 검토를 돕는 개념형 가이드이며, Siemens 공식 배포도·설치 지침·사이징 결과가 아닙니다. 최종 구성은 권한이 있는 담당자가 해당 버전의 계약 문서와 지원 매트릭스를 확인해야 합니다.</span></footer>
   </section>
 }

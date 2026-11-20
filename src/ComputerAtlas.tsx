@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, ChevronLeft, ChevronRight, CircleHelp, Cpu, Database, Gauge, HardDrive, Layers3, Monitor, Network, Pause, Play, Search, ShieldCheck, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, CircleHelp, Cpu, Database, Gauge, HardDrive, Layers3, Monitor, Network, Pause, Play, Search, ShieldCheck, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { computerById, computerChapterById, computerChapters, computerTopics, type ComputerChapter, type ComputerChapterId, type ComputerTopic } from './computerContent'
 import ComputerMotion from './ComputerMotion'
@@ -24,12 +24,9 @@ function ChapterCard({chapter,onChapter,index}:{chapter:ComputerChapter;onChapte
   <div className="computer-chapter-meta"><span>{chapter.index} / CHAPTER</span><Icon size={20}/></div>
   <div className="computer-chapter-preview"><ComputerMotion chapter={chapter.id} step={index%4} compact/></div>
   <div className="computer-chapter-bottom"><span className="computer-chapter-eng">{chapter.technical}</span><h3>{chapter.title}</h3><p>{chapter.intro}</p>
-    <div className="computer-chapter-bottom-line"><span>{chapter.topicIds.length}개의 이야기 · PDF {chapter.source}</span><ArrowUpRight size={22}/></div>
+    <div className="computer-chapter-bottom-line"><span>{chapter.topicIds.length}개의 이야기</span><ArrowUpRight size={22}/></div>
   </div>
  </button>
-}
-function SourceMark({source}:{source:string}){
- return <span className="computer-source-mark"><BookOpen size={15}/> 첨부 PDF · {source}</span>
 }
 function ComputerHome({onChapter,onTopic}:{onChapter:(id:string)=>void;onTopic:(id:string)=>void}){
  const [chapter,setChapter]=useState<ComputerChapterId>('hardware')
@@ -87,7 +84,6 @@ function ComputerHome({onChapter,onTopic}:{onChapter:(id:string)=>void;onTopic:(
       {matched.length?matched.map(t=><button type="button" key={t.id} onClick={()=>onTopic(t.id)}><span><small>{computerChapterById[t.chapter]?.title}</small><strong>{t.title}</strong><em>{t.technical}</em></span><ArrowUpRight size={18}/></button>):<p>관련 주제를 찾지 못했습니다. 다른 용어로 검색해 주세요.</p>}
     </div>:<div className="computer-chapter-grid">{computerChapters.map((c,i)=><ChapterCard key={c.id} chapter={c} index={i} onChapter={onChapter}/>)}</div>}
   </section>
-  <div className="computer-source-banner"><BookOpen size={22}/><div><strong>자료 출처</strong><p>사용자가 제공한 『컴퓨터 구조 운영 체제』 PDF, 268쪽. 원문 구성을 재정리한 학습용 도식이며 문장을 복제하지 않았습니다. 구형 OS·장비 사례와 현대 시스템 동작은 구분해서 설명합니다.</p></div></div>
  </div>
 }
 function ComputerChapterPage({chapter,onTopic,onHome}:{chapter:ComputerChapter;onTopic:(id:string)=>void;onHome:()=>void}){
@@ -95,7 +91,7 @@ function ComputerChapterPage({chapter,onTopic,onHome}:{chapter:ComputerChapter;o
  const Icon=icons[chapter.id]
  return <div className="computer-page computer-chapter-page">
    <button type="button" className="computer-back" onClick={onHome}><ArrowLeft size={17}/> 모든 장 보기</button>
-   <div className="computer-chapter-intro"><div><span className="computer-eyebrow"><span/> CHAPTER {chapter.index}</span><Icon className="computer-chapter-large-icon" size={30}/><h1>{chapter.title}</h1><span className="computer-chapter-english">{chapter.technical}</span><p>{chapter.intro}</p><SourceMark source={chapter.source}/></div>
+   <div className="computer-chapter-intro"><div><span className="computer-eyebrow"><span/> CHAPTER {chapter.index}</span><Icon className="computer-chapter-large-icon" size={30}/><h1>{chapter.title}</h1><span className="computer-chapter-english">{chapter.technical}</span><p>{chapter.intro}</p></div>
    <div className="computer-chapter-demo"><ComputerMotion chapter={chapter.id} step={step}/><div className="computer-demo-navigator">{[0,1,2,3].map(n=><button type="button" aria-label={`${n+1}번째 시각화 단계`} aria-pressed={step===n} className={step===n?'active':''} onClick={()=>setStep(n)} key={n}/>)}</div></div></div>
    <div className="computer-section-heading"><div><span>RELATED LESSONS / {chapter.topicIds.length}</span><h2>한 가지씩 깊이 보기</h2><p>구성요소를 외우기보다 실제 동작 순서를 따라가 보세요.</p></div></div>
    <div className="computer-topic-list">{chapter.topicIds.map((id,i)=>{const t=computerById[id]!;return <button type="button" key={id} onClick={()=>onTopic(t.id)}><span className="computer-topic-num">{String(i+1).padStart(2,'0')}</span><div><span className="computer-chapter-eng">{t.technical}</span><strong>{t.title}</strong><p>{t.lede}</p></div><ArrowUpRight size={21}/></button>})}</div>
@@ -134,9 +130,8 @@ function ComputerTopicPage({topic,onChapter,onTopic}:{topic:ComputerTopic;onChap
   <p className="computer-visual-caveat"><CircleHelp size={15}/> 개념을 이해하기 위한 애니메이션입니다. 실제 하드웨어의 내부 신호·처리 시간·상대적 크기를 그대로 나타내는 것은 아닙니다.</p>
   <section className="computer-topic-note">
     <div><span>THE KEY IDEA</span><h2>핵심은 이것입니다.</h2><p>{topic.takeaway}</p></div>
-    <div className="computer-topic-source"><SourceMark source={topic.source}/><p>출처: 첨부된 『컴퓨터 구조 운영 체제』 PDF. 해당 부분의 구조와 개념을 바탕으로 재작성했습니다.</p></div>
   </section>
-  {topic.reality&&<div className="computer-reality"><ShieldCheck size={20}/><div><strong>원문과 현재 기술의 차이</strong><p>{topic.reality}</p></div></div>}
+  {topic.reality&&<div className="computer-reality"><ShieldCheck size={20}/><div><strong>알아두면 좋은 추가 설명</strong><p>{topic.reality}</p></div></div>}
   <div className="computer-detail-expand"><button type="button" onClick={()=>setDetails(v=>!v)} aria-expanded={details}><span>전체 단계 설명 읽기</span><span>{details?'접기 −':'펼치기 +'}</span></button>
     {details&&<div className="computer-detail-lines">{topic.steps.map((st,i)=><section key={i}><span>{String(i+1).padStart(2,'0')}</span><div><h3>{st.title} <small>{st.subtitle}</small></h3><p>{st.detail}</p></div></section>)}</div>}
   </div>

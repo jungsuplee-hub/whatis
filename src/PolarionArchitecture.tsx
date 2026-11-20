@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useState } from 'react'
-import { ArrowRight, BookOpen, ChevronDown, Database, ExternalLink, GitBranch, Globe2, KeyRound, Network, Search, Server, ShieldCheck } from 'lucide-react'
+import { ArrowRight, ChevronDown, Database, GitBranch, Globe2, KeyRound, Network, Search, Server, ShieldCheck } from 'lucide-react'
 import ServiceConnections, { type DiagramEdge } from './ServiceConnections'
 import './polarion-architecture.css'
 
@@ -63,7 +63,7 @@ const reviews=[
  {name:'사용자·API 보안',kicker:'ACCESS CONTROL',body:'로드 밸런서·API 노출 범위, SSO 연계, REST 토큰 관리, 계정·프로젝트 권한과 TLS 구성을 확인합니다.'},
  {name:'I/O와 용량',kicker:'PERFORMANCE',body:'Polarion App Node의 PostgreSQL 및 Lucene I/O와 SVN 네트워크 지연을 분리 측정합니다. 실제 사이징은 사용량 조사 후 확정합니다.'},
 ]
-const statusText:Record<Edge['status'],string>={drawing:'2606 문서 예시',common:'일반 프로토콜',verify:'배포별 확인'}
+const statusText:Record<Edge['status'],string>={drawing:'구성 예시',common:'일반 프로토콜',verify:'배포별 확인'}
 type Tab='topology'|'connections'|'operations'
 export default function PolarionArchitecture(){
  const [tab,setTab]=useState<Tab>('topology')
@@ -110,7 +110,7 @@ export default function PolarionArchitecture(){
       <div className="pol-flows">{flows.map(f=><button type="button" className={f.id===flow?'active':''} onClick={()=>{setFlow(f.id);setSelectedNode(f.nodes[0]);setSelectedEdge(f.edges[0])}} key={f.id}>{f.name}</button>)}</div>
     </div>
     <div className="pol-canvas-frame">
-      <div className="pol-canvas-toolbar"><span><Network size={15}/> POLARION ARCHITECTURE / CLUSTER REFERENCE</span><button type="button" onClick={()=>setAllEdges(!allEdges)}>{allEdges?'주요 흐름만':'전체 연결 보기'}</button></div>
+      <div className="pol-canvas-toolbar"><span><Network size={15}/> POLARION ARCHITECTURE / CLUSTER VIEW</span><button type="button" onClick={()=>setAllEdges(!allEdges)}>{allEdges?'주요 흐름만':'전체 연결 보기'}</button></div>
       <div className="pol-canvas-jumps" aria-label="구성도 영역 빠른 이동"><span>빠른 이동</span>{([{id:'user',label:'접속'},{id:'lb',label:'웹'},{id:'app1',label:'앱 클러스터'},{id:'svn',label:'데이터'},{id:'zoo',label:'Coordinator'}] as const).map(x=><button type="button" key={x.id} onClick={()=>jump(x.id)}>{x.label}</button>)}</div>
       <div className="pol-canvas-scroll" ref={setScrollArea} role="region" tabIndex={0} aria-label="Polarion 연결선이 그려진 인터랙티브 인프라 구성도">
         <div className="pol-canvas-scale" style={{width:1240*scale,height:966*scale}}>
@@ -134,17 +134,12 @@ export default function PolarionArchitecture(){
     </div>
    </>}
    {tab==='connections'&&<>
-    <header className="pol-section-heading"><span>CONNECTION MATRIX</span><h4>통신 경로를 검증하는 테이블</h4><p>IP·서버 대수·고정 포트를 임의로 확정하지 않습니다. 아래 수치는 문서 예시와 표준 프로토콜·검증 필요 값으로 구분했습니다.</p></header>
+    <header className="pol-section-heading"><span>CONNECTION MATRIX</span><h4>통신 경로를 검증하는 테이블</h4><p>IP·서버 대수·고정 포트를 임의로 확정하지 않습니다. 아래 수치는 구성 예시·일반 프로토콜·검증 필요 값으로 구분했습니다.</p></header>
     <div className="pol-matrix-tools"><label><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="서비스 / 포트 검색"/></label><div>{(['all','drawing','common','verify'] as const).map(v=><button type="button" onClick={()=>setFilter(v)} className={filter===v?'on':''} key={v}>{v==='all'?'전체':statusText[v]}</button>)}</div></div>
     <div className="pol-matrix">{visible.map(e=><button type="button" key={e.id} onClick={()=>goEdge(e)} className={selectedEdge===e.id?'selected':''}><span>{e.id.toUpperCase()}</span><strong>{nodes.find(n=>n.id===e.from)?.title}<ArrowRight size={14}/>{nodes.find(n=>n.id===e.to)?.title}</strong><b>{e.port}</b><small>{e.proto}</small><em>{statusText[e.status]}</em></button>)}{visible.length===0&&<p>검색된 연결이 없습니다.</p>}</div>
     <div className="pol-info-strip"><strong>{edge.purpose}</strong><p>{edge.check}</p></div>
    </>}
    {tab==='operations'&&<><header className="pol-section-heading"><span>ARCHITECT REVIEW</span><h4>설계 결정과 운영 검증</h4><p>클러스터 토폴로지, 데이터 무결성, 네트워크·보안, 워크로드별 성능을 점검할 수 있습니다.</p></header><div className="pol-reviews">{reviews.map((r,i)=><button type="button" key={r.kicker} className={opened===i?'open':''} onClick={()=>setOpened(opened===i?-1:i)}><span>{String(i+1).padStart(2,'0')} / {r.kicker}</span><strong>{r.name}</strong><ChevronDown size={18}/>{opened===i&&<p>{r.body}</p>}</button>)}</div></>}
-   <footer className="pol-sources">
-      <div><BookOpen size={19}/><strong>근거·제약 사항</strong></div>
-      <p>Polarion 2606 <em>Deployment and Maintenance Guide</em>, <em>Config Properties Reference</em>, <em>REST API User Guide</em>를 참고한 독자적 개념도입니다. 사용자가 공유한 Google Drawings는 파일명 확인만 가능했고, 본문 열람은 접근 제한(403)으로 불가능했습니다. 원본 도면의 배치·포트를 재현했다고 주장하지 않습니다.</p>
-      <p><b>8889</b>는 AJP 설정 예시, <b>2181</b>은 ZooKeeper 연결 설정 예시, <b>5433</b>은 일부 PostgreSQL 연결 설정 예시입니다. 모든 Polarion 2606 설치의 필수 포트는 아닙니다. Shared PostgreSQL 구성, 독립 SVN 서버 분리, 노드 수 등은 지원 구성과 실제 설계에 따라 달라집니다. 상기 문서 원문은 재배포 제한이 있어 복제하지 않았습니다.</p>
-      <a href="https://blogs.sw.siemens.com/polarion/" target="_blank" rel="noopener noreferrer">Siemens Polarion 공개 자료 <ExternalLink size={14}/></a>
-    </footer>
+
  </section>
 }

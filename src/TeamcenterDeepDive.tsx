@@ -50,7 +50,7 @@ const links:Connection[]=[
   {id:'a06',from:'webtier',to:'manager',port:'8088*',proto:'TC service',status:'drawing',purpose:'웹/엔터프라이즈 업무 요청 및 풀 관리',check:'실제 Teamcenter 서비스와 Server Manager 간 통신 포트는 현장 설정 검증'},
   {id:'a07',from:'manager',to:'tcserver',port:'내부',proto:'Server process',status:'verify',purpose:'서버 프로세스 실행/할당',check:'pool manager vs business logic 프로세스 연결과 방화벽 정책 확인'},
   {id:'a08',from:'tcserver',to:'database',port:'1521/1433†',proto:'SQL / JDBC',status:'common',purpose:'Teamcenter 구조화 데이터 읽기·쓰기',check:'Oracle 1521, SQL Server 1433은 DB 제품의 통상 포트 예시. 지원 DB/연결 설정 확인'},
-  {id:'a09',from:'fcc',to:'fsc',port:'4544*',proto:'FMS / HTTP(S)',status:'drawing',purpose:'Client File Cache → Server Cache 파일 접근',check:'4544는 공유 도면 예시 및 여러 공개 자료의 FSC 사용 예시. 변경 가능'},
+  {id:'a09',from:'fcc',to:'fsc',port:'4544*',proto:'FMS / HTTP(S)',status:'drawing',purpose:'Client File Cache → Server Cache 파일 접근',check:'4544는 구성에 따라 달라질 수 있는 FSC 포트 예시. 실제 설정 확인'},
   {id:'a10',from:'fsc',to:'volume',port:'Storage path',proto:'File I/O',status:'verify',purpose:'캐시 ↔ 실제 파일 저장소',check:'NFS/SMB/object store 등 저장 방식은 지원 환경에서 확인'},
   {id:'a11',from:'indexer',to:'solr',port:'8983*',proto:'Solr HTTP',status:'drawing',purpose:'색인 처리 → Solr 검색 컬렉션',check:'8983은 도면 예시이며 운영 Solr HTTPS 포트/접근 정책 별도 확인'},
   {id:'a12',from:'solr',to:'zookeeper',port:'2181*',proto:'ZooKeeper',status:'drawing',purpose:'검색 클러스터 조정(선택 구성)',check:'ZooKeeper 사용/버전/포트는 실제 search stack 아키텍처로 결정'},
@@ -78,7 +78,7 @@ const modes:{id:AiMode;name:string;tag:string;summary:string;steps:{title:string
     {title:'Embedding Model',note:'텍스트를 검색용 벡터로 변환',target:'model'},
     {title:'Vector Index',note:'검색 인덱스 구축·갱신·보관',target:'retrieval'}
   ],caution:'실제 Teamcenter Copilot의 지원 모델·AI 스택·배포 패턴은 릴리스의 AI 플랫폼 지원표와 라이선스 조건을 확인해야 합니다.',source:'https://blogs.sw.siemens.com/teamcenter/teamcenter-plm-ai-copilot/'},
-  {id:'self',name:'Self-managed 예시',tag:'FIELD REFERENCE · NOT UNIVERSAL',summary:'자체 AI 호스트를 사용하는 한 가지 구현 예시입니다. 모든 Teamcenter 2606 환경의 공식 기본 배포라고 주장하지 않습니다.',steps:[
+  {id:'self',name:'Self-managed 예시',tag:'CUSTOM DESIGN · NOT UNIVERSAL',summary:'자체 AI 호스트를 사용하는 한 가지 구현 예시입니다. 모든 Teamcenter 2606 환경의 공식 기본 배포라고 주장하지 않습니다.',steps:[
     {title:'Teamcenter & AI microservices',note:'호출 / 인증 / Copilot 앱 서비스',target:'teamcenter'},
     {title:'OpenSearch Retrieval',note:'기존 색인에서 관련 문맥 검색 · 9200†',target:'retrieval'},
     {title:'Ollama LLM 호출',note:'찾은 문맥 전달 · 11434†',target:'model'},
@@ -110,16 +110,8 @@ const qa=[
   {title:'AI 데이터 보안',text:'Copilot과 Agent가 접근하는 문서·속성 범위, 프롬프트·임베딩/벡터 보존, 외부 LLM 데이터 이동, 감사·사람 승인'},
   {title:'HA/DR·운영',text:'웹/업무 서버와 DB·FSC·검색·AI 서비스마다 RPO/RTO, 장애 조치, 관측 지표 및 복원 리허설을 분리'}
 ]
-const docs=[
- {title:'Siemens · Teamcenter 2606',url:'https://blogs.sw.siemens.com/teamcenter/teamcenter-2606/'},
- {title:'Siemens · Teamcenter Copilot',url:'https://blogs.sw.siemens.com/teamcenter/teamcenter-plm-ai-copilot/'},
- {title:'Siemens · RAG 구조',url:'https://blogs.sw.siemens.com/teamcenter/teamcenter-copilot-plm-chat/'},
- {title:'Siemens · M365 Copilot 연계',url:'https://blogs.sw.siemens.com/teamcenter/plm-integration-with-microsoft-365-copilot/'},
- {title:'Microsoft · Teamcenter 기본 배포',url:'https://learn.microsoft.com/en-us/azure/architecture/example-scenario/manufacturing/teamcenter-baseline'},
- {title:'Siemens · FMS 개요',url:'https://blogs.sw.siemens.com/teamcenter/store-and-forward-with-file-management-system-fms/'}
-]
-const statusLabel:Record<Connection['status'],string>={drawing:'공유 도면 예시',common:'표준 기술 예시',verify:'환경별 확인'}
-const statusHelp="* 공유받은 2026.03 구성도에 기입된 예시 포트 (공식 기본값 아님) · † 일반 기술의 대표 포트 (설정·보안정책에 따라 다름)";
+const statusLabel:Record<Connection['status'],string>={drawing:'구성 예시',common:'표준 기술 예시',verify:'환경별 확인'}
+const statusHelp="* 구성별 예시 포트 (공식 기본값 아님) · † 일반 기술의 대표 포트 (설정·보안 정책에 따라 다름)";
 export default function TeamcenterDeepDive(){
   const [tab,setTab]=useState<Tab>('topology')
   const [flow,setFlow]=useState('browse')
@@ -166,7 +158,7 @@ export default function TeamcenterDeepDive(){
       <div className="tcd-path-strip"><div><strong><Waypoints size={15}/> {activeFlow.label}</strong><small>{activeFlow.desc}</small></div><div className="tcd-path-items">{activeFlow.nodes.map((n,i)=><span key={n}><button onClick={()=>setNodeId(n)} className={n===nodeId?'selected':''}>{nodes.find(x=>x.id===n)!.title}</button>{i<activeFlow.nodes.length-1&&<ArrowRight size={13}/>}</span>)}</div></div>
       <div className="tcd-inspector">
         <div><span className="tcd-eyebrow">COMPONENT INSPECTOR · {tierLabel[activeNode.tier]}</span><h4>{activeNode.title}</h4><strong className="tcd-inspector-detail">{activeNode.detail}</strong><p>{activeNode.role}</p></div>
-        <div><span className="tcd-eyebrow">PORT / NETWORK</span><strong className="tcd-big-port">{activeNode.port}</strong><small>{activeNode.source==='drawing'?'사용자 도면의 서비스/포트 예시':'지원 구성 또는 실제 환경에서 검증'}</small><p><ShieldCheck size={15}/> {activeNode.inspect}</p></div>
+        <div><span className="tcd-eyebrow">PORT / NETWORK</span><strong className="tcd-big-port">{activeNode.port}</strong><small>{activeNode.source==='drawing'?'설치 구성의 포트 예시 · 실제 환경 확인 필요':'실제 환경에서 서비스 설정 확인'}</small><p><ShieldCheck size={15}/> {activeNode.inspect}</p></div>
       </div>
       <div className="tcd-edge-list"><h4>현재 흐름의 연결</h4><div>{links.filter(l=>activeFlow.edges.includes(l.id)).map(l=><button type="button" onClick={()=>chooseLink(l)} key={l.id}><strong>{nodes.find(n=>n.id===l.from)?.title}</strong><ArrowRight size={14}/><strong>{nodes.find(n=>n.id===l.to)?.title}</strong><span>{l.port}</span><small>{statusLabel[l.status]}</small></button>)}</div></div>
     </>}
@@ -185,7 +177,7 @@ export default function TeamcenterDeepDive(){
         <div className="tcd-ai-flow">{aiSteps.map((step,i)=><button key={step.title} type="button" aria-pressed={aiStep===i} className={'tcd-ai-step '+(aiStep===i?'selected':'')} onClick={()=>setAiStep(i)}><span>{String(i+1).padStart(2,'0')}</span><strong>{step.title}</strong><small>{step.note}</small>{i<aiSteps.length-1&&<ArrowDown size={16}/>}</button>)}</div>
         <div className="tcd-ai-explain"><span>SELECTED STEP {String(aiStep+1).padStart(2,'0')} / {aiSteps.length}</span><strong>{aiSteps[aiStep]?.title}</strong><p>{aiSteps[aiStep]?.note}</p></div>
       </div>
-      <div className="tcd-ai-caution"><ShieldCheck size={17}/><span>{ai.caution}</span><a href={ai.source} target="_blank" rel="noopener noreferrer">공개 자료 <ArrowRight size={14}/></a></div>
+      <div className="tcd-ai-caution"><ShieldCheck size={17}/><span>{ai.caution}</span></div>
       <div className="tcd-ai-service-inventory">
         <div className="tcd-ai-service-title"><strong>AI 서비스와 역할을 구분하기</strong><span>구성에 따라 필요 여부·명칭·포트 달라짐</span></div>
         <div className="tcd-ai-service-grid">
@@ -203,6 +195,5 @@ export default function TeamcenterDeepDive(){
       <div className="tcd-ai-port-review"><strong>AI 경계에서 검토할 통신</strong><div><span>Copilot UI ↔ AI Services</span><b>HTTPS / 인증</b><small>서비스 URL·실제 리슨 포트는 현장 확인</small></div><div><span>Embedding / LLM API</span><b>443 또는 11434†</b><small>Cloud API 또는 self-managed 사례; 구성에 따라 다름</small></div><div><span>Vector DB</span><b>9200† / provider API</b><small>OpenSearch 사례 또는 벡터 DB 제공자 API</small></div><div><span>Agent ↔ Teamcenter</span><b>인증된 서비스 경로</b><small>MCP는 선택적 확장이며 설치 기본 포트로 단정 불가</small></div></div>
     </>}
     {tab==='operations'&&<><div className="tcd-section-intro"><span className="tcd-eyebrow">DESIGN REVIEW</span><h4>구성도 다음은 운영 가능성 검증</h4><p>구축 직전에 채울 체크리스트입니다. 구체적인 서버 수·HA 구성·포트 오픈은 설치 및 플랫폼 호환성 문서로 확정합니다.</p></div><div className="tcd-ops">{qa.map((q,i)=><button type="button" key={q.title} className={openQa===i?'expanded':''} onClick={()=>setOpenQa(openQa===i?null:i)}><span>{String(i+1).padStart(2,'0')}</span><strong>{q.title}</strong><ChevronDown size={18}/>{openQa===i&&<p>{q.text}</p>}</button>)}</div></>}
-    <div className="tcd-references"><div><strong>자료 구분</strong><p>서비스 구성과 포트 예시는 사용자가 공유한 2026년 3월 Google Drawings를 재해석했습니다. 다른 제품 릴리스·환경의 설치 필수값이라는 뜻은 아닙니다. Siemens 제한 문서의 도면·원문·현장 호스트명은 공개하지 않았습니다.</p></div><div>{docs.map(d=><a href={d.url} target="_blank" rel="noopener noreferrer" key={d.url}>{d.title}<ArrowRight size={13}/></a>)}</div></div>
   </section>
 }

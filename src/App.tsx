@@ -125,7 +125,7 @@ function App(){
       {route.page==='saved'&&<SavedCollection ids={saved} onTopic={openTopic} onHome={home}/>}
       {route.page==='topic'&&topic&&<TopicLesson key={topic.id} topic={topic} onHome={home} onCategory={()=>openCategory(categoryById(topic.category)!)} onTopic={openTopic} bookmarked={saved.includes(topic.id)} onBookmark={()=>favorite(topic.id)}/>}
     </main>
-    <footer className="site-footer"><span>whatis. <i>알수록 가까워지는 기술</i></span><span>학습용 시각화 · 상세 출처는 각 글에 표시</span></footer>
+    <footer className="site-footer"><span>whatis. <i>알수록 가까워지는 기술</i></span><span>기술을 눈으로 이해하는 인터랙티브 학습</span></footer>
     {searchOpen&&<div className="finder-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setSearchOpen(false)}}>
       <section className="finder-dialog" role="dialog" aria-modal="true" aria-label="AI 기술 찾기">
         <div className="finder-input"><Search size={22}/><input ref={searchRef} placeholder="어떤 게 궁금하세요? (예: AI가 틀리는 이유)" value={query} onChange={e=>setQuery(e.target.value)}/><button onClick={()=>setSearchOpen(false)} aria-label="닫기"><X size={19}/></button></div>
@@ -268,7 +268,6 @@ function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{to
       <details><summary><span className="detail-index">02</span><span>쉽게 다시 설명해 줘</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>{topic.description}</p><ul>{topic.insights.map(s=><li key={s}>{s}</li>)}</ul></div></details>
       <details><summary><span className="detail-index">03</span><span>어디에 사용할 수 있을까?</span><ChevronDown size={20}/></summary><div className="detail-answer"><div className="use-examples">{topic.useCases.map(s=><span key={s}>{s}</span>)}</div></div></details>
       <details><summary><span className="detail-index">04</span><span>이건 꼭 조심하세요</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>{lesson?.keyIdea||topic.caution}</p><p className="detail-annotation">{topic.caution}</p></div></details>
-      <details><summary><span className="detail-index">05</span><span>정확한 자료는 어디에 있을까?</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>아래 자료는 원문입니다. 영어 문서가 포함될 수 있습니다.</p>{topic.sources.map(src=><a className="source-anchor" key={src.url} href={src.url} target="_blank" rel="noopener noreferrer">{src.name}<ExternalLink size={15}/></a>)}</div></details>
     </div>
     {related.length>0&&<section className="next-stories"><div className="next-head"><span>RELATED STORIES</span><h2>다음에는 이것도 살펴보세요</h2></div><div className="next-grid">{related.map(t=><button key={t.id} onClick={()=>onTopic(t)}><span>{friendly(t)}</span><ArrowUpRight size={18}/></button>)}</div></section>}
   </article>
