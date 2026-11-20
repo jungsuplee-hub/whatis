@@ -1,5 +1,5 @@
 /* Dedicated floating infrastructure inspector shared by Teamcenter and Polarion. */
-.arch-qv-layer{position:fixed;inset:0;z-index:9999;display:flex;justify-content:flex-end;background:#132b32a8;backdrop-filter:blur(3px);animation:arch-qv-fade .18s ease-out}
+.arch-qv-layer{position:fixed;inset:0;z-index:9999;display:flex;justify-content:flex-end;background:rgba(19,43,50,.07);animation:arch-qv-fade .18s ease-out}
 .arch-qv-sheet{height:100%;height:100dvh;width:min(474px,100%);background:#fff;box-shadow:-21px 0 54px #0c2b2730;display:flex;flex-direction:column;outline:none;overflow:hidden;animation:arch-qv-slide .23s ease-out;font-family:'Pretendard Variable','Noto Sans KR',sans-serif;color:#2b4240}
 .arch-qv-header{min-height:72px;padding:19px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#f0f6f2;border-bottom:1px solid #dce9df}
 .arch-qv-kind{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:850;color:#427665}
@@ -56,3 +56,20 @@
 @media(max-width:340px){.arch-qv-footer>button{font-size:10px}}
 @keyframes arch-qv-up{from{transform:translateY(32px);opacity:.7}to{transform:translateY(0);opacity:1}}
 @media(prefers-reduced-motion:reduce){.arch-qv-layer,.arch-qv-sheet{animation:none}}
+
+/* Detailed operational guidance lives in the same floating panel as basic service facts. */
+.arch-qv-guide{margin-top:28px;display:grid;gap:18px}
+.arch-qv-guide-location{border-left:3px solid #81b09b;padding:8px 14px;display:flex;flex-direction:column;gap:6px;background:#f7fbf8}
+.arch-qv-guide-location span{color:#849c90;font-size:10px;font-weight:850}
+.arch-qv-guide-location strong{color:#36604f;font-size:12px;line-height:1.7}
+.arch-qv-guide-section{padding:4px 0 16px;border-bottom:1px solid #e1ebe5}
+.arch-qv-guide-index{color:#90ac9a;font:850 10px 'DM Sans',sans-serif;letter-spacing:.55px}
+.arch-qv-guide-section h3{font-size:15px;letter-spacing:-.4px;margin:8px 0 14px;font-weight:850;color:#294e3d}
+.arch-qv-guide-section p{font-size:12px;line-height:1.88;color:#607e6e;margin:0;padding:0 0 0 15px;position:relative;word-break:keep-all}
+.arch-qv-guide-section p:not(:last-child){margin-bottom:11px}
+.arch-qv-guide-section p:before{content:"";position:absolute;top:10px;left:1px;height:5px;width:5px;border-radius:50%;background:#8bc7a7}
+.arch-qv-guide-caution{padding:15px 16px;background:#f8f6ef;border-radius:11px;border:1px solid #e9e5d7}
+.arch-qv-guide-caution h3{color:#8a704c}
+.arch-qv-guide-caution p{color:#8d7a5a}
+.arch-qv-guide-caution p:before{background:#cbac77}
+@media(max-width:640px){.arch-qv-guide{margin-top:22px;gap:16px}.arch-qv-guide-section p{font-size:12px}}

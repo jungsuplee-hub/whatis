@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useState } from 'react'
 import { ArrowRight, ChevronDown, Database, GitBranch, Globe2, KeyRound, Network, Search, Server } from 'lucide-react'
 import ServiceConnections, { type DiagramEdge } from './ServiceConnections'
 import ArchitectureQuickView, { type ArchitectureDetail } from './ArchitectureQuickView'
+import { polarionServiceGuides } from './architecture-service-guides'
 import './polarion-architecture.css'
 
 type NodeKind='access'|'edge'|'app'|'coord'|'store'|'optional'
@@ -112,6 +113,7 @@ export default function PolarionArchitecture(){
    secondary:quickNode.kind==='app'?'애플리케이션':quickNode.kind==='store'?'저장소':quickNode.kind==='coord'?'조정 서비스':quickNode.kind==='optional'?'선택 기능':'접속 / 서비스',
    status:'논리 구성 예시 · 실제 환경에서 확인',
    reviewLabel:'아키텍처 검토 사항',review:quickNode.review,
+   guide:polarionServiceGuides[quickNode.id],
    related:edges.filter(e=>e.from===quickNode.id||e.to===quickNode.id).map(e=>({
      id:e.id,title:nodes.find(n=>n.id===e.from)?.title+' → '+nodes.find(n=>n.id===e.to)?.title,
      subtitle:e.port+' · '+e.proto

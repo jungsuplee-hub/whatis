@@ -5,7 +5,7 @@
 .tcd-header h3{font-size:clamp(28px,3.6vw,43px);font-weight:880;letter-spacing:-1.8px;line-height:1.25;margin:15px 0 11px}.tcd-header h3 em{color:#4b7653;font-style:normal}
 .tcd-header p{color:#799078;font-size:12px;line-height:1.85;max-width:590px;margin:0}
 .tcd-meta{border:1px solid #cfe0c9;border-radius:11px;background:#fff;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;color:#608864}.tcd-meta strong{font:850 25px 'DM Sans',sans-serif;color:#375b40}.tcd-meta span{font:700 10px 'DM Sans',sans-serif;color:#6e8c70}.tcd-meta small{font-size:8px;color:#a1b2a0}
-.tcd-tabs{padding:10px 18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;border-bottom:1px solid #e7ece4;background:#fff}
+.tcd-tabs{padding:10px 18px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;border-bottom:1px solid #e7ece4;background:#fff}
 .tcd-tabs button{min-height:51px;border:1px solid transparent;border-radius:9px;background:#f5f7f2;color:#718371;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:11px}
 .tcd-tabs button span{font:800 9px 'DM Sans',sans-serif;color:#a2b2a2}.tcd-tabs button.current{background:#294937;color:#e9f7e7;border-color:#294937}.tcd-tabs button.current span{color:#a0cd9d}
 .tcd-flow-selector{padding:24px 25px 18px;display:flex;gap:19px;align-items:center;justify-content:space-between}.tcd-flow-selector>div:first-child{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
@@ -286,3 +286,17 @@
 .tcd-board-connected .tcd-lane-grid{column-gap:16px}
 .tcd-diagram-toolbar>button:focus-visible,.tcd-wire:focus-visible{outline:3px solid #e6a56c;outline-offset:2px}
 @media(max-width:660px){.tcd-board-connected .tcd-lane-grid{column-gap:16px}}
+
+.tcd-micro-all{border:1px solid #aacbb4;background:#e9f5ed;border-radius:8px;color:#397557;font-size:11px;font-weight:850;padding:9px 12px;cursor:pointer}
+.tcd-micro-all:hover{background:#d8eddf}
+.tcd-ai-service{cursor:pointer;font:inherit;text-align:left}
+.tcd-ai-service:hover{border-color:#8dbea1;background:#f2fbf4}
+@media(max-width:660px){.tcd-tabs button{font-size:9px}.tcd-tabs button span{font-size:8px}.tcd-ai-service-title{align-items:flex-start;flex-wrap:wrap}.tcd-micro-all{font-size:10px;padding:8px}}
+
+/* Keep microservice tab and Korean labels legible on phones; swipe the tab row. */
+@media(max-width:660px){
+ .tcd-tabs{display:flex;grid-template-columns:none;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;gap:7px;padding:9px 11px}
+ .tcd-tabs button{flex:0 0 auto;min-width:112px;padding:9px 10px;flex-direction:row;gap:7px;font-size:11px;line-height:1.4}
+ .tcd-tabs button span{font-size:9px}
+ .tcd-tabs button:nth-child(4){min-width:122px}
+}

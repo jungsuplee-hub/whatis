@@ -4,6 +4,8 @@ import {
   Layers3, Search, ShieldCheck, Sparkles, Waypoints
 } from 'lucide-react'
 import TeamcenterAtlas from './TeamcenterAtlas'
+import TeamcenterMicroserviceAtlas from './TeamcenterMicroserviceAtlas'
+import { teamcenterServiceGuides, microItems, type MicroItem } from './architecture-service-guides'
 import ArchitectureQuickView, { type ArchitectureDetail } from './ArchitectureQuickView'
 import './teamcenter-deep-dive.css'
 
@@ -19,7 +21,7 @@ type Connection = {
 }
 type Flow={id:string;label:string;desc:string;nodes:string[];edges:string[]}
 type AiMode='native'|'self'|'m365'|'custom'
-type Tab='topology'|'ports'|'ai'|'operations'
+type Tab='topology'|'ports'|'ai'|'microservices'|'operations'
 const tierLabel:Record<Tier,string>={client:'CLIENT TIER',web:'WEB TIER',enterprise:'ENTERPRISE TIER',resource:'RESOURCE TIER',ai:'AI EXTENSION'}
 const nodes:Node[]=[
   {id:'awc',title:'AWC / Browser',detail:'Active Workspace Client',tier:'client',category:'core',port:'HTTPS',source:'drawing',role:'브라우저 기반 PLM 사용자 인터페이스',inspect:'사용자 위치, 프록시, 인증 경로, 동시 사용자 수'},
@@ -118,7 +120,7 @@ export default function TeamcenterDeepDive(){
   const [flow,setFlow]=useState('browse')
   const [nodeId,setNodeId]=useState('manager')
   const [linkId,setLinkId]=useState('a06')
-  const [quick,setQuick]=useState<{kind:'component'|'connection';id:string}|null>(null)
+  const [quick,setQuick]=useState<{kind:'component'|'connection'|'microservice';id:string}|null>(null)
   const [portFilter,setPortFilter]=useState<'all'|Connection['status']>('all')
   const [portSearch,setPortSearch]=useState('')
   const [aiMode,setAiMode]=useState<AiMode>('native')
@@ -134,6 +136,7 @@ export default function TeamcenterDeepDive(){
   const changeFlow=(next:string)=>{setFlow(next);const target=flows.find(x=>x.id===next)!;setNodeId(target.nodes[0]);setLinkId(target.edges[0])}
   const chooseNode=(id:string)=>{setNodeId(id);setQuick({kind:'component',id})}
   const chooseLink=(x:Connection)=>{setLinkId(x.id);setNodeId(x.to);setQuick({kind:'connection',id:x.id})}
+  const chooseMicroservice=(item:MicroItem)=>setQuick({kind:'microservice',id:item.id})
   const openMatrix=()=>{
     setQuick(null)
     setTab('ports')
@@ -141,6 +144,7 @@ export default function TeamcenterDeepDive(){
   }
   const quickNode=quick?.kind==='component'?nodes.find(n=>n.id===quick.id):undefined
   const quickLink=quick?.kind==='connection'?links.find(l=>l.id===quick.id):undefined
+  const quickMicro=quick?.kind==='microservice'?microItems.find(m=>m.id===quick.id):undefined
   const quickDetail:ArchitectureDetail|null=quickNode?{
     kind:'component',eyebrow:tierLabel[quickNode.tier],title:quickNode.title,subtitle:quickNode.detail,
     description:quickNode.role,
@@ -148,6 +152,7 @@ export default function TeamcenterDeepDive(){
     secondary:quickNode.category==='core'?'핵심':quickNode.category==='conditional'?'선택 기능':quickNode.category==='legacy'?'기존 기능':'설계 패턴',
     status:quickNode.source==='drawing'?'포트 예시 · 실제 환경에서 확인':'환경별 구성 · 실제 설정 확인',
     reviewLabel:'설계 시 확인할 사항',review:quickNode.inspect,
+    guide:teamcenterServiceGuides[quickNode.id],
     related:links.filter(l=>l.from===quickNode.id||l.to===quickNode.id).map(l=>({
       id:l.id,
       title:nodes.find(n=>n.id===l.from)?.title+' → '+nodes.find(n=>n.id===l.to)?.title,
@@ -159,14 +164,22 @@ export default function TeamcenterDeepDive(){
     description:quickLink.purpose,metricLabel:'통신 포트',metric:quickLink.port,
     secondaryLabel:'프로토콜 / 방식',secondary:quickLink.proto,status:statusLabel[quickLink.status],
     reviewLabel:'실제 환경에서 확인할 사항',review:quickLink.check
+  }:quickMicro?{
+    kind:'microservice',eyebrow:quickMicro.category,
+    title:quickMicro.name,subtitle:quickMicro.purpose,description:quickMicro.synopsis,
+    metricLabel:'엔드포인트 / 포트',metric:quickMicro.port,
+    secondaryLabel:'서비스 분류',secondary:quickMicro.category,
+    status:'제품 기능·배포 옵션별 적용',
+    reviewLabel:'핵심 운영 점검',review:quickMicro.guide.operations[0],
+    guide:quickMicro.guide
   }:null
   return <section className="tcd" aria-label="Teamcenter 실무 상세 아키텍처">
     <header className="tcd-header">
       <div><div className="tcd-kicker"><span/> ARCHITECTURE BLUEPRINT · 2606</div><h3>Teamcenter,<br/><em>서비스까지 들여다보기.</em></h3><p>사용자가 작성한 4계층 구성도를 바탕으로 서비스를 분리하고 연결·포트·Copilot을 탐색하도록 재구성했습니다.</p></div>
-      <div className="tcd-meta"><Layers3 size={24}/><strong>4 TIERS</strong><span>~19 Components</span><small>도면 기준 + 공개 확인 자료</small></div>
+      <div className="tcd-meta"><Layers3 size={24}/><strong>4 TIERS</strong><span>19 Components</span><small>AI / Microservice 구성별 선택</small></div>
     </header>
     <nav className="tcd-tabs" aria-label="상세 아키텍처 메뉴">
-      {([{id:'topology',name:'서비스 구성도',number:'01'},{id:'ports',name:'통신 / 포트',number:'02'},{id:'ai',name:'Copilot / AI',number:'03'},{id:'operations',name:'운영 설계',number:'04'}] as {id:Tab;name:string;number:string}[]).map(x=><button type="button" onClick={()=>setTab(x.id)} key={x.id} className={tab===x.id?'current':''} aria-pressed={tab===x.id}><span>{x.number}</span>{x.name}</button>)}
+      {([{id:'topology',name:'서비스 구성도',number:'01'},{id:'ports',name:'통신 / 포트',number:'02'},{id:'ai',name:'Copilot / AI',number:'03'},{id:'microservices',name:'Microservices',number:'04'},{id:'operations',name:'운영 설계',number:'05'}] as {id:Tab;name:string;number:string}[]).map(x=><button type="button" onClick={()=>setTab(x.id)} key={x.id} className={tab===x.id?'current':''} aria-pressed={tab===x.id}><span>{x.number}</span>{x.name}</button>)}
     </nav>
     {tab==='topology'&&<>
       <div className="tcd-flow-selector"><div><strong>요청 흐름 선택</strong><small>선택된 컴포넌트와 연결 경로가 강조됩니다</small></div><div className="tcd-flow-buttons">{flows.map(f=><button className={f.id===flow?'active':''} onClick={()=>changeFlow(f.id)} type="button" key={f.id}>{f.label}</button>)}</div></div>
@@ -196,27 +209,21 @@ export default function TeamcenterDeepDive(){
       </div>
       <div className="tcd-ai-caution"><ShieldCheck size={17}/><span>{ai.caution}</span></div>
       <div className="tcd-ai-service-inventory">
-        <div className="tcd-ai-service-title"><strong>AI 서비스와 역할을 구분하기</strong><span>구성에 따라 필요 여부·명칭·포트 달라짐</span></div>
+        <div className="tcd-ai-service-title"><strong>AI Microservices · 실제 기능 분류</strong><button type="button" className="tcd-micro-all" onClick={()=>setTab('microservices')}>전체 구성요소 {microItems.length}개 보기 →</button></div>
         <div className="tcd-ai-service-grid">
-          {[
-            {name:'Copilot UI',role:'대화 인터페이스 · 사용자 인증',port:'HTTPS / Web'},
-            {name:'AI Orchestration',role:'요청 전달·모델/검색 서비스 호출',port:'서비스별 설정'},
-            {name:'Document / Vectorizing',role:'사전 문서 처리·임베딩 생성',port:'서비스별 설정'},
-            {name:'Model Invocation',role:'LLM/Embedding 모델 API 사용',port:'443† / 11434†'},
-            {name:'Vector Search',role:'RAG 참고 문맥 검색·색인',port:'Provider API / 9200†'},
-            {name:'Discovery & Registry',role:'마이크로서비스 등록·연결 확인',port:'배포 환경 확인'}
-          ].map((svc,i)=><div className="tcd-ai-service" key={svc.name}><span>{String(i+1).padStart(2,'0')}</span><strong>{svc.name}</strong><small>{svc.role}</small><b>{svc.port}</b></div>)}
+          {microItems.filter(m=>m.group==='processing'||m.group==='agent').map((svc,i)=><button type="button" onClick={()=>chooseMicroservice(svc)} className="tcd-ai-service" key={svc.id}><span>{String(i+1).padStart(2,'0')} · {svc.category}</span><strong>{svc.name}</strong><small>{svc.purpose}</small><b>{svc.port}</b></button>)}
         </div>
-        <p>위 항목은 서비스의 <b>역할별 분해도</b>입니다. 모든 항목이 독립 서버라는 뜻은 아니며, 특정 Teamcenter 버전에 동일 이름의 실행체가 포함된다고 보장하지 않습니다.</p>
+        <p>Teamcenter AI 확장 구성의 서비스 명칭을 기준으로 분류했습니다. 적용 제품 옵션과 설치 버전에 따라 실제 실행 서비스 수는 달라집니다.</p>
       </div>
       <div className="tcd-ai-port-review"><strong>AI 경계에서 검토할 통신</strong><div><span>Copilot UI ↔ AI Services</span><b>HTTPS / 인증</b><small>서비스 URL·실제 리슨 포트는 현장 확인</small></div><div><span>Embedding / LLM API</span><b>443 또는 11434†</b><small>Cloud API 또는 self-managed 사례; 구성에 따라 다름</small></div><div><span>Vector DB</span><b>9200† / provider API</b><small>OpenSearch 사례 또는 벡터 DB 제공자 API</small></div><div><span>Agent ↔ Teamcenter</span><b>인증된 서비스 경로</b><small>MCP는 선택적 확장이며 설치 기본 포트로 단정 불가</small></div></div>
     </>}
+    {tab==='microservices'&&<TeamcenterMicroserviceAtlas onOpen={chooseMicroservice}/>}
     {tab==='operations'&&<><div className="tcd-section-intro"><span className="tcd-eyebrow">DESIGN REVIEW</span><h4>구성도 다음은 운영 가능성 검증</h4><p>구축 직전에 채울 체크리스트입니다. 구체적인 서버 수·HA 구성·포트 오픈은 설치 및 플랫폼 호환성 문서로 확정합니다.</p></div><div className="tcd-ops">{qa.map((q,i)=><button type="button" key={q.title} className={openQa===i?'expanded':''} onClick={()=>setOpenQa(openQa===i?null:i)}><span>{String(i+1).padStart(2,'0')}</span><strong>{q.title}</strong><ChevronDown size={18}/>{openQa===i&&<p>{q.text}</p>}</button>)}</div></>}
     <ArchitectureQuickView
       detail={quickDetail}
       onClose={()=>setQuick(null)}
       onRelated={id=>{const match=links.find(l=>l.id===id);if(match)chooseLink(match)}}
-      onMatrix={openMatrix}
+      onMatrix={quick?.kind==='microservice'?undefined:openMatrix}
     />
   </section>
 }

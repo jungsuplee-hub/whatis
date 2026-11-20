@@ -2,10 +2,11 @@ import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { ArrowRight, CheckCircle2, GitBranch, Network, Server, ShieldCheck, X } from 'lucide-react'
 import './architecture-quick-view.css'
+import type { ServiceGuide } from './architecture-service-guides'
 
 export type ArchitectureRelated={ id:string; title:string; subtitle:string }
 export type ArchitectureDetail={
-  kind:'component'|'connection'
+  kind:'component'|'connection'|'microservice'
   eyebrow:string
   title:string
   subtitle?:string
@@ -18,6 +19,7 @@ export type ArchitectureDetail={
   reviewLabel:string
   review:string
   related?:ArchitectureRelated[]
+  guide?:ServiceGuide
 }
 type Props={
   detail:ArchitectureDetail|null
@@ -55,12 +57,17 @@ export default function ArchitectureQuickView({detail,onClose,onRelated,onMatrix
     // Detail switching should update panel contents without resetting focus.
   },[Boolean(detail)]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(()=>{
+    if(!detail)return
+    const scroller=panel.current?.querySelector<HTMLElement>('.arch-qv-scroll')
+    if(scroller)scroller.scrollTop=0
+  },[detail?.title])
   if(!detail)return null
   return createPortal(
     <div className="arch-qv-layer" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}>
       <section className="arch-qv-sheet" role="dialog" aria-modal="true" aria-labelledby="arch-qv-title" aria-describedby="arch-qv-description" ref={panel} tabIndex={-1}>
         <header className="arch-qv-header">
-          <span className="arch-qv-kind">{detail.kind==='component'?<Server size={16}/>:<Network size={16}/>} {detail.kind==='component'?'구성요소 상세':'통신 연결 상세'}</span>
+          <span className="arch-qv-kind">{detail.kind==='component'?<Server size={16}/>:<Network size={16}/>} {detail.kind==='component'?'구성요소 상세':detail.kind==='microservice'?'Microservice 상세':'통신 연결 상세'}</span>
           <button className="arch-qv-close" ref={closeButton} type="button" onClick={onClose} aria-label="상세 패널 닫기"><X size={21}/></button>
         </header>
         <div className="arch-qv-scroll">
@@ -79,6 +86,18 @@ export default function ArchitectureQuickView({detail,onClose,onRelated,onMatrix
             <div><ShieldCheck size={18}/><strong>{detail.reviewLabel}</strong></div>
             <p>{detail.review}</p>
           </section>
+          {detail.guide&&<section className="arch-qv-guide" aria-label="서비스별 상세 해설">
+            <div className="arch-qv-guide-location"><span>배치 / 적용 영역</span><strong>{detail.guide.location}</strong></div>
+            <div className="arch-qv-guide-section"><span className="arch-qv-guide-index">01 / SERVICE BEHAVIOR</span><h3>어떤 일을 하나요?</h3>
+              {detail.guide.behavior.map((line,i)=><p key={i}>{line}</p>)}
+            </div>
+            <div className="arch-qv-guide-section"><span className="arch-qv-guide-index">02 / OPERATIONS</span><h3>운영할 때 확인할 것</h3>
+              {detail.guide.operations.map((line,i)=><p key={i}>{line}</p>)}
+            </div>
+            <div className="arch-qv-guide-section arch-qv-guide-caution"><span className="arch-qv-guide-index">03 / DESIGN NOTES</span><h3>설계·버전 주의사항</h3>
+              {detail.guide.caveats.map((line,i)=><p key={i}>{line}</p>)}
+            </div>
+          </section>}
           {detail.related&&detail.related.length>0&&<section className="arch-qv-related">
             <h3><GitBranch size={17}/> 연결 관계</h3>
             <p>다른 연결을 누르면 이 패널에서 바로 상세 정보가 바뀝니다.</p>
