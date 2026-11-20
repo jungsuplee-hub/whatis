@@ -1,0 +1,58 @@
+/* Dedicated floating infrastructure inspector shared by Teamcenter and Polarion. */
+.arch-qv-layer{position:fixed;inset:0;z-index:9999;display:flex;justify-content:flex-end;background:#132b32a8;backdrop-filter:blur(3px);animation:arch-qv-fade .18s ease-out}
+.arch-qv-sheet{height:100%;height:100dvh;width:min(474px,100%);background:#fff;box-shadow:-21px 0 54px #0c2b2730;display:flex;flex-direction:column;outline:none;overflow:hidden;animation:arch-qv-slide .23s ease-out;font-family:'Pretendard Variable','Noto Sans KR',sans-serif;color:#2b4240}
+.arch-qv-header{min-height:72px;padding:19px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#f0f6f2;border-bottom:1px solid #dce9df}
+.arch-qv-kind{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:850;color:#427665}
+.arch-qv-kind svg{color:#4e947b}
+.arch-qv-close{height:36px;width:36px;display:grid;place-items:center;color:#648175;background:#fff;border:1px solid #d5e4db;border-radius:9px;cursor:pointer}
+.arch-qv-close:hover{background:#e3f0e7;color:#285946}
+.arch-qv-scroll{overflow-y:auto;overscroll-behavior:contain;flex:1;padding:29px 27px 35px}
+.arch-qv-eyebrow{font:850 10px/1.3 'DM Sans','Pretendard Variable',sans-serif;letter-spacing:1px;color:#76a18a}
+.arch-qv-title-block h2{font-size:clamp(23px,2.5vw,30px);line-height:1.32;font-weight:900;letter-spacing:-1px;color:#1d3730;margin:14px 0 7px;overflow-wrap:anywhere}
+.arch-qv-subtitle{display:block;color:#7b9989;font:750 12px/1.5 'DM Sans','Pretendard Variable',sans-serif}
+.arch-qv-title-block p{font-size:14px;line-height:1.9;color:#58746a;margin:23px 0 0;word-break:keep-all}
+.arch-qv-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:25px}
+.arch-qv-fact{border:1px solid #dfe8e3;background:#f7faf8;border-radius:11px;padding:18px 14px;display:flex;flex-direction:column;gap:11px;min-width:0}
+.arch-qv-fact>span{font-size:11px;font-weight:800;color:#839d90}
+.arch-qv-fact>strong{font:850 20px/1.3 'DM Sans','Pretendard Variable',sans-serif;color:#2f6c59;overflow-wrap:anywhere}
+.arch-qv-status{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:750;color:#71947a;padding:9px 0;line-height:1.6}
+.arch-qv-review{margin-top:26px;padding:19px 18px 20px;border-radius:11px;background:#edf5ef;border:1px solid #d7e9d9}
+.arch-qv-review>div{display:flex;align-items:center;gap:8px;color:#427d60;font-size:12px}
+.arch-qv-review p{font-size:12px;line-height:1.9;color:#587b65;margin:11px 0 0}
+.arch-qv-related{margin-top:29px}
+.arch-qv-related h3{display:flex;align-items:center;gap:9px;font-size:14px;color:#305648;font-weight:850;margin:0 0 7px}
+.arch-qv-related h3 svg{color:#5f9882}
+.arch-qv-related>p{font-size:11px;line-height:1.75;color:#849d8f;margin:0 0 13px}
+.arch-qv-related>div{display:grid;gap:7px}
+.arch-qv-related button{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px;text-align:left;border:1px solid #e1eae3;border-radius:9px;background:#fff;cursor:pointer;color:#4a7762}
+.arch-qv-related button:hover,.arch-qv-related button:focus-visible{border-color:#91c6a3;background:#f4faf6}
+.arch-qv-related button span{display:flex;flex-direction:column;gap:5px;min-width:0}
+.arch-qv-related button strong{font-size:12px;line-height:1.5;color:#39644f;overflow-wrap:anywhere}
+.arch-qv-related button small{font-size:10px;line-height:1.6;color:#90a799}
+.arch-qv-related button>svg{flex-shrink:0}
+.arch-qv-footer{border-top:1px solid #e0e9e1;background:#fff;padding:17px 24px;display:grid;grid-template-columns:1fr 1fr;gap:9px;padding-bottom:max(17px,env(safe-area-inset-bottom))}
+.arch-qv-footer>button{min-height:45px;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid #d9e7dc;border-radius:9px;cursor:pointer;font-size:12px;font-weight:850;background:#fff;color:#648572}
+.arch-qv-footer>button:last-child{background:#2d634e;color:#eaf9ef;border-color:#2d634e}
+.arch-qv-footer>button:last-child:hover{background:#23513e}
+.arch-qv-footer>button:only-child{grid-column:1/-1;background:#2d634e;color:#fff}
+.arch-qv-sheet :focus-visible{outline:3px solid #67b596;outline-offset:2px}
+@keyframes arch-qv-fade{from{opacity:0}to{opacity:1}}
+@keyframes arch-qv-slide{from{transform:translateX(36px);opacity:.5}to{transform:translateX(0);opacity:1}}
+@media(max-width:640px){
+ .arch-qv-layer{align-items:flex-end;justify-content:center}
+ .arch-qv-sheet{height:auto;max-height:min(84dvh,760px);width:100%;border-radius:22px 22px 0 0;animation:arch-qv-up .23s ease-out}
+ .arch-qv-sheet:before{content:"";position:absolute;width:42px;height:4px;border-radius:4px;background:#b7cfc0;top:9px;left:calc(50% - 21px);z-index:2}
+ .arch-qv-header{padding:20px 18px 13px;min-height:67px}
+ .arch-qv-scroll{padding:19px 18px 25px}
+ .arch-qv-title-block h2{font-size:24px;margin-top:10px}
+ .arch-qv-title-block p{font-size:13px;margin-top:15px}
+ .arch-qv-facts{margin-top:19px}
+ .arch-qv-fact{padding:14px 12px}
+ .arch-qv-fact strong{font-size:16px}
+ .arch-qv-review{margin-top:18px}
+ .arch-qv-related{margin-top:20px}
+ .arch-qv-footer{padding:12px 15px;padding-bottom:max(14px,env(safe-area-inset-bottom))}
+}
+@media(max-width:340px){.arch-qv-footer>button{font-size:10px}}
+@keyframes arch-qv-up{from{transform:translateY(32px);opacity:.7}to{transform:translateY(0);opacity:1}}
+@media(prefers-reduced-motion:reduce){.arch-qv-layer,.arch-qv-sheet{animation:none}}

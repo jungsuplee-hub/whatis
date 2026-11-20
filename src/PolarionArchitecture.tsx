@@ -1,6 +1,7 @@
 import { useLayoutEffect, useMemo, useState } from 'react'
-import { ArrowRight, ChevronDown, Database, GitBranch, Globe2, KeyRound, Network, Search, Server, ShieldCheck } from 'lucide-react'
+import { ArrowRight, ChevronDown, Database, GitBranch, Globe2, KeyRound, Network, Search, Server } from 'lucide-react'
 import ServiceConnections, { type DiagramEdge } from './ServiceConnections'
+import ArchitectureQuickView, { type ArchitectureDetail } from './ArchitectureQuickView'
 import './polarion-architecture.css'
 
 type NodeKind='access'|'edge'|'app'|'coord'|'store'|'optional'
@@ -70,6 +71,7 @@ export default function PolarionArchitecture(){
  const [flow,setFlow]=useState(flows[0].id)
  const [selectedNode,setSelectedNode]=useState('app1')
  const [selectedEdge,setSelectedEdge]=useState('pl04')
+ const [quick,setQuick]=useState<{kind:'component'|'connection';id:string}|null>(null)
  const [allEdges,setAllEdges]=useState(true)
  const [board,setBoard]=useState<HTMLDivElement|null>(null)
  const [scrollArea,setScrollArea]=useState<HTMLDivElement|null>(null)
@@ -77,7 +79,6 @@ export default function PolarionArchitecture(){
  const [query,setQuery]=useState('')
  const [filter,setFilter]=useState<'all'|Edge['status']>('all')
  const [opened,setOpened]=useState(-1)
- const selected=nodes.find(n=>n.id===selectedNode)!
  const edge=edges.find(e=>e.id===selectedEdge)!
  const active=flows.find(f=>f.id===flow)!
  useLayoutEffect(()=>{
@@ -95,7 +96,33 @@ export default function PolarionArchitecture(){
    scrollArea?.scrollTo({left:Math.max(0,x*scale-52),behavior:'smooth'})
  }
  const visible=useMemo(()=>edges.filter(e=>(filter==='all'||e.status===filter)&&[e.from,e.to,e.port,e.proto,e.purpose].join(' ').toLowerCase().includes(query.toLowerCase())),[filter,query])
- const goEdge=(e:Edge)=>{setSelectedEdge(e.id);setSelectedNode(e.to)}
+ const chooseNode=(id:string)=>{setSelectedNode(id);setQuick({kind:'component',id})}
+ const goEdge=(e:Edge)=>{setSelectedEdge(e.id);setSelectedNode(e.to);setQuick({kind:'connection',id:e.id})}
+ const openMatrix=()=>{
+   setQuick(null)
+   setTab('connections')
+   window.requestAnimationFrame(()=>document.querySelector('.pol-tabs')?.scrollIntoView({behavior:'smooth',block:'start'}))
+ }
+ const quickNode=quick?.kind==='component'?nodes.find(n=>n.id===quick.id):undefined
+ const quickEdge=quick?.kind==='connection'?edges.find(e=>e.id===quick.id):undefined
+ const quickDetail:ArchitectureDetail|null=quickNode?{
+   kind:'component',eyebrow:'POLARION · '+quickNode.kind.toUpperCase(),
+   title:quickNode.title,subtitle:quickNode.subtitle,description:quickNode.role,
+   metricLabel:'서비스 포트 / 경로',metric:quickNode.port,secondaryLabel:'구성 영역',
+   secondary:quickNode.kind==='app'?'애플리케이션':quickNode.kind==='store'?'저장소':quickNode.kind==='coord'?'조정 서비스':quickNode.kind==='optional'?'선택 기능':'접속 / 서비스',
+   status:'논리 구성 예시 · 실제 환경에서 확인',
+   reviewLabel:'아키텍처 검토 사항',review:quickNode.review,
+   related:edges.filter(e=>e.from===quickNode.id||e.to===quickNode.id).map(e=>({
+     id:e.id,title:nodes.find(n=>n.id===e.from)?.title+' → '+nodes.find(n=>n.id===e.to)?.title,
+     subtitle:e.port+' · '+e.proto
+   }))
+ }:quickEdge?{
+   kind:'connection',eyebrow:'POLARION · CONNECTION '+quickEdge.id.toUpperCase(),
+   title:nodes.find(n=>n.id===quickEdge.from)?.title+' → '+nodes.find(n=>n.id===quickEdge.to)?.title,
+   description:quickEdge.purpose,metricLabel:'통신 포트 / 경로',metric:quickEdge.port,
+   secondaryLabel:'프로토콜',secondary:quickEdge.proto,status:statusText[quickEdge.status],
+   reviewLabel:'아키텍처 검토 사항',review:quickEdge.check
+ }:null
  return <section className="pol-studio">
    <header className="pol-hero">
      <div><span className="pol-overline"><span/> POLARION · 2606 INFRASTRUCTURE ATLAS</span><h3>서비스가 연결되어<br/><em>하나의 ALM을 만듭니다.</em></h3><p>Polarion 클러스터의 실제 역할을 기준으로, 연결선·포트·데이터 흐름을 분석하는 아키텍처 스튜디오입니다.</p></div>
@@ -117,7 +144,7 @@ export default function PolarionArchitecture(){
         <div className="pol-canvas" ref={setBoard} style={{transform:'scale('+scale+')',transformOrigin:'top left'}}>
           <div className="pol-grid"/>
           {zones.map(z=><div key={z.title} className={'pol-zone pol-zone-'+z.className} style={{left:z.x,top:z.y,width:z.w,height:z.h}}><strong>{z.title}</strong><small>{z.description}</small></div>)}
-          {nodes.map(n=>{const Icon=IconMap[n.icon];return <button type="button" data-service={n.id} key={n.id} style={{left:n.x,top:n.y}} className={'pol-node pol-node-'+n.kind+(active.nodes.includes(n.id)?' in-flow':'')+(n.id===selectedNode?' chosen':'')} onClick={()=>setSelectedNode(n.id)} aria-pressed={selectedNode===n.id}>
+          {nodes.map(n=>{const Icon=IconMap[n.icon];return <button type="button" data-service={n.id} key={n.id} style={{left:n.x,top:n.y}} className={'pol-node pol-node-'+n.kind+(active.nodes.includes(n.id)?' in-flow':'')+(n.id===selectedNode?' chosen':'')} onClick={()=>chooseNode(n.id)} aria-pressed={selectedNode===n.id}>
              <span className="pol-node-identity"><Icon size={19}/><span>{n.kind==='optional'?'OPTIONAL':n.kind==='store'?'DATA':n.kind==='app'?'APPLICATION':'SERVICE'}</span><i/></span>
              <strong>{n.title}</strong><small>{n.subtitle}</small><span className="pol-node-port">{n.port}</span>
            </button>})}
@@ -126,11 +153,7 @@ export default function PolarionArchitecture(){
         </div>
         </div>
       </div>
-      <div className="pol-canvas-footer"><span><i className="pol-legend-dot"/> 선택 흐름</span><span><i className="pol-legend-line"/> 기타 확인된 관계</span><span><i className="pol-legend-dash"/> 설정별 확인</span><small>모바일: 구성도 내부 좌우 스크롤</small></div>
-    </div>
-    <div className="pol-inspect">
-      <div className="pol-inspect-node"><span>SELECTED COMPONENT · {selected.kind.toUpperCase()}</span><h4>{selected.title}</h4><small>{selected.subtitle}</small><p>{selected.role}</p><div><ShieldCheck size={15}/>{selected.review}</div></div>
-      <div className="pol-inspect-edge"><span>SELECTED CONNECTION · {edge.id.toUpperCase()}</span><h4>{nodes.find(n=>n.id===edge.from)?.title} <ArrowRight size={17}/> {nodes.find(n=>n.id===edge.to)?.title}</h4><div><b>{edge.port}</b><small>{edge.proto}</small><em>{statusText[edge.status]}</em></div><p>{edge.purpose}</p><p>{edge.check}</p><button type="button" onClick={()=>setTab('connections')}>전체 통신 매트릭스 <ArrowRight size={14}/></button></div>
+      <div className="pol-canvas-footer"><span><i className="pol-legend-dot"/> 선택 흐름</span><span><i className="pol-legend-line"/> 기타 확인된 관계</span><span><i className="pol-legend-dash"/> 설정별 확인</span><small>서비스·연결선 클릭 → 상세 패널 · 모바일: 좌우 스크롤</small></div>
     </div>
    </>}
    {tab==='connections'&&<>
@@ -141,5 +164,8 @@ export default function PolarionArchitecture(){
    </>}
    {tab==='operations'&&<><header className="pol-section-heading"><span>ARCHITECT REVIEW</span><h4>설계 결정과 운영 검증</h4><p>클러스터 토폴로지, 데이터 무결성, 네트워크·보안, 워크로드별 성능을 점검할 수 있습니다.</p></header><div className="pol-reviews">{reviews.map((r,i)=><button type="button" key={r.kicker} className={opened===i?'open':''} onClick={()=>setOpened(opened===i?-1:i)}><span>{String(i+1).padStart(2,'0')} / {r.kicker}</span><strong>{r.name}</strong><ChevronDown size={18}/>{opened===i&&<p>{r.body}</p>}</button>)}</div></>}
 
+   <ArchitectureQuickView detail={quickDetail} onClose={()=>setQuick(null)}
+     onRelated={id=>{const match=edges.find(e=>e.id===id);if(match)goEdge(match)}}
+     onMatrix={openMatrix}/>
  </section>
 }

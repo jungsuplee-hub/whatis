@@ -4,6 +4,7 @@ import {
   Layers3, Search, ShieldCheck, Sparkles, Waypoints
 } from 'lucide-react'
 import TeamcenterAtlas from './TeamcenterAtlas'
+import ArchitectureQuickView, { type ArchitectureDetail } from './ArchitectureQuickView'
 import './teamcenter-deep-dive.css'
 
 type Tier='client'|'web'|'enterprise'|'resource'|'ai'
@@ -117,6 +118,7 @@ export default function TeamcenterDeepDive(){
   const [flow,setFlow]=useState('browse')
   const [nodeId,setNodeId]=useState('manager')
   const [linkId,setLinkId]=useState('a06')
+  const [quick,setQuick]=useState<{kind:'component'|'connection';id:string}|null>(null)
   const [portFilter,setPortFilter]=useState<'all'|Connection['status']>('all')
   const [portSearch,setPortSearch]=useState('')
   const [aiMode,setAiMode]=useState<AiMode>('native')
@@ -125,13 +127,39 @@ export default function TeamcenterDeepDive(){
   const [openQa,setOpenQa]=useState<number|null>(null)
   const [showAllEdges,setShowAllEdges]=useState(true)
   const activeFlow=flows.find(f=>f.id===flow)!
-  const activeNode=nodes.find(n=>n.id===nodeId)!
   const activeLink=links.find(l=>l.id===linkId)!
   const visiblePorts=useMemo(()=>links.filter(l=>(portFilter==='all'||l.status===portFilter)&&([l.from,l.to,l.port,l.proto,l.purpose].join(' ').toLowerCase().includes(portSearch.toLowerCase()))),[portSearch,portFilter])
   const ai=modes.find(m=>m.id===aiMode)!
   const aiSteps=aiPhase==='index'&&ai.indexSteps?ai.indexSteps:ai.steps
   const changeFlow=(next:string)=>{setFlow(next);const target=flows.find(x=>x.id===next)!;setNodeId(target.nodes[0]);setLinkId(target.edges[0])}
-  const chooseLink=(x:Connection)=>{setLinkId(x.id);setNodeId(x.to)}
+  const chooseNode=(id:string)=>{setNodeId(id);setQuick({kind:'component',id})}
+  const chooseLink=(x:Connection)=>{setLinkId(x.id);setNodeId(x.to);setQuick({kind:'connection',id:x.id})}
+  const openMatrix=()=>{
+    setQuick(null)
+    setTab('ports')
+    window.requestAnimationFrame(()=>document.querySelector('.tcd-tabs')?.scrollIntoView({behavior:'smooth',block:'start'}))
+  }
+  const quickNode=quick?.kind==='component'?nodes.find(n=>n.id===quick.id):undefined
+  const quickLink=quick?.kind==='connection'?links.find(l=>l.id===quick.id):undefined
+  const quickDetail:ArchitectureDetail|null=quickNode?{
+    kind:'component',eyebrow:tierLabel[quickNode.tier],title:quickNode.title,subtitle:quickNode.detail,
+    description:quickNode.role,
+    metricLabel:'서비스 포트 / 경로',metric:quickNode.port,secondaryLabel:'구성 유형',
+    secondary:quickNode.category==='core'?'핵심':quickNode.category==='conditional'?'선택 기능':quickNode.category==='legacy'?'기존 기능':'설계 패턴',
+    status:quickNode.source==='drawing'?'포트 예시 · 실제 환경에서 확인':'환경별 구성 · 실제 설정 확인',
+    reviewLabel:'설계 시 확인할 사항',review:quickNode.inspect,
+    related:links.filter(l=>l.from===quickNode.id||l.to===quickNode.id).map(l=>({
+      id:l.id,
+      title:nodes.find(n=>n.id===l.from)?.title+' → '+nodes.find(n=>n.id===l.to)?.title,
+      subtitle:l.port+' · '+l.proto
+    }))
+  }:quickLink?{
+    kind:'connection',eyebrow:'CONNECTION · '+quickLink.id.toUpperCase(),
+    title:nodes.find(n=>n.id===quickLink.from)?.title+' → '+nodes.find(n=>n.id===quickLink.to)?.title,
+    description:quickLink.purpose,metricLabel:'통신 포트',metric:quickLink.port,
+    secondaryLabel:'프로토콜 / 방식',secondary:quickLink.proto,status:statusLabel[quickLink.status],
+    reviewLabel:'실제 환경에서 확인할 사항',review:quickLink.check
+  }:null
   return <section className="tcd" aria-label="Teamcenter 실무 상세 아키텍처">
     <header className="tcd-header">
       <div><div className="tcd-kicker"><span/> ARCHITECTURE BLUEPRINT · 2606</div><h3>Teamcenter,<br/><em>서비스까지 들여다보기.</em></h3><p>사용자가 작성한 4계층 구성도를 바탕으로 서비스를 분리하고 연결·포트·Copilot을 탐색하도록 재구성했습니다.</p></div>
@@ -146,26 +174,15 @@ export default function TeamcenterDeepDive(){
         nodes={nodes} edges={links} activeFlow={activeFlow}
         selectedNode={nodeId} selectedEdge={linkId}
         showAll={showAllEdges} setShowAll={setShowAllEdges}
-        onNode={setNodeId} onEdge={chooseLink}
+        onNode={chooseNode} onJump={setNodeId} onEdge={chooseLink}
       />
-      <div className="tcd-selected-wire-panel" aria-live="polite">
-        <span>SELECTED CONNECTION · {activeLink.id.toUpperCase()}</span>
-        <div className="tcd-selected-wire-route"><strong>{nodes.find(n=>n.id===activeLink.from)?.title}</strong><ArrowRight size={18}/><strong>{nodes.find(n=>n.id===activeLink.to)?.title}</strong></div>
-        <div className="tcd-selected-wire-info"><b>{activeLink.port}</b><span>{activeLink.proto}</span><span className={'tcd-status tcd-status-'+activeLink.status}>{statusLabel[activeLink.status]}</span></div>
-        <p>{activeLink.purpose} · {activeLink.check}</p>
-        <button type="button" onClick={()=>setTab('ports')}>포트 매트릭스에서 확인 <ArrowRight size={14}/></button>
-      </div>
-      <div className="tcd-path-strip"><div><strong><Waypoints size={15}/> {activeFlow.label}</strong><small>{activeFlow.desc}</small></div><div className="tcd-path-items">{activeFlow.nodes.map((n,i)=><span key={n}><button onClick={()=>setNodeId(n)} className={n===nodeId?'selected':''}>{nodes.find(x=>x.id===n)!.title}</button>{i<activeFlow.nodes.length-1&&<ArrowRight size={13}/>}</span>)}</div></div>
-      <div className="tcd-inspector">
-        <div><span className="tcd-eyebrow">COMPONENT INSPECTOR · {tierLabel[activeNode.tier]}</span><h4>{activeNode.title}</h4><strong className="tcd-inspector-detail">{activeNode.detail}</strong><p>{activeNode.role}</p></div>
-        <div><span className="tcd-eyebrow">PORT / NETWORK</span><strong className="tcd-big-port">{activeNode.port}</strong><small>{activeNode.source==='drawing'?'설치 구성의 포트 예시 · 실제 환경 확인 필요':'실제 환경에서 서비스 설정 확인'}</small><p><ShieldCheck size={15}/> {activeNode.inspect}</p></div>
-      </div>
+      <div className="tcd-path-strip"><div><strong><Waypoints size={15}/> {activeFlow.label}</strong><small>{activeFlow.desc}</small></div><div className="tcd-path-items">{activeFlow.nodes.map((n,i)=><span key={n}><button onClick={()=>chooseNode(n)} className={n===nodeId?'selected':''}>{nodes.find(x=>x.id===n)!.title}</button>{i<activeFlow.nodes.length-1&&<ArrowRight size={13}/>}</span>)}</div></div>
       <div className="tcd-edge-list"><h4>현재 흐름의 연결</h4><div>{links.filter(l=>activeFlow.edges.includes(l.id)).map(l=><button type="button" onClick={()=>chooseLink(l)} key={l.id}><strong>{nodes.find(n=>n.id===l.from)?.title}</strong><ArrowRight size={14}/><strong>{nodes.find(n=>n.id===l.to)?.title}</strong><span>{l.port}</span><small>{statusLabel[l.status]}</small></button>)}</div></div>
     </>}
     {tab==='ports'&&<>
       <div className="tcd-section-intro"><div><span className="tcd-eyebrow">CONNECTION MATRIX</span><h4>누가, 어디로, 어떤 포트로?</h4><p>실제 방화벽 룰의 출발지·목적지·포트를 확정하기 전 검토할 연결 목록입니다. 사용자 도면에 없는 값은 추측하지 않았습니다.</p></div></div>
       <div className="tcd-port-controls"><div className="tcd-search"><Search size={16}/><input aria-label="서비스나 포트로 검색" value={portSearch} onChange={e=>setPortSearch(e.target.value)} placeholder="서비스·포트·프로토콜 검색"/></div><div className="tcd-port-filters">{([{v:'all',s:'전체'},{v:'drawing',s:'공유 도면'},{v:'common',s:'표준 예시'},{v:'verify',s:'검증 필요'}] as {v:typeof portFilter;s:string}[]).map(o=><button key={o.v} onClick={()=>setPortFilter(o.v)} className={portFilter===o.v?'current':''} type="button">{o.s}</button>)}</div></div>
-      <div className="tcd-port-table-scroll"><table className="tcd-port-table"><thead><tr><th>연결</th><th>통신</th><th>포트 / 경로</th><th>근거 수준</th><th>설계 목적</th></tr></thead><tbody>{visiblePorts.map(l=><tr key={l.id} className={linkId===l.id?'selected':''} onClick={()=>{setLinkId(l.id);setNodeId(l.to)}}><td><strong>{nodes.find(n=>n.id===l.from)?.title}</strong><span>→ {nodes.find(n=>n.id===l.to)?.title}</span></td><td>{l.proto}</td><td><b>{l.port}</b></td><td><span className={'tcd-status tcd-status-'+l.status}>{statusLabel[l.status]}</span></td><td>{l.purpose}</td></tr>)}</tbody></table>{visiblePorts.length===0&&<p className="tcd-empty">조건에 맞는 연결이 없습니다.</p>}</div>
+      <div className="tcd-port-table-scroll"><table className="tcd-port-table"><thead><tr><th>연결</th><th>통신</th><th>포트 / 경로</th><th>근거 수준</th><th>설계 목적</th></tr></thead><tbody>{visiblePorts.map(l=><tr key={l.id} className={linkId===l.id?'selected':''} onClick={()=>chooseLink(l)}><td><strong>{nodes.find(n=>n.id===l.from)?.title}</strong><span>→ {nodes.find(n=>n.id===l.to)?.title}</span></td><td>{l.proto}</td><td><b>{l.port}</b></td><td><span className={'tcd-status tcd-status-'+l.status}>{statusLabel[l.status]}</span></td><td>{l.purpose}</td></tr>)}</tbody></table>{visiblePorts.length===0&&<p className="tcd-empty">조건에 맞는 연결이 없습니다.</p>}</div>
       <div className="tcd-link-inspector"><span className="tcd-eyebrow">SELECTED LINK · {activeLink.id.toUpperCase()}</span><h4>{nodes.find(n=>n.id===activeLink.from)?.title} <ArrowRight size={18}/> {nodes.find(n=>n.id===activeLink.to)?.title}</h4><div><strong>{activeLink.port}</strong><span>{activeLink.proto}</span><span className={'tcd-status tcd-status-'+activeLink.status}>{statusLabel[activeLink.status]}</span></div><p>{activeLink.purpose}</p><p><CircleAlert size={16}/>{activeLink.check}</p></div>
       <p className="tcd-port-caution">{statusHelp}. 팀센터 설치 시의 정확한 기본 포트 목록은 버전별 Deployment Connection & Communication Table 및 설치 구성으로 검증해야 합니다.</p>
     </>}
@@ -195,5 +212,11 @@ export default function TeamcenterDeepDive(){
       <div className="tcd-ai-port-review"><strong>AI 경계에서 검토할 통신</strong><div><span>Copilot UI ↔ AI Services</span><b>HTTPS / 인증</b><small>서비스 URL·실제 리슨 포트는 현장 확인</small></div><div><span>Embedding / LLM API</span><b>443 또는 11434†</b><small>Cloud API 또는 self-managed 사례; 구성에 따라 다름</small></div><div><span>Vector DB</span><b>9200† / provider API</b><small>OpenSearch 사례 또는 벡터 DB 제공자 API</small></div><div><span>Agent ↔ Teamcenter</span><b>인증된 서비스 경로</b><small>MCP는 선택적 확장이며 설치 기본 포트로 단정 불가</small></div></div>
     </>}
     {tab==='operations'&&<><div className="tcd-section-intro"><span className="tcd-eyebrow">DESIGN REVIEW</span><h4>구성도 다음은 운영 가능성 검증</h4><p>구축 직전에 채울 체크리스트입니다. 구체적인 서버 수·HA 구성·포트 오픈은 설치 및 플랫폼 호환성 문서로 확정합니다.</p></div><div className="tcd-ops">{qa.map((q,i)=><button type="button" key={q.title} className={openQa===i?'expanded':''} onClick={()=>setOpenQa(openQa===i?null:i)}><span>{String(i+1).padStart(2,'0')}</span><strong>{q.title}</strong><ChevronDown size={18}/>{openQa===i&&<p>{q.text}</p>}</button>)}</div></>}
+    <ArchitectureQuickView
+      detail={quickDetail}
+      onClose={()=>setQuick(null)}
+      onRelated={id=>{const match=links.find(l=>l.id===id);if(match)chooseLink(match)}}
+      onMatrix={openMatrix}
+    />
   </section>
 }

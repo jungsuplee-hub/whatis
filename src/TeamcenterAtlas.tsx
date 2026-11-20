@@ -20,6 +20,7 @@ type Props={
   showAll:boolean
   setShowAll:(next:boolean)=>void
   onNode:(id:string)=>void
+  onJump:(id:string)=>void
   onEdge:(edge:DiagramEdge)=>void
 }
 const ICONS={
@@ -55,7 +56,7 @@ const customRoutes:Record<string,NonNullable<DiagramEdge['route']>>={
 const W=1228,H=1022
 
 export default function TeamcenterAtlas({
-  nodes,edges,activeFlow,selectedNode,selectedEdge,showAll,setShowAll,onNode,onEdge
+  nodes,edges,activeFlow,selectedNode,selectedEdge,showAll,setShowAll,onNode,onJump,onEdge
 }:Props){
  const [board,setBoard]=useState<HTMLDivElement|null>(null)
  const [scrollArea,setScrollArea]=useState<HTMLDivElement|null>(null)
@@ -74,7 +75,7 @@ export default function TeamcenterAtlas({
    return ()=>{ro.disconnect();window.removeEventListener('resize',measure)}
  },[scrollArea])
  const jump=(id:string)=>{
-   onNode(id)
+   onJump(id)
    const target=places[id]
    if(target&&scrollArea){
      scrollArea.scrollTo({left:Math.max(0,target.x*scale-75),behavior:'smooth'})
@@ -99,7 +100,7 @@ export default function TeamcenterAtlas({
    <div className="tca-scale" style={{width:W*scale,height:H*scale}}>
     <div className="tca-board" ref={setBoard} style={{transform:'scale('+scale+')',transformOrigin:'top left'}}>
       <div className="tca-dotgrid"/>
-      <div className="tca-board-head"><span><span className="tca-live-point"/> ACTIVE FLOW</span><strong>{activeFlow.label}</strong><span>선택한 서비스 경로를 강조합니다</span></div>
+      <div className="tca-board-head"><span><span className="tca-live-point"/> ACTIVE FLOW</span><strong>{activeFlow.label}</strong><span>서비스·연결선을 클릭하면 바로 상세를 볼 수 있습니다</span></div>
       {zones.map((z,i)=><div className={'tca-zone tca-zone-'+z.tone} key={z.id} style={{left:z.x,width:z.w}}>
         <div className="tca-zone-header"><span>{String(i+1).padStart(2,'0')} / {z.name}</span><b>{z.count}</b></div>
         <div className="tca-zone-hint">{z.hint}</div>
