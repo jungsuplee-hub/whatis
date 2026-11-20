@@ -3,7 +3,8 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Bookmark, BookmarkCheck, ChevronDo
 import FlowPlayground from './FlowPlayground'
 import ConceptMotion from './ConceptMotion'
 import TopicStageScene from './TopicStageScene'
-import SiemensArchitect from './SiemensArchitect'
+import SystemsFlowGallery, { SystemsFlowFocus, stageFlow } from './SystemsFlowAtlas'
+const SiemensArchitect=lazy(()=>import('./SiemensArchitect'))
 const ComputerAtlas=lazy(()=>import('./ComputerAtlas'))
 import { categories, categoryById, generalTopics, topicById } from './data'
 import type { Topic, Area, Category } from './data'
@@ -119,7 +120,7 @@ function App(){
     </header>
     <main className="site-main">
       {route.page==='home'&&route.area==='general'&&<HomePage onTopic={openTopic} onCategory={openCategory} onSearch={()=>setSearchOpen(true)}/>}
-      {route.page==='home'&&route.area==='siemens'&&<SiemensArchitect onHome={home}/>}
+      {route.page==='home'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Siemens 아키텍처 화면을 준비하고 있습니다.</div>}><SiemensArchitect onHome={home}/></Suspense>}
       {route.area==='computer'&&<Suspense fallback={<div className="computer-page-loading" role="status">컴퓨터 구조 학습 화면을 준비하고 있습니다.</div>}><ComputerAtlas view={route.page==='category'?'chapter':route.page==='topic'?'topic':'home'} id={route.id} onTopic={computerTopic} onChapter={computerChapter} onHome={computerHome}/></Suspense>}
       {route.page==='category'&&category&&<TopicCollection key={category.id} category={category} onTopic={openTopic} onHome={home}/>}
       {route.page==='saved'&&<SavedCollection ids={saved} onTopic={openTopic} onHome={home}/>}
@@ -150,6 +151,7 @@ function HomePage({onTopic,onCategory,onSearch}:{onTopic:(t:Topic)=>void;onCateg
     </section>
     <div className="exhibit-label"><span><i/> 01 / 먼저 체험하기</span><span>화면을 눌러보세요</span></div>
     <FlowPlayground/>
+    <SystemsFlowGallery domain="ai" title="AI 시스템은 어떻게 움직일까?" subtitle="RAG·Agent·MCP·모델 라우팅·메모리까지. 각각 다른 아키텍처를 눌러 처리 흐름을 단계별로 살펴보세요." />
     <section className="feature-explore">
       <div className="section-identity"><span>02 / 한 장으로 이해하기</span><h2>그 다음은, 이 질문들.</h2></div>
       <div className="story-grid">
@@ -247,6 +249,13 @@ function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{to
       </div>
     </div>
     <p className="visual-note"><CircleHelp size={15}/> 이해를 돕는 단순화된 시각 예시입니다. 실제 제품의 내부 동작과 정확히 일치하지 않을 수 있습니다.</p>
+    <section className="systems-lesson-insert" aria-label={technicalName(topic)+' 전체 처리 과정'}>
+      <SystemsFlowFocus key={topic.id} embedded diagram={stageFlow({
+        id:topic.id,title:technicalName(topic)+' · 전체 동작 구조',subtitle:topic.summary,
+        domain:'ai',seed:topic.category,
+        steps:topic.stages.map(s=>({title:s.name,subtitle:s.note,detail:s.detail}))
+      })}/>
+    </section>
     {serviceExamples.length>0&&<section className="service-examples" aria-labelledby="service-examples-title">
       <div className="service-examples-header">
         <div><span className="service-examples-kicker">REAL-WORLD EXAMPLES</span><h2 id="service-examples-title">이 기술을 만날 수 있는 서비스</h2><p>실제 서비스·개발 도구·공식 자료에서 어떻게 활용되는지 살펴보세요.</p></div>

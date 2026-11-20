@@ -4,6 +4,8 @@ import type { LucideIcon } from 'lucide-react'
 import { computerById, computerChapterById, computerChapters, computerTopics, type ComputerChapter, type ComputerChapterId, type ComputerTopic } from './computerContent'
 import ComputerMotion from './ComputerMotion'
 import ComputerDetailDiagram, { hasComputerDetailDiagram } from './ComputerDetailDiagram'
+import SystemsFlowGallery, { SystemsFlowFocus, stageFlow } from './SystemsFlowAtlas'
+import { flowById } from './systemsFlowData'
 import './computer-atlas.css'
 
 type Props={view:'home'|'chapter'|'topic';id?:string;onTopic:(id:string)=>void;onChapter:(id:string)=>void;onHome:()=>void}
@@ -68,6 +70,7 @@ function ComputerHome({onChapter,onTopic}:{onChapter:(id:string)=>void;onTopic:(
   <nav className="computer-quick-nav" aria-label="컴퓨터 구조 장별 미리보기">
    {computerChapters.map(c=><button type="button" className={chapter===c.id?'active':''} key={c.id} onClick={()=>{setChapter(c.id);setDiagramStep(0)}}><span>{c.index}</span>{c.title}</button>)}
   </nav>
+  <SystemsFlowGallery domain="computer" title="컴퓨터 안의 10가지 핵심 흐름" subtitle="CPU 명령부터 가상 메모리, 입출력, RAID, 고가용성까지 각 단계에서 데이터가 어디로 이동하는지 살펴보세요."/>
   <section className="computer-story-path">
     <div className="computer-section-heading"><div><span>01 / FOLLOW THE SIGNAL</span><h2>프로그램 하나가 실행될 때</h2><p>각 단계를 눌러 컴퓨터가 함께 처리하는 일을 살펴보세요.</p></div><span className="computer-page-count">01—06</span></div>
     <div className="computer-story-interact">
@@ -76,7 +79,7 @@ function ComputerHome({onChapter,onTopic}:{onChapter:(id:string)=>void;onTopic:(
     </div>
   </section>
   <section className="computer-chapters-section" id="computer-chapters">
-    <div className="computer-section-heading"><div><span>02 / EXPLORE THE MACHINE</span><h2>관심 있는 기술부터</h2><p>PDF의 내용을 큰 흐름으로 묶었습니다. 기술명을 선택하면 동작 과정을 볼 수 있습니다.</p></div>
+    <div className="computer-section-heading"><div><span>02 / EXPLORE THE MACHINE</span><h2>관심 있는 기술부터</h2><p>컴퓨터 내부의 연결을 큰 흐름으로 묶었습니다. 기술명을 선택하면 동작 과정을 볼 수 있습니다.</p></div>
       <label className="computer-search"><Search size={17}/><input id="computer-tech-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="CPU, TLB, RAID, 클러스터 검색" aria-label="컴퓨터 기술 검색"/>{search&&<button type="button" aria-label="검색어 지우기" onClick={()=>setSearch('')}><X size={16}/></button>}</label>
     </div>
     {search.trim()?<div className="computer-search-results">
@@ -93,6 +96,10 @@ function ComputerChapterPage({chapter,onTopic,onHome}:{chapter:ComputerChapter;o
    <button type="button" className="computer-back" onClick={onHome}><ArrowLeft size={17}/> 모든 장 보기</button>
    <div className="computer-chapter-intro"><div><span className="computer-eyebrow"><span/> CHAPTER {chapter.index}</span><Icon className="computer-chapter-large-icon" size={30}/><h1>{chapter.title}</h1><span className="computer-chapter-english">{chapter.technical}</span><p>{chapter.intro}</p></div>
    <div className="computer-chapter-demo"><ComputerMotion chapter={chapter.id} step={step}/><div className="computer-demo-navigator">{[0,1,2,3].map(n=><button type="button" aria-label={`${n+1}번째 시각화 단계`} aria-pressed={step===n} className={step===n?'active':''} onClick={()=>setStep(n)} key={n}/>)}</div></div></div>
+   <SystemsFlowFocus embedded diagram={flowById(({
+      hardware:'cpu-execution',parallel:'cpu-pipeline',memory:'cache-memory',operating:'scheduler',
+      virtual:'virtual-memory',storage:'raid-data',resilience:'cluster-ha',cloud:'cloud-virtual'
+     } as Record<ComputerChapterId,string>)[chapter.id])!}/>
    <div className="computer-section-heading"><div><span>RELATED LESSONS / {chapter.topicIds.length}</span><h2>한 가지씩 깊이 보기</h2><p>구성요소를 외우기보다 실제 동작 순서를 따라가 보세요.</p></div></div>
    <div className="computer-topic-list">{chapter.topicIds.map((id,i)=>{const t=computerById[id]!;return <button type="button" key={id} onClick={()=>onTopic(t.id)}><span className="computer-topic-num">{String(i+1).padStart(2,'0')}</span><div><span className="computer-chapter-eng">{t.technical}</span><strong>{t.title}</strong><p>{t.lede}</p></div><ArrowUpRight size={21}/></button>})}</div>
  </div>
@@ -128,6 +135,11 @@ function ComputerTopicPage({topic,onChapter,onTopic}:{topic:ComputerTopic;onChap
     </div>
   </div>
   <p className="computer-visual-caveat"><CircleHelp size={15}/> 개념을 이해하기 위한 애니메이션입니다. 실제 하드웨어의 내부 신호·처리 시간·상대적 크기를 그대로 나타내는 것은 아닙니다.</p>
+  <SystemsFlowFocus key={topic.id} embedded diagram={stageFlow({
+    id:topic.id,title:topic.title+' · 단계별 전체 구조',subtitle:topic.lede,
+    domain:'computer',seed:topic.chapter,steps:topic.steps
+  })}/>
+
   <section className="computer-topic-note">
     <div><span>THE KEY IDEA</span><h2>핵심은 이것입니다.</h2><p>{topic.takeaway}</p></div>
   </section>

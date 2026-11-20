@@ -300,3 +300,8 @@
  .tcd-tabs button span{font-size:9px}
  .tcd-tabs button:nth-child(4){min-width:122px}
 }
+
+/* Moving request marker for every selected Teamcenter/Polarion communication path. */
+.tcd-flow-packet{fill:#279a78;stroke:#f7fffa;stroke-width:1.8;pointer-events:none;filter:drop-shadow(0 0 3px #34b28c66)}
+.tcd-wire-selected .tcd-flow-packet{fill:#de8240;stroke:#fff4e4}
+@media(prefers-reduced-motion:reduce){.tcd-flow-packet{display:none}}

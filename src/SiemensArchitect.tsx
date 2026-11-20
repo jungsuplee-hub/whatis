@@ -7,6 +7,7 @@ import './siemens-architect.css'
 import TeamcenterInfrastructure from './TeamcenterInfrastructure'
 import TeamcenterDeepDive from './TeamcenterDeepDive'
 import PolarionArchitecture from './PolarionArchitecture'
+import SystemsFlowGallery from './SystemsFlowAtlas'
 
 type Product = 'teamcenter' | 'polarion'
 type View = 'logical' | 'deployment' | 'infra'
@@ -68,7 +69,7 @@ export default function SiemensArchitect({onHome}:{onHome:()=>void}) {
   const [product,setProduct]=useState<Product>('teamcenter')
   const [view,setView]=useState<View>('infra')
   const [selected,setSelected]=useState('experience')
-  const [tab,setTab]=useState<'map'|'decisions'|'bridge'>('map')
+  const [tab,setTab]=useState<'map'|'flows'|'decisions'|'bridge'>(()=>window.location.hash.startsWith('#siemens/flows')?'flows':'map')
   const [checks,setChecks]=useState<Record<string,boolean>>({})
   const config=products[product]
   const node=config.nodes.find(n=>n.id===selected)??config.nodes[0]
@@ -91,6 +92,7 @@ export default function SiemensArchitect({onHome}:{onHome:()=>void}) {
         <div><span className="sa-section-no">01 / EXPLORE</span><h2>{config.full} <span>설계 가이드</span></h2></div>
         <div className="sa-primary-tabs" role="tablist" aria-label="아키텍처 학습 메뉴">
           <button role="tab" aria-selected={tab==='map'} className={tab==='map'?'active':''} onClick={()=>setTab('map')}>구성도</button>
+          <button role="tab" aria-selected={tab==='flows'} className={tab==='flows'?'active':''} onClick={()=>setTab('flows')}>동작 흐름</button>
           <button role="tab" aria-selected={tab==='decisions'} className={tab==='decisions'?'active':''} onClick={()=>setTab('decisions')}>설계 질문</button>
           <button role="tab" aria-selected={tab==='bridge'} className={tab==='bridge'?'active':''} onClick={()=>setTab('bridge')}>연계 이해</button>
         </div>
@@ -122,6 +124,7 @@ export default function SiemensArchitect({onHome}:{onHome:()=>void}) {
           </div>}
         <div className="sa-inspector"><div className="sa-inspector-icon">{(() => { const Icon=ICONS[node.type];return <Icon size={24}/> })()}</div><div><span>SELECTED COMPONENT · {node.subtitle}</span><h3>{node.title}</h3><p>{node.role}</p><strong><ScanSearch size={15}/> 아키텍트가 확인할 것</strong><p>{node.inspect}</p></div></div>
       </>}
+      {tab==='flows'&&<SystemsFlowGallery domain={product} title={product==='teamcenter'?'Teamcenter 서비스가 움직이는 과정':'Polarion 서비스가 움직이는 과정'} subtitle="서버·서비스 관계를 정적인 선 대신 단계별 데이터 흐름으로 설명합니다. 카드에서 설명 패널을 열고 재생·일시정지·단계 선택을 할 수 있습니다."/>}
       {tab==='decisions'&&<div className="sa-decisions">
         <div className="sa-decision-guide"><div><span>ARCHITECT'S CHECKLIST</span><strong>{completed} / {config.decisions.length}</strong></div><p>확인한 항목은 표시해 둘 수 있습니다. 이 브라우저 화면에만 임시로 반영됩니다.</p></div>
         <div className="sa-decision-list">{config.decisions.map((d,i)=><details key={d.kind} className="sa-decision" open><summary><span className="sa-decision-index">{String(i+1).padStart(2,'0')}</span><span className="sa-decision-title"><strong>{d.title}</strong><small>{d.intro}</small></span><span className="sa-decision-check" onClick={e=>e.stopPropagation()}><input type="checkbox" aria-label={d.title+' 검토 완료'} checked={!!checks[product+'-'+d.kind]} onChange={e=>setChecks(s=>({...s,[product+'-'+d.kind]:e.target.checked}))}/></span><ChevronDown size={19}/></summary><div className="sa-decision-body">{d.questions.map((q,j)=><p key={j}><span>{j+1}</span>{q}</p>)}<div><CircleHelp size={16}/>{d.why}</div></div></details>)}</div>

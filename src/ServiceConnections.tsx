@@ -215,6 +215,9 @@ export default function ServiceConnections({ boardElement, edges, selectedIds, s
         <path d={edge.path} className="tcd-wire-visible"
           markerEnd={`url(#${isSelected ? 'tcd-arrow-selected' : isActive ? 'tcd-arrow-active' : 'tcd-arrow-muted'})`} />
         <path d={edge.path} className="tcd-wire-hit" />
+        {emphasized&&<circle r="4" className="tcd-flow-packet" pointerEvents="none">
+          <animateMotion path={edge.path} dur={isSelected?'2.2s':'3.2s'} repeatCount="indefinite" />
+        </circle>}
         {emphasized && edge.showLabel && <>
           <rect x={lx-labelWidth/2} y={ly-13} width={labelWidth} height="20" rx="5"
             className="tcd-wire-port-back" />
