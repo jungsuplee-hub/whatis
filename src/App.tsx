@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, ArrowUpRight, Bookmark, BookmarkCheck, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, ExternalLink, Pause, Play, Search, Share2, X } from 'lucide-react'
 import FlowPlayground from './FlowPlayground'
 import ConceptMotion from './ConceptMotion'
 import TopicStageScene from './TopicStageScene'
 import SiemensArchitect from './SiemensArchitect'
+const ComputerAtlas=lazy(()=>import('./ComputerAtlas'))
 import { categories, categoryById, generalTopics, topicById } from './data'
 import type { Topic, Area, Category } from './data'
 import { lessons } from './lessonContent'
@@ -13,9 +14,14 @@ import './service-examples.css'
 import './home-polish.css'
 import './mobile-clarity.css'
 
-type Route = {area: Area; page:'home'|'category'|'topic'|'saved';id?:string}
+type Route = {area: Area|'computer'; page:'home'|'category'|'topic'|'saved';id?:string}
 const routeFromHash = ():Route => {
   const paths=decodeURIComponent(window.location.hash.slice(1)).split('/').filter(Boolean)
+  if(paths[0]==='computer'){
+    if(paths[1]==='chapter'&&paths[2])return {area:'computer',page:'category',id:paths[2]}
+    if(paths[1])return {area:'computer',page:'topic',id:paths[1]}
+    return {area:'computer',page:'home'}
+  }
   const area:Area=paths[0]==='siemens'?'siemens':'general'
   const category=paths[1]==='category'?categoryById(paths[2]||''):undefined
   if(category?.area===area)return {area,page:'category',id:category.id}
@@ -24,7 +30,7 @@ const routeFromHash = ():Route => {
   if(t?.area===area)return {area,page:'topic',id:t.id}
   return {area,page:'home'}
 }
-const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/category/'+r.id:r.page==='saved'?'/saved':'')
+const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/'+(r.area==='computer'?'chapter':'category')+'/'+r.id:r.page==='saved'?'/saved':'')
 const technicalName = (t:Topic) => ({
   ai:'AI', 'machine-learning':'Machine Learning', 'deep-learning':'Deep Learning',
   'neural-networks':'Neural Network', 'supervised-learning':'Supervised Learning',
@@ -63,6 +69,9 @@ function App(){
     window.scrollTo({top:0,behavior:'instant'})
   }
   const home=()=>navigate({area:'general',page:'home'})
+  const computerHome=()=>navigate({area:'computer',page:'home'})
+  const computerTopic=(id:string)=>navigate({area:'computer',page:'topic',id})
+  const computerChapter=(id:string)=>navigate({area:'computer',page:'category',id})
   const openTopic=(t:Topic)=>navigate({area:t.area,page:'topic',id:t.id})
   const openCategory=(c:Category)=>navigate({area:c.area,page:'category',id:c.id})
   const topic=route.page==='topic'?topicById(route.id||''):undefined
@@ -74,7 +83,7 @@ function App(){
     return()=>window.removeEventListener('hashchange',fn)
   },[])
   useEffect(()=>{localStorage.setItem('whatis:favorites',JSON.stringify(saved))},[saved])
-  useEffect(()=>{document.title=(topic?friendly(topic)+' | ':category?category.title+' | ':'')+'whatis. — 어렵지 않은 AI 이야기'},[topic,category])
+  useEffect(()=>{if(route.area==='computer')return;document.title=(topic?friendly(topic)+' | ':category?category.title+' | ':'')+'whatis. — 어렵지 않은 기술 이야기'},[topic,category,route.area,route.page,route.id])
   useEffect(()=>{
     const handler=(e:KeyboardEvent)=>{
       if(e.key==='Escape')setSearchOpen(false)
@@ -99,10 +108,11 @@ function App(){
         <button type="button" className="site-brand" onClick={home} aria-label="WHATIS 첫 화면">whatis<span>.</span></button>
         <nav className="site-nav" aria-label="주제별 메뉴">
           <button type="button" className={route.area==='general'?'active':''} onClick={home}>일반 AI</button>
+          <button type="button" className={route.area==='computer'?'active':''} onClick={computerHome}>컴퓨터 구조</button>
           <button type="button" className={route.area==='siemens'?'active':''} onClick={()=>navigate({area:'siemens',page:'home'})}>Siemens <span className="nav-soon">ARCHITECT</span></button>
         </nav>
         <div className="header-actions">
-          <button type="button" aria-label="AI 기술 검색" className="header-icon" onClick={()=>setSearchOpen(true)}><Search size={20}/></button>
+          <button type="button" aria-label={route.area==='computer'?'컴퓨터 기술 검색':'AI 기술 검색'} className="header-icon" onClick={()=>{if(route.area==='computer'){computerHome();window.setTimeout(()=>document.getElementById('computer-tech-search')?.focus(),90)}else setSearchOpen(true)}}><Search size={20}/></button>
           <button type="button" aria-label="저장한 글 보기" className="header-icon saved-icon" onClick={()=>navigate({area:'general',page:'saved'})}><Bookmark size={20}/>{saved.length>0&&<i/>}</button>
         </div>
       </div>
@@ -110,6 +120,7 @@ function App(){
     <main className="site-main">
       {route.page==='home'&&route.area==='general'&&<HomePage onTopic={openTopic} onCategory={openCategory} onSearch={()=>setSearchOpen(true)}/>}
       {route.page==='home'&&route.area==='siemens'&&<SiemensArchitect onHome={home}/>}
+      {route.area==='computer'&&<Suspense fallback={<div className="computer-page-loading" role="status">컴퓨터 구조 학습 화면을 준비하고 있습니다.</div>}><ComputerAtlas view={route.page==='category'?'chapter':route.page==='topic'?'topic':'home'} id={route.id} onTopic={computerTopic} onChapter={computerChapter} onHome={computerHome}/></Suspense>}
       {route.page==='category'&&category&&<TopicCollection key={category.id} category={category} onTopic={openTopic} onHome={home}/>}
       {route.page==='saved'&&<SavedCollection ids={saved} onTopic={openTopic} onHome={home}/>}
       {route.page==='topic'&&topic&&<TopicLesson key={topic.id} topic={topic} onHome={home} onCategory={()=>openCategory(categoryById(topic.category)!)} onTopic={openTopic} bookmarked={saved.includes(topic.id)} onBookmark={()=>favorite(topic.id)}/>}

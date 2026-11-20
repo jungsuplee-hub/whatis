@@ -155,3 +155,15 @@
   .topic-directory .directory-count{font-size:9px}
   .topic-directory .directory-item>svg{width:16px}
 }
+
+/* Three equal-status primary destinations, including small-screen navigation. */
+.site-nav button{justify-content:center}
+@media(max-width:600px){
+ .site-header{height:98px!important}
+ .header-inner{grid-template-columns:1fr auto!important;grid-template-rows:50px 40px;gap:0 5px!important;align-items:center}
+ .site-brand{grid-column:1;grid-row:1;align-self:center}
+ .header-actions{grid-column:2;grid-row:1}
+ .site-nav{grid-column:1/-1;grid-row:2;width:100%;max-width:none;justify-self:stretch;justify-content:stretch;padding:3px}
+ .site-nav button{flex:1;min-width:0;padding:8px 3px!important;font-size:11px!important}
+ .nav-soon{display:none}
+}

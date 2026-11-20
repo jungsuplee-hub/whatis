@@ -1,0 +1,229 @@
+/* Dedicated computing fundamentals learning experience. */
+.computer-page{color:#263b3b;font-family:'Pretendard Variable','Noto Sans KR',sans-serif;--computer-accent:#4f9f87}
+.computer-page button{cursor:pointer}
+.computer-page button:focus-visible{outline:3px solid #51b394;outline-offset:3px}
+.computer-eyebrow{display:inline-flex;align-items:center;gap:9px;font:800 10px 'DM Sans',sans-serif;letter-spacing:1.2px;color:#72a58e}
+.computer-eyebrow>span{height:7px;width:7px;border-radius:50%;background:#8fceae;box-shadow:0 0 0 4px #8fceae20}
+.computer-hero{margin-top:30px;border-radius:18px;background:#172f3c;padding:46px 36px;display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);align-items:center;gap:31px;color:#f9fefa;overflow:hidden;position:relative;min-height:420px}
+.computer-hero:before{content:"";position:absolute;width:470px;height:470px;border:1px solid #8cbaa51e;border-radius:50%;left:-215px;top:-200px;box-shadow:0 0 0 80px #8cbaa508;pointer-events:none}
+.computer-hero-copy{z-index:1}
+.computer-hero h1{font-size:clamp(30px,3.6vw,46px);letter-spacing:-2px;line-height:1.34;font-weight:900;margin:20px 0 18px;word-break:keep-all}
+.computer-hero h1 em{font-style:normal;color:#a8dfc8}
+.computer-hero-copy>p{font-size:13px;color:#b0c8c9;line-height:1.95;max-width:435px;word-break:keep-all}
+.computer-hero-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:31px}
+.computer-hero-actions>button{display:inline-flex;align-items:center;gap:14px;background:#b1dfc5;border:1px solid #b1dfc5;border-radius:9px;padding:14px 17px;color:#1b4943;font-weight:850;font-size:12px}
+.computer-hero-actions>button:hover{background:#d2f1df}
+.computer-hero-actions>span{color:#94b3b5;font-size:11px}
+.computer-hero-stage{border:1px solid #6c929445;border-radius:15px;background:#ffffff0a;padding:10px;z-index:1;min-width:0}
+.computer-hero-stage-head,.computer-hero-stage-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 9px 12px}
+.computer-hero-stage-head>span{font:850 10px 'DM Sans',sans-serif;letter-spacing:1px;color:#93bcb3}
+.computer-hero-stage-head>button{display:inline-flex;align-items:center;gap:6px;border:1px solid #7fa29a70;background:#203f4d;border-radius:6px;padding:6px 10px;color:#cce6db;font-size:10px}
+.computer-hero-stage-foot{padding:11px 8px 4px}
+.computer-hero-stage-foot>strong{font-size:12px;color:#ccdfd6}
+.computer-hero-stage-foot>span{font-size:9px;color:#7fa1a5}
+.computer-quick-nav{margin:17px 0 0;display:flex;gap:7px;overflow-x:auto;scrollbar-width:thin;padding-bottom:5px}
+.computer-quick-nav>button{display:flex;gap:7px;align-items:center;justify-content:center;flex-shrink:0;border:1px solid #dce7dd;background:#f9fbf8;border-radius:100px;padding:10px 13px;font-size:11px;font-weight:800;color:#738d7f}
+.computer-quick-nav>button span{font:850 10px 'DM Sans',sans-serif;color:#95b1a0}
+.computer-quick-nav>button.active{color:#fff;background:#316b5e;border-color:#316b5e}
+.computer-quick-nav>button.active span{color:#b9e2c9}
+.computer-story-path,.computer-chapters-section{margin-top:95px}
+.computer-section-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:26px}
+.computer-section-heading>div>span{font:850 10px 'DM Sans',sans-serif;letter-spacing:1.2px;color:#809b85}
+.computer-section-heading h2{font-weight:900;font-size:30px;letter-spacing:-1.4px;margin:11px 0 10px;color:#222e28}
+.computer-section-heading p{color:#80918a;font-size:12px;line-height:1.7;margin:0}
+.computer-page-count{font:800 13px 'DM Sans',sans-serif;color:#a5b9aa}
+.computer-story-interact{display:grid;grid-template-columns:1.65fr 1fr;border-radius:15px;border:1px solid #dbe4db;overflow:hidden;min-height:270px}
+.computer-story-rail{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-content:center;padding:31px 17px;gap:4px;background:#f4f8f3}
+.computer-story-rail>button{border:1px solid transparent;border-radius:10px;background:transparent;min-width:0;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:10px;padding:15px 7px;position:relative;color:#6a8276}
+.computer-story-rail>button:not(:last-child):after{content:"→";position:absolute;top:21px;right:-7px;font-size:15px;color:#b4cdb7}
+.computer-story-rail>button.active{background:#e1f0e3;border-color:#a5cba9;color:#285644}
+.computer-story-number{font:850 11px 'DM Sans',sans-serif;color:#92ad9d}
+.computer-story-rail>button.active .computer-story-number{color:#428e69}
+.computer-story-rail strong{font-size:12px;white-space:normal;word-break:keep-all;line-height:1.4}
+.computer-story-rail small{font:800 9px 'DM Sans',sans-serif;word-break:break-word}
+.computer-story-insight{background:#24483f;padding:34px;display:flex;flex-direction:column;align-items:flex-start}
+.computer-story-insight>span{font:850 10px 'DM Sans',sans-serif;letter-spacing:1.1px;color:#a0d4b0}
+.computer-story-insight h3{font-size:24px;letter-spacing:-.8px;color:white;margin:17px 0 9px}
+.computer-story-insight p{font-size:12px;line-height:1.9;color:#c2dfd0;margin:0 0 15px}
+.computer-story-insight>button{margin-top:auto;display:flex;gap:8px;align-items:center;background:transparent;border:0;color:#b9e6c6;font-size:11px;font-weight:850;padding:8px 0}
+.computer-search{display:flex;align-items:center;gap:9px;min-width:250px;border:1px solid #d9e3da;background:#fff;border-radius:10px;padding:12px;color:#719086}
+.computer-search input{border:0;outline:0;background:transparent;min-width:0;width:100%;font-size:12px;color:#315b4f}
+.computer-search>button{display:grid;place-items:center;border:0;background:transparent;color:#8da49c;padding:0}
+.computer-chapter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.computer-chapter-card{border:1px solid #dae4de;border-radius:14px;overflow:hidden;background:#fff;display:flex;flex-direction:column;align-items:stretch;text-align:left;padding:15px;min-width:0;transition:transform .18s,box-shadow .18s,border-color .18s}
+.computer-chapter-card:hover{transform:translateY(-3px);border-color:#a4c9b1;box-shadow:0 18px 30px #214e3610}
+.computer-chapter-meta{display:flex;justify-content:space-between;align-items:center;color:#799687;padding:2px 2px 11px}
+.computer-chapter-meta>span{font:850 10px 'DM Sans',sans-serif;letter-spacing:1px}
+.computer-chapter-meta svg{color:#578b73}
+.computer-chapter-preview{aspect-ratio:2.15;overflow:hidden;border-radius:10px}
+.computer-chapter-preview .cm-motion{height:100%}
+.computer-chapter-preview svg{width:100%;height:100%;object-fit:cover}
+.computer-chapter-bottom{padding:18px 4px 3px}
+.computer-chapter-eng{color:#6e9e89;font:800 10px 'DM Sans',sans-serif;letter-spacing:.4px}
+.computer-chapter-bottom h3{font-size:21px;letter-spacing:-.8px;font-weight:850;color:#2a3932;margin:9px 0}
+.computer-chapter-bottom p{font-size:12px;line-height:1.8;color:#7a8d83;margin:0;min-height:41px;word-break:keep-all}
+.computer-chapter-bottom-line{border-top:1px solid #e6ece5;padding:13px 0 0;margin-top:17px;display:flex;align-items:center;justify-content:space-between;color:#789989;font-size:10px}
+.computer-chapter-bottom-line svg{color:#41755b}
+.computer-source-banner{display:flex;align-items:flex-start;gap:16px;border:1px solid #dce7de;background:#f4f7f2;border-radius:12px;padding:24px;margin-top:61px}
+.computer-source-banner>svg{color:#69967a;flex-shrink:0}
+.computer-source-banner strong{font-size:13px;color:#406c55}
+.computer-source-banner p{font-size:11px;line-height:1.9;color:#7d9485;margin:7px 0 0}
+.computer-search-results{border-top:1px solid #dce8df;margin-top:10px}
+.computer-search-label{display:block;font-size:11px;color:#789b83;font-weight:800;margin:18px 0}
+.computer-search-results>button{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;border:1px solid #dce9df;background:#fff;border-radius:9px;margin-top:8px;padding:16px 18px}
+.computer-search-results>button:hover{background:#f1f8f2}
+.computer-search-results>button>span{display:flex;flex-direction:column;gap:5px}
+.computer-search-results small{font-size:10px;color:#879d8c}.computer-search-results strong{font-size:15px;color:#395b48}.computer-search-results em{font:700 10px 'DM Sans',sans-serif;font-style:normal;color:#869f8b}
+.computer-search-results>p{font-size:12px;color:#7b9b82}
+.computer-back,.computer-topic-breadcrumb>button{display:inline-flex;align-items:center;gap:8px;border:0;background:transparent;padding:0;color:#6b8174;font-size:12px;font-weight:800}
+.computer-chapter-page,.computer-topic-page{padding-top:29px}
+.computer-chapter-intro{padding:47px 0 52px;display:grid;grid-template-columns:.83fr 1.17fr;align-items:center;gap:36px;border-bottom:1px solid #e2e8df}
+.computer-chapter-large-icon{display:block;color:#77a48b;margin-top:24px}
+.computer-chapter-intro h1{color:#24352c;font-size:42px;letter-spacing:-2px;margin:15px 0 9px;font-weight:900}
+.computer-chapter-english{display:block;color:#709985;font:750 13px 'DM Sans',sans-serif;margin-bottom:16px}
+.computer-chapter-intro p{font-size:13px;color:#72897b;line-height:1.9}
+.computer-source-mark{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;background:#eff5ee;border:1px solid #dae6dc;border-radius:7px;font-size:10px;font-weight:800;color:#668d74}
+.computer-chapter-demo{border-radius:14px;overflow:hidden;background:#152d3b;padding:8px}
+.computer-demo-navigator{display:flex;justify-content:center;gap:8px;padding:11px}
+.computer-demo-navigator>button{width:6px;height:6px;border-radius:50%;border:0;background:#577786;padding:0}
+.computer-demo-navigator>button.active{width:23px;border-radius:8px;background:#a0dab9}
+.computer-chapter-page>.computer-section-heading{margin-top:55px}
+.computer-topic-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.computer-topic-list>button{display:grid;grid-template-columns:34px 1fr 24px;gap:14px;align-items:start;text-align:left;background:#fff;border:1px solid #dde7dd;border-radius:11px;padding:24px 18px;min-height:172px}
+.computer-topic-list>button:hover{border-color:#9acbb1;background:#f6fbf7}
+.computer-topic-list>button>svg{color:#4f9072}
+.computer-topic-num{font:850 12px 'DM Sans',sans-serif;color:#97b19c;padding-top:4px}
+.computer-topic-list>button>div{display:flex;flex-direction:column;gap:8px}
+.computer-topic-list strong{font-size:19px;font-weight:850;color:#2a4536;letter-spacing:-.65px}
+.computer-topic-list p{font-size:12px;line-height:1.8;color:#829288;margin:0}
+.computer-topic-breadcrumb{display:flex;justify-content:space-between;gap:12px;color:#a6b4a8;font:750 10px 'DM Sans',sans-serif}
+.computer-topic-hero{padding:41px 0 33px}
+.computer-topic-tech{display:block;font:800 15px 'DM Sans',sans-serif;color:#5d8d72;margin-top:26px}
+.computer-topic-hero h1{font-size:43px;font-weight:900;letter-spacing:-2px;color:#202f28;margin:13px 0}
+.computer-topic-hero>p{font-size:14px;line-height:1.85;color:#7a8c7f;max-width:730px;margin:0}
+.computer-lesson-body{display:grid;grid-template-columns:1.2fr .8fr;border:1px solid #d8e3dc;border-radius:15px;overflow:hidden;background:#fff}
+.computer-lesson-screen{background:#142b38;min-width:0;display:flex;flex-direction:column}
+.computer-lesson-screen-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 20px;border-bottom:1px solid #ffffff17}
+.computer-lesson-screen-head>span{display:flex;align-items:center;gap:7px;font:800 10px 'DM Sans',sans-serif;color:#9ab7b0;letter-spacing:1px}
+.computer-lesson-screen-head>span>span{display:inline-block;width:7px;height:7px;border-radius:50%;background:#89d8ae}
+.computer-lesson-screen>.cm-motion{flex:1;border-radius:0;box-shadow:none}
+.computer-lesson-active{display:flex;gap:13px;align-items:center;padding:18px 25px 24px;color:#d9f4e6}
+.computer-lesson-active>span{font:900 39px 'DM Sans',sans-serif;color:#85ac9e}
+.computer-lesson-active>div{display:flex;flex-direction:column;gap:5px}
+.computer-lesson-active strong{font-size:18px;font-weight:850}.computer-lesson-active small{font-size:12px;color:#9cbaa9}
+.computer-lesson-controls{min-width:0;padding:22px;display:flex;flex-direction:column}
+.computer-sequence-label{font:800 10px 'DM Sans',sans-serif;color:#7e9689;letter-spacing:.6px}
+.computer-sequence{margin-top:16px;display:grid;gap:6px;flex:1;align-content:start}
+.computer-sequence>button{display:grid;grid-template-columns:27px 1fr 10px;align-items:center;gap:8px;border:1px solid transparent;background:#fff;border-radius:8px;text-align:left;padding:13px 10px}
+.computer-sequence>button.active{background:#e6f2e8;border-color:#badcbe}
+.computer-sequence>button>span{font:850 11px 'DM Sans',sans-serif;color:#8cafa0}
+.computer-sequence>button strong{font-size:12px;color:#334d40}
+.computer-sequence>button small{grid-column:2;font-size:10px;color:#90a392}
+.computer-sequence>button i{grid-column:3;grid-row:1/3;background:#d2e1d8;height:7px;width:7px;border-radius:50%}
+.computer-sequence>button.active i{background:#72b88a;box-shadow:0 0 0 3px #b5d9b8}
+.computer-sequence-buttons{display:grid;grid-template-columns:44px 1fr 44px;gap:6px;margin-top:21px}
+.computer-sequence-buttons>button{min-height:43px;display:flex;gap:8px;align-items:center;justify-content:center;border:1px solid #d4e0d4;border-radius:8px;background:#fff;color:#65896e}
+.computer-sequence-buttons>button.computer-play{background:#a9d99d;border-color:#a9d99d;color:#2f623b;font-size:12px;font-weight:800}
+.computer-current-explain{margin-top:20px;border-top:1px solid #e0e9de;padding-top:17px}
+.computer-current-explain>span{font-size:11px;font-weight:800;color:#58866c}
+.computer-current-explain p{font-size:12px;color:#708775;line-height:1.9;margin:9px 0 0}
+.computer-visual-caveat{display:flex;align-items:flex-start;gap:7px;font-size:10px;line-height:1.7;color:#9daa9e;margin:15px 0}
+.computer-visual-caveat svg{flex-shrink:0}
+.computer-topic-note{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;border-top:1px solid #e1e8e0;margin-top:50px;padding-top:32px}
+.computer-topic-note>div:first-child>span{font:800 10px 'DM Sans',sans-serif;letter-spacing:1px;color:#87a495}
+.computer-topic-note h2{font-size:23px;letter-spacing:-.8px;color:#293d31;margin:12px 0}
+.computer-topic-note p{font-size:12px;color:#7e9182;line-height:1.9}
+.computer-topic-source{padding:22px;border-radius:11px;background:#f4f8f2}
+.computer-topic-source>p{font-size:11px}
+.computer-reality{display:flex;gap:13px;padding:18px 20px;background:#fbf7ec;border:1px solid #e8dfc4;border-radius:10px;margin-top:15px;color:#97753c}
+.computer-reality>svg{flex-shrink:0}
+.computer-reality strong{font-size:12px}.computer-reality p{font-size:11px;color:#947f57;line-height:1.85;margin:7px 0 0}
+.computer-detail-expand{border-top:1px solid #dfe6dc;border-bottom:1px solid #dfe6dc;margin-top:40px}
+.computer-detail-expand>button{padding:20px 6px;width:100%;display:flex;justify-content:space-between;align-items:center;gap:9px;border:0;background:none;color:#52765f;font-size:13px;font-weight:800}
+.computer-detail-expand>button span:last-child{color:#8eaa99;font-size:11px}
+.computer-detail-lines{padding:0 14px 14px}
+.computer-detail-lines section{display:flex;gap:17px;padding:18px 4px;border-top:1px solid #ecf0e9}
+.computer-detail-lines section>span{font:850 12px 'DM Sans',sans-serif;color:#a2bcad}
+.computer-detail-lines h3{font-size:13px;color:#345b43;margin:0}
+.computer-detail-lines h3 small{font:750 10px 'DM Sans',sans-serif;color:#8eac9a;margin-left:10px}
+.computer-detail-lines p{font-size:12px;line-height:1.85;color:#718776;margin:10px 0 0}
+.computer-next-topic{width:100%;display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:38px;padding:25px 29px;border:1px solid #d9e8dd;border-radius:12px;background:#eaf4e9;text-align:left;color:#3f6b51}
+.computer-next-topic>span{display:flex;flex-direction:column;gap:7px}
+.computer-next-topic small{color:#749c7e;font-size:10px}
+.computer-next-topic strong{font-size:20px;font-weight:850;color:#2b6142}
+.computer-next-topic em{font:700 10px 'DM Sans',sans-serif;font-style:normal;color:#76a17e}
+@media(max-width:900px){
+ .computer-hero{grid-template-columns:1fr;gap:22px;padding:30px 24px}
+ .computer-hero-copy>p{max-width:680px}
+ .computer-hero-stage{max-width:760px;width:100%;margin:auto}
+ .computer-story-interact{grid-template-columns:1fr}
+ .computer-story-rail{min-height:135px}
+ .computer-story-insight{min-height:205px}
+ .computer-chapter-intro{grid-template-columns:1fr}
+ .computer-chapter-demo{max-width:760px}
+ .computer-lesson-body{grid-template-columns:1fr}
+ .computer-lesson-controls{padding:24px}
+ .computer-sequence{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .computer-topic-note{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+ .computer-hero{margin-top:14px;padding:25px 17px 17px;border-radius:13px}
+ .computer-hero h1{font-size:29px;letter-spacing:-1.2px;margin:17px 0}
+ .computer-hero-copy>p{font-size:12px}
+ .computer-hero-actions{margin-top:22px}
+ .computer-hero-actions>button{font-size:11px}
+ .computer-hero-stage-head>span{font-size:9px}
+ .computer-hero-stage-foot>span{display:none}
+ .computer-quick-nav>button{padding:9px 12px;font-size:10px}
+ .computer-story-path,.computer-chapters-section{margin-top:67px}
+ .computer-section-heading{align-items:stretch;flex-direction:column;gap:12px;margin-bottom:19px}
+ .computer-section-heading h2{font-size:23px}
+ .computer-section-heading p{font-size:11px}
+ .computer-page-count{display:none}
+ .computer-story-rail{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:13px}
+ .computer-story-rail>button{padding:11px 8px;gap:6px;min-height:84px}
+ .computer-story-rail>button:after{display:none}
+ .computer-story-rail strong{font-size:10.5px}
+ .computer-story-rail small{font-size:8px}
+ .computer-story-insight{padding:23px;min-height:190px}
+ .computer-story-insight h3{font-size:19px}
+ .computer-story-insight p{font-size:11px}
+ .computer-search{min-width:0}
+ .computer-chapter-grid{grid-template-columns:1fr;gap:12px}
+ .computer-chapter-card{padding:11px}
+ .computer-chapter-preview{aspect-ratio:2.05}
+ .computer-chapter-bottom{padding:16px 5px 5px}
+ .computer-chapter-bottom h3{font-size:18px}
+ .computer-chapter-bottom p{min-height:0;font-size:11px}
+ .computer-source-banner{margin-top:45px;padding:18px;gap:11px}
+ .computer-chapter-page,.computer-topic-page{padding-top:20px}
+ .computer-chapter-intro{padding:29px 0}
+ .computer-chapter-intro h1{font-size:30px}
+ .computer-chapter-intro p{font-size:12px}
+ .computer-chapter-page>.computer-section-heading{margin-top:37px}
+ .computer-topic-list{grid-template-columns:1fr;gap:8px}
+ .computer-topic-list>button{min-height:0;padding:19px 14px;grid-template-columns:23px 1fr 18px;gap:8px}
+ .computer-topic-list strong{font-size:16px}
+ .computer-topic-list p{font-size:11px}
+ .computer-topic-hero{padding:27px 0}
+ .computer-topic-tech{font-size:12px;margin-top:17px}
+ .computer-topic-hero h1{font-size:29px;letter-spacing:-1.3px}
+ .computer-topic-hero>p{font-size:12px}
+ .computer-lesson-screen-head{padding:13px}
+ .computer-lesson-active{padding:14px 18px}
+ .computer-lesson-active>span{font-size:29px}
+ .computer-lesson-active strong{font-size:15px}
+ .computer-lesson-controls{padding:17px}
+ .computer-sequence{grid-template-columns:1fr 1fr}
+ .computer-sequence>button{grid-template-columns:20px 1fr 6px;padding:11px 7px;gap:5px}
+ .computer-sequence>button strong{font-size:10px}
+ .computer-sequence>button small{font-size:9px}
+ .computer-topic-note{margin-top:29px;padding-top:20px}
+ .computer-topic-note h2{font-size:20px}
+ .computer-topic-source{padding:15px}
+ .computer-next-topic{padding:19px}
+ .computer-next-topic strong{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){.computer-chapter-card{transition:none!important}}
+
+.computer-page-loading{min-height:40vh;display:grid;place-items:center;color:#759684;font-size:12px;font-weight:800}
