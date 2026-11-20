@@ -54,9 +54,9 @@ export function HiddenPicture({id}:{id:string}) {
   }
 }
 export default function HiddenTechAtlas({index,onIndexChange}:{index:number;onIndexChange:(index:number)=>void}) {
-  const [explain,setExplain]=useState(false)
+  const [explain,setExplain]=useState(true)
   const active=hiddenChapters[index]
-  const choose=(value:number)=>{onIndexChange((value+hiddenChapters.length)%hiddenChapters.length);setExplain(false)}
+  const choose=(value:number)=>{onIndexChange((value+hiddenChapters.length)%hiddenChapters.length)}
   return <section id="hidden-tech-atlas" className="hidden-tech-atlas" aria-label="질문 뒤에 숨은 AI 기술을 이 자리에서 알아보기">
     <div className="atlas-head">
       <div><span className="atlas-eyebrow"><span/> THE STORY CONTINUES</span><h3>답변 뒤에 숨어 있는 <em>12가지 기술</em></h3></div>

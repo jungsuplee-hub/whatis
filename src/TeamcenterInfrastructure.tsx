@@ -51,7 +51,7 @@ const architectureNotes=[
 export default function TeamcenterInfrastructure(){
   const [story,setStory]=useState<StoryId>('metadata')
   const [selected,setSelected]=useState('enterprise')
-  const [note,setNote]=useState<number|null>(null)
+  const [openNotes,setOpenNotes]=useState<Set<number>>(()=>new Set(architectureNotes.map((_,i)=>i)))
   const active=stories.find(s=>s.id===story)!
   const component=nodes.find(n=>n.id===selected)!
   const source=references[component.ref]
@@ -91,8 +91,8 @@ export default function TeamcenterInfrastructure(){
       <a href={source.url} target="_blank" rel="noopener noreferrer">{source.label}<ExternalLink size={13}/></a></div>
     </div>
     <div className="tc-infra-path-text"><strong>현재 흐름을 한 문장씩</strong><div>{active.steps.map((step,i)=><p key={step}><span>{String(i+1).padStart(2,'0')}</span>{step}</p>)}</div></div>
-    <section className="tc-infra-design-notes"><div className="tc-infra-notes-head"><span>ARCHITECT REVIEW</span><h4>배포 전에 결정할 4가지</h4></div><div className="tc-infra-notes">{architectureNotes.map((item,i)=>{const Icon=item.icon;return <button type="button" onClick={()=>setNote(note===i?null:i)} key={item.title} aria-expanded={note===i} className={note===i?'expanded':''}>
-      <span className="tc-note-head"><Icon size={19}/><small>{item.label}</small></span><strong>{item.title}</strong><span className="tc-note-arrow">{note===i?'−':'+'}</span>{note===i&&<p>{item.details}</p>}
+    <section className="tc-infra-design-notes"><div className="tc-infra-notes-head"><span>ARCHITECT REVIEW</span><h4>배포 전에 결정할 4가지</h4></div><div className="tc-infra-notes">{architectureNotes.map((item,i)=>{const Icon=item.icon;return <button type="button" onClick={()=>setOpenNotes(previous=>{const next=new Set(previous);next.has(i)?next.delete(i):next.add(i);return next})} key={item.title} aria-expanded={openNotes.has(i)} className={openNotes.has(i)?'expanded':''}>
+      <span className="tc-note-head"><Icon size={19}/><small>{item.label}</small></span><strong>{item.title}</strong><span className="tc-note-arrow">{openNotes.has(i)?'−':'+'}</span>{openNotes.has(i)&&<p>{item.details}</p>}
     </button>})}</div></section>
     <div className="tc-infra-warning"><BadgeCheck size={16}/><span>4계층과 FMS는 공개 기술자료로 설명되는 구조입니다. Load Balancer·보안 구역·이중화 등은 프로젝트별 설계 선택이며, 이 그림은 특정 2606 구축의 공식 설치도·지원 구성 또는 확정 사이징이 아닙니다.</span></div>
   </div>

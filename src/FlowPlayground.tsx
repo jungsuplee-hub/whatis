@@ -55,7 +55,7 @@ export default function FlowPlayground() {
   const [playing,setPlaying]=useState(true)
   const [draft,setDraft]=useState('')
   const [editing,setEditing]=useState(false)
-  const [showWhy,setShowWhy]=useState(false)
+  const [showWhy,setShowWhy]=useState(true)
   const [techIndex,setTechIndex]=useState(0)
   const [reduced,setReduced]=useState(false)
 
@@ -87,10 +87,9 @@ export default function FlowPlayground() {
     return()=>window.clearInterval(timer)
   },[playing,reduced,finished,total])
   useEffect(()=>{if(finished)setPlaying(false)},[finished])
-  useEffect(()=>setShowWhy(false),[stage])
 
   const playEpisode=(next:Episode,fromSend=false)=>{
-    setEpisode(next);setElapsed(fromSend?PHASES[0].duration:0);setDraft('');setEditing(false);setShowWhy(false);setPlaying(true)
+    setEpisode(next);setElapsed(fromSend?PHASES[0].duration:0);setDraft('');setEditing(false);setShowWhy(true);setPlaying(true)
   }
   const send=()=>{
     const q=(editing?draft:inputValue||episode.question).trim()

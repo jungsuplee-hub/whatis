@@ -203,7 +203,7 @@ function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{to
   const [step,setStep]=useState(0)
   const [playing,setPlaying]=useState(true)
   const [copied,setCopied]=useState(false)
-  const [expandStep,setExpandStep]=useState(false)
+  const [expandStep,setExpandStep]=useState(true)
   const phase=topic.stages[step]
   const lesson=lessons[topic.id]
   const category=categoryById(topic.category)!
@@ -212,10 +212,10 @@ function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{to
   useEffect(()=>{
     const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if(!playing||reduce)return
-    const timer=window.setInterval(()=>{setStep(s=>(s+1)%topic.stages.length);setExpandStep(false)},2900)
+    const timer=window.setInterval(()=>{setStep(s=>(s+1)%topic.stages.length)},2900)
     return()=>window.clearInterval(timer)
   },[playing,topic.id,topic.stages.length])
-  const choose=(i:number)=>{setStep(i);setPlaying(false);setExpandStep(false)}
+  const choose=(i:number)=>{setStep(i);setPlaying(false)}
   const copy=async()=>{
     try{await navigator.clipboard.writeText(window.location.href);setCopied(true)}catch{setCopied(false)}
   }
@@ -263,11 +263,11 @@ function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{to
       <p className="service-examples-note">기술의 활용을 이해하기 위한 사례입니다. 모든 서비스가 같은 방식으로 작동하는 것은 아니며, 이용 요금·가입 및 제공 기능은 해당 사이트에서 확인해 주세요.</p>
     </section>}
     <div className="lesson-read-more">
-      <div className="lesson-read-more-head"><span>궁금한 내용만 펼쳐 읽어보세요</span><span>DETAILS</span></div>
-      <details><summary><span className="detail-index">01</span><span>일상에서 어떤 모습일까?</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>{lesson?.familiar||topic.analogy}</p><p className="detail-annotation">{topic.analogy}</p></div></details>
-      <details><summary><span className="detail-index">02</span><span>쉽게 다시 설명해 줘</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>{topic.description}</p><ul>{topic.insights.map(s=><li key={s}>{s}</li>)}</ul></div></details>
-      <details><summary><span className="detail-index">03</span><span>어디에 사용할 수 있을까?</span><ChevronDown size={20}/></summary><div className="detail-answer"><div className="use-examples">{topic.useCases.map(s=><span key={s}>{s}</span>)}</div></div></details>
-      <details><summary><span className="detail-index">04</span><span>이건 꼭 조심하세요</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>{lesson?.keyIdea||topic.caution}</p><p className="detail-annotation">{topic.caution}</p></div></details>
+      <div className="lesson-read-more-head"><span>더 자세한 설명</span><span>DETAILS</span></div>
+      <details open><summary><span className="detail-index">01</span><span>일상에서 어떤 모습일까?</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>{lesson?.familiar||topic.analogy}</p><p className="detail-annotation">{topic.analogy}</p></div></details>
+      <details open><summary><span className="detail-index">02</span><span>쉽게 다시 설명해 줘</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>{topic.description}</p><ul>{topic.insights.map(s=><li key={s}>{s}</li>)}</ul></div></details>
+      <details open><summary><span className="detail-index">03</span><span>어디에 사용할 수 있을까?</span><ChevronDown size={20}/></summary><div className="detail-answer"><div className="use-examples">{topic.useCases.map(s=><span key={s}>{s}</span>)}</div></div></details>
+      <details open><summary><span className="detail-index">04</span><span>이건 꼭 조심하세요</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>{lesson?.keyIdea||topic.caution}</p><p className="detail-annotation">{topic.caution}</p></div></details>
     </div>
     {related.length>0&&<section className="next-stories"><div className="next-head"><span>RELATED STORIES</span><h2>다음에는 이것도 살펴보세요</h2></div><div className="next-grid">{related.map(t=><button key={t.id} onClick={()=>onTopic(t)}><span>{friendly(t)}</span><ArrowUpRight size={18}/></button>)}</div></section>}
   </article>

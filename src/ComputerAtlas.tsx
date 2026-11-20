@@ -100,7 +100,7 @@ function ComputerChapterPage({chapter,onTopic,onHome}:{chapter:ComputerChapter;o
 function ComputerTopicPage({topic,onChapter,onTopic}:{topic:ComputerTopic;onChapter:(id:string)=>void;onTopic:(id:string)=>void}){
  const [step,setStep]=useState(0)
  const [playing,setPlaying]=useState(true)
- const [details,setDetails]=useState(false)
+ const [details,setDetails]=useState(true)
  const chapter=computerChapterById[topic.chapter]!
  const all=chapter.topicIds
  const current=all.indexOf(topic.id)
