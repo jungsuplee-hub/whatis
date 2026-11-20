@@ -1,0 +1,182 @@
+import { useLayoutEffect, useState } from 'react'
+
+export type DiagramEdge = {
+  id: string
+  from: string
+  to: string
+  port: string
+  proto: string
+  status: 'drawing' | 'common' | 'verify'
+  purpose: string
+  check: string
+}
+
+type VisibleEdge = DiagramEdge & {
+  path: string
+  labelX: number
+  labelY: number
+  showLabel: boolean
+}
+
+type Props = {
+  boardElement: HTMLDivElement | null
+  edges: DiagramEdge[]
+  selectedIds: string[]
+  selectedId: string
+  showAll: boolean
+  onSelect: (edge: DiagramEdge) => void
+}
+
+function getRelativeRect(board: HTMLDivElement, id: string) {
+  const el = Array.from(board.querySelectorAll<HTMLElement>('[data-service]'))
+    .find(node => node.dataset.service === id)
+  if (!el) return null
+  const box = el.getBoundingClientRect()
+  const root = board.getBoundingClientRect()
+  return {
+    x: box.left - root.left,
+    y: box.top - root.top,
+    w: box.width,
+    h: box.height,
+    cx: box.left - root.left + box.width / 2,
+    cy: box.top - root.top + box.height / 2,
+  }
+}
+
+function routeEdge(board: HTMLDivElement, edge: DiagramEdge, index: number): VisibleEdge | null {
+  const from = getRelativeRect(board, edge.from)
+  const to = getRelativeRect(board, edge.to)
+  if (!from || !to) return null
+
+  const spread = ((index % 5) - 2) * 7
+  const dx = to.cx - from.cx
+  const dy = to.cy - from.cy
+  let path = ''
+  let labelX = 0
+  let labelY = 0
+  let showLabel = true
+
+  // Horizontal service pairs stay in their tier and do not run through card labels.
+  if (Math.abs(dy) < Math.min(from.h, to.h) * 0.74) {
+    const towardRight = dx >= 0
+    const sx = towardRight ? from.x + from.w : from.x
+    const ex = towardRight ? to.x : to.x + to.w
+    const sy = from.cy + spread * 0.24
+    const ey = to.cy + spread * 0.24
+    const midX = (sx + ex) / 2
+    showLabel = Math.abs(ex - sx) >= 92
+    path = `M ${sx} ${sy} H ${midX} V ${ey} H ${ex}`
+    labelX = midX
+    labelY = Math.min(sy, ey) - 10 + spread * 0.2
+  } else {
+    const downward = dy >= 0
+    const sx = from.cx + spread * 0.34
+    const sy = downward ? from.y + from.h : from.y
+    const ex = to.cx + spread * 0.34
+    const ey = downward ? to.y : to.y + to.h
+    const gap = Math.abs(ey - sy)
+    const longJump = gap > 365
+    if (longJump) {
+      // Keep longer cross-tier file/cache paths in a side corridor rather than
+      // obscuring every intermediate service card.
+      const useRight = dx >= 0
+      const corridor = useRight
+        ? board.clientWidth - 24 - (index % 3) * 9
+        : 24 + (index % 3) * 9
+      const firstY = sy + (downward ? 12 : -12)
+      const lastY = ey + (downward ? -12 : 12)
+      path = `M ${sx} ${sy} V ${firstY} H ${corridor} V ${lastY} H ${ex} V ${ey}`
+      labelX = corridor + (useRight ? -42 : 42)
+      labelY = (firstY + lastY) / 2
+    } else {
+      const midY = (sy + ey) / 2 + spread * 0.43
+      path = `M ${sx} ${sy} V ${midY} H ${ex} V ${ey}`
+      labelX = (sx + ex) / 2
+      labelY = midY - 9
+    }
+  }
+  return { ...edge, path, labelX, labelY, showLabel }
+}
+
+export default function TeamcenterConnections({ boardElement, edges, selectedIds, selectedId, showAll, onSelect }: Props) {
+  const [layout, setLayout] = useState<{ width: number; height: number; paths: VisibleEdge[] }>({
+    width: 0, height: 0, paths: [],
+  })
+
+  useLayoutEffect(() => {
+    const board = boardElement
+    if (!board) return
+    let raf = 0
+    const measure = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        const width = board.clientWidth
+        const height = board.clientHeight
+        const paths = edges.map((edge, index) => routeEdge(board, edge, index))
+          .filter((p): p is VisibleEdge => p !== null)
+        setLayout({ width, height, paths })
+      })
+    }
+    const observer = new ResizeObserver(measure)
+    observer.observe(board)
+    board.querySelectorAll('[data-service]').forEach(el => observer.observe(el))
+    window.addEventListener('resize', measure)
+    document.fonts?.ready.then(measure).catch(() => {})
+    measure()
+    return () => {
+      cancelAnimationFrame(raf)
+      observer.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [boardElement, edges])
+
+  if (!layout.width || !layout.height) return null
+  const active = new Set(selectedIds)
+  return <svg
+    className="tcd-connection-layer"
+    viewBox={`0 0 ${layout.width} ${layout.height}`}
+    preserveAspectRatio="none"
+    aria-label="Teamcenter 서비스 간 연결선과 통신 방향"
+    role="group"
+  >
+    <defs>
+      <marker id="tcd-arrow-muted" markerWidth="7" markerHeight="7" refX="6.3" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#8eaaae"/></marker>
+      <marker id="tcd-arrow-active" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#358c69"/></marker>
+      <marker id="tcd-arrow-selected" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#d67c3f"/></marker>
+    </defs>
+    {layout.paths.filter(edge => showAll || active.has(edge.id) || edge.id === selectedId).map(edge => {
+      const isSelected = selectedId === edge.id
+      const isActive = active.has(edge.id)
+      const emphasized = isSelected || isActive
+      const className = [
+        'tcd-wire',
+        isSelected ? 'tcd-wire-selected' : isActive ? 'tcd-wire-active' : 'tcd-wire-muted',
+        'tcd-wire-' + edge.status,
+      ].join(' ')
+      const labelWidth = Math.max(36, Math.min(92, edge.port.length * 6.3 + 13))
+      const lx = Math.max(labelWidth / 2 + 10, Math.min(layout.width - labelWidth / 2 - 10, edge.labelX))
+      const ly = Math.max(21, Math.min(layout.height - 20, edge.labelY))
+      return <g key={edge.id} className={className} data-edge-id={edge.id} role="button" tabIndex={0}
+        aria-label={`${edge.from}에서 ${edge.to}, ${edge.port} 연결 보기`}
+        onClick={() => onSelect(edge)}
+        onKeyDown={event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            onSelect(edge)
+          }
+        }}
+      >
+        <title>{`${edge.from} → ${edge.to}: ${edge.port} (${edge.proto})`}</title>
+        {emphasized && <path d={edge.path} className="tcd-wire-halo" />}
+        <path d={edge.path} className="tcd-wire-visible"
+          markerEnd={`url(#${isSelected ? 'tcd-arrow-selected' : isActive ? 'tcd-arrow-active' : 'tcd-arrow-muted'})`} />
+        <path d={edge.path} className="tcd-wire-hit" />
+        {emphasized && edge.showLabel && <>
+          <rect x={lx-labelWidth/2} y={ly-13} width={labelWidth} height="20" rx="5"
+            className="tcd-wire-port-back" />
+          <text x={lx} y={ly+0.5} className="tcd-wire-port" textAnchor="middle">{edge.port}</text>
+        </>}
+      </g>
+    })}
+  </svg>
+}

@@ -222,3 +222,67 @@
  .tcd-ai-phase{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:12px 12px 0;gap:6px}
  .tcd-ai-phase button{padding:9px 6px;font-size:10px}
 }
+
+/* AWS-style, clickable real service-to-service topology. */
+.tcd-diagram-shell{background:#f5f8f3}
+.tcd-diagram-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 23px;background:#edf4ed;border-top:1px solid #dce9d8}
+.tcd-diagram-toolbar>span{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:750;color:#5b7c61}
+.tcd-diagram-toolbar>span svg{color:#579063;flex-shrink:0}
+.tcd-diagram-toolbar>button{border:1px solid #c7dcc5;border-radius:7px;background:#fff;color:#507d56;padding:9px 11px;font-size:11px;font-weight:800;white-space:nowrap}
+.tcd-diagram-toolbar>button:hover{border-color:#8db08b;background:#f5faf4}
+.tcd-diagram-scroll{max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-color:#a0bea2 #eef3eb;scrollbar-width:thin;scroll-behavior:smooth}
+.tcd-diagram-scroll:focus-visible{outline:3px solid #7db48b;outline-offset:-3px}
+.tcd-board-connected{position:relative;isolation:isolate;min-width:975px}
+.tcd-board-connected .tcd-lane{z-index:auto}
+.tcd-board-connected .tcd-node{z-index:4}
+.tcd-board-connected .tcd-lane-head{position:relative;z-index:4}
+.tcd-board-connected .tcd-board-top{z-index:4}
+.tcd-connection-layer{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;overflow:visible}
+.tcd-wire{outline:none}
+.tcd-wire-visible{fill:none;stroke:#819fa5;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;pointer-events:none}
+.tcd-wire-halo{fill:none;stroke:#f9fcf6;stroke-width:7;opacity:.95;stroke-linejoin:round;stroke-linecap:round;pointer-events:none;vector-effect:non-scaling-stroke}
+.tcd-wire-hit{fill:none;stroke:transparent;stroke-width:17;stroke-linejoin:round;stroke-linecap:round;pointer-events:stroke;cursor:pointer;vector-effect:non-scaling-stroke}
+.tcd-wire-muted .tcd-wire-visible{opacity:.45;stroke-width:1.75}
+.tcd-wire-active .tcd-wire-visible{stroke:#358c69;stroke-width:2.7;opacity:.96}
+.tcd-wire-selected .tcd-wire-visible{stroke:#d67c3f;stroke-width:3.5;opacity:1}
+.tcd-wire-verify:not(.tcd-wire-selected) .tcd-wire-visible{stroke-dasharray:6 4}
+.tcd-wire-selected .tcd-wire-halo{stroke:#fff3e2;opacity:.97;stroke-width:9}
+.tcd-wire-port-back{fill:#fff;stroke:#90bea3;stroke-width:1;pointer-events:none}
+.tcd-wire-selected .tcd-wire-port-back{fill:#fff4e6;stroke:#d48b57}
+.tcd-wire-port{fill:#406b4b;font:800 10px 'DM Sans','Pretendard Variable',sans-serif;letter-spacing:-.1px;dominant-baseline:auto;pointer-events:none}
+.tcd-wire-selected .tcd-wire-port{fill:#a35931}
+.tcd-wire:focus-visible .tcd-wire-visible{stroke:#d67c3f;stroke-width:4}
+.tcd-diagram-hint{margin:0;padding:9px 21px 14px;background:#f5f8f3;color:#879c88;font-size:10px;line-height:1.6}
+.tcd-selected-wire-panel{margin:15px 23px 0;padding:18px 19px;background:#f3f8ef;border:1px solid #cee2ce;border-radius:11px;display:grid;grid-template-columns:1fr auto;column-gap:18px;row-gap:9px;align-items:center}
+.tcd-selected-wire-panel>span{grid-column:1/-1;font:850 9px 'DM Sans',sans-serif;letter-spacing:1.15px;color:#799a7b}
+.tcd-selected-wire-route{display:flex;align-items:center;gap:9px;min-width:0;flex-wrap:wrap}
+.tcd-selected-wire-route strong{font-size:14px;color:#3e5d46;line-height:1.4;overflow-wrap:anywhere}
+.tcd-selected-wire-route svg{color:#d67c3f;flex-shrink:0}
+.tcd-selected-wire-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap;grid-column:1/-1}
+.tcd-selected-wire-info b{font:850 16px 'DM Sans','Pretendard Variable',sans-serif;color:#b46e3a}
+.tcd-selected-wire-info>span:not(.tcd-status){font-size:11px;color:#708b74}
+.tcd-selected-wire-panel>p{font-size:11px;line-height:1.75;color:#7b927a;grid-column:1;margin:0}
+.tcd-selected-wire-panel>button{grid-column:2;grid-row:4;display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #c8dfc6;border-radius:7px;font-size:10px;font-weight:800;color:#55835d;padding:10px;white-space:nowrap}
+.tcd-selected-wire-panel>button:hover{background:#e5f4de}
+@media(max-width:660px){
+ .tcd-diagram-toolbar{padding:11px 12px;align-items:flex-start}
+ .tcd-diagram-toolbar>span{font-size:10px;line-height:1.5}
+ .tcd-diagram-toolbar>button{font-size:10px;padding:8px 9px}
+ .tcd-board-connected{min-width:975px}
+ .tcd-board-connected .tcd-lane-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .tcd-board-connected .tcd-lane-grid .tcd-node{min-height:116px;padding:11px}
+ .tcd-board-connected .tcd-lane-grid .tcd-node strong{font-size:13px}
+ .tcd-board-connected .tcd-lane-grid .tcd-node-detail{font-size:10px}
+ .tcd-board-connected .tcd-lane{padding:13px 15px}
+ .tcd-board-connected .tcd-lane-head{flex-direction:row;align-items:center}
+ .tcd-board-connected .tcd-lane-head span{font-size:10px}
+ .tcd-diagram-hint{padding:10px 12px 13px}
+ .tcd-selected-wire-panel{margin:12px 12px 0;padding:14px;display:flex;flex-direction:column;align-items:stretch;gap:9px}
+ .tcd-selected-wire-route strong{font-size:12px}
+ .tcd-selected-wire-panel>button{align-self:flex-start}
+}
+@media(prefers-reduced-motion:reduce){.tcd-diagram-scroll{scroll-behavior:auto}}
+
+.tcd-board-connected .tcd-lane-grid{column-gap:16px}
+.tcd-diagram-toolbar>button:focus-visible,.tcd-wire:focus-visible{outline:3px solid #e6a56c;outline-offset:2px}
+@media(max-width:660px){.tcd-board-connected .tcd-lane-grid{column-gap:16px}}
