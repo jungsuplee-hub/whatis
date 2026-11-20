@@ -161,9 +161,12 @@ export default function ServiceConnections({ boardElement, edges, selectedIds, s
     role="group"
   >
     <defs>
-      <marker id="tcd-arrow-muted" markerWidth="7" markerHeight="7" refX="6.3" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#8eaaae"/></marker>
-      <marker id="tcd-arrow-active" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#358c69"/></marker>
-      <marker id="tcd-arrow-selected" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#d67c3f"/></marker>
+      {/* Default SVG markers scale their dimensions by stroke-width. With 3–4px
+          lines that produced 25–35px triangles, larger than inter-node gaps.
+          Use absolute SVG units so the tip stays consistently compact. */}
+      <marker id="tcd-arrow-muted" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M1 1.5 L9 5 L1 8.5 Z" fill="#93a9b2"/></marker>
+      <marker id="tcd-arrow-active" markerUnits="userSpaceOnUse" viewBox="0 0 12 12" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto"><path d="M1 1.75 L11 6 L1 10.25 Z" fill="#188e78"/></marker>
+      <marker id="tcd-arrow-selected" markerUnits="userSpaceOnUse" viewBox="0 0 12 12" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto"><path d="M1 1.5 L11 6 L1 10.5 Z" fill="#df873e"/></marker>
     </defs>
     {layout.paths.filter(edge => showAll || active.has(edge.id) || edge.id === selectedId).map(edge => {
       const isSelected = selectedId === edge.id
