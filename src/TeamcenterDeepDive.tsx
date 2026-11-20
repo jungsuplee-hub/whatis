@@ -3,7 +3,7 @@ import {
   ArrowDown, ArrowRight, ChevronDown, CircleAlert,
   Layers3, Search, ShieldCheck, Sparkles, Waypoints
 } from 'lucide-react'
-import ServiceConnections from './ServiceConnections'
+import TeamcenterAtlas from './TeamcenterAtlas'
 import './teamcenter-deep-dive.css'
 
 type Tier='client'|'web'|'enterprise'|'resource'|'ai'
@@ -20,7 +20,6 @@ type Flow={id:string;label:string;desc:string;nodes:string[];edges:string[]}
 type AiMode='native'|'self'|'m365'|'custom'
 type Tab='topology'|'ports'|'ai'|'operations'
 const tierLabel:Record<Tier,string>={client:'CLIENT TIER',web:'WEB TIER',enterprise:'ENTERPRISE TIER',resource:'RESOURCE TIER',ai:'AI EXTENSION'}
-const categoryLabel:Record<Category,string>={core:'구성 개념',conditional:'기능 선택',pattern:'설계 패턴',legacy:'기존/확장'}
 const nodes:Node[]=[
   {id:'awc',title:'AWC / Browser',detail:'Active Workspace Client',tier:'client',category:'core',port:'HTTPS',source:'drawing',role:'브라우저 기반 PLM 사용자 인터페이스',inspect:'사용자 위치, 프록시, 인증 경로, 동시 사용자 수'},
   {id:'rich',title:'Rich Client / TCCS',detail:'4-Tier Rich Client',tier:'client',category:'conditional',port:'Web endpoint',source:'drawing',role:'Teamcenter Rich Client의 4-tier 통신',inspect:'TCCS 연결 URL, 인증·VPN, 클라이언트 버전'},
@@ -133,14 +132,12 @@ export default function TeamcenterDeepDive(){
   const [aiPhase,setAiPhase]=useState<'query'|'index'>('query')
   const [openQa,setOpenQa]=useState<number|null>(null)
   const [showAllEdges,setShowAllEdges]=useState(true)
-  const [boardElement,setBoardElement]=useState<HTMLDivElement|null>(null)
   const activeFlow=flows.find(f=>f.id===flow)!
   const activeNode=nodes.find(n=>n.id===nodeId)!
   const activeLink=links.find(l=>l.id===linkId)!
   const visiblePorts=useMemo(()=>links.filter(l=>(portFilter==='all'||l.status===portFilter)&&([l.from,l.to,l.port,l.proto,l.purpose].join(' ').toLowerCase().includes(portSearch.toLowerCase()))),[portSearch,portFilter])
   const ai=modes.find(m=>m.id===aiMode)!
   const aiSteps=aiPhase==='index'&&ai.indexSteps?ai.indexSteps:ai.steps
-  const highlight=new Set(activeFlow.nodes)
   const changeFlow=(next:string)=>{setFlow(next);const target=flows.find(x=>x.id===next)!;setNodeId(target.nodes[0]);setLinkId(target.edges[0])}
   const chooseLink=(x:Connection)=>{setLinkId(x.id);setNodeId(x.to)}
   return <section className="tcd" aria-label="Teamcenter 실무 상세 아키텍처">
@@ -153,23 +150,12 @@ export default function TeamcenterDeepDive(){
     </nav>
     {tab==='topology'&&<>
       <div className="tcd-flow-selector"><div><strong>요청 흐름 선택</strong><small>선택된 컴포넌트와 연결 경로가 강조됩니다</small></div><div className="tcd-flow-buttons">{flows.map(f=><button className={f.id===flow?'active':''} onClick={()=>changeFlow(f.id)} type="button" key={f.id}>{f.label}</button>)}</div></div>
-      <div className="tcd-diagram-shell">
-        <div className="tcd-diagram-toolbar"><span><Waypoints size={16}/> 연결선이 실제 서비스 간 통신 관계를 나타냅니다</span><button type="button" aria-pressed={showAllEdges} onClick={()=>setShowAllEdges(v=>!v)}>{showAllEdges?'선택 흐름만 보기':'전체 연결선 보기'}</button></div>
-        <div className="tcd-diagram-scroll" role="region" tabIndex={0} aria-label="서비스 간 화살표가 연결된 Teamcenter 아키텍처 구성도, 모바일에서는 좌우로 스크롤">
-      <div className="tcd-board tcd-board-connected" ref={setBoardElement}>
-        <div className="tcd-board-top"><span><span className="tcd-live-dot"/> LIVE TOPOLOGY · {activeFlow.label}</span><span>선을 누르면 포트와 통신 정보가 열립니다</span></div>
-        {(['client','web','enterprise','resource'] as Tier[]).map((tier,i)=><div className={'tcd-lane tcd-lane-'+tier} key={tier}>
-          <div className="tcd-lane-head"><span>{String(i+1).padStart(2,'0')} / {tierLabel[tier]}</span><small>{tier==='client'?'브라우저·4-tier 클라이언트':tier==='web'?'Gateway·Web·인증 서비스':tier==='enterprise'?'업무·FMS·검색·배치': '메타데이터·파일·색인'}</small></div>
-          <div className="tcd-lane-grid">{nodes.filter(n=>n.tier===tier).map(n=><button data-service={n.id} key={n.id} type="button" onClick={()=>setNodeId(n.id)} className={'tcd-node tcd-type-'+n.category+(highlight.has(n.id)?' highlighted':'')+(nodeId===n.id?' selected':'')} aria-pressed={nodeId===n.id}>
-            <span className="tcd-node-top"><span className="tcd-node-led"/><small>{categoryLabel[n.category]}</small></span><strong>{n.title}</strong><span className="tcd-node-detail">{n.detail}</span><span className="tcd-node-port">{n.port}</span>
-          </button>)}</div>
-          {i<3&&<div className="tcd-tier-connector"><ArrowDown size={17}/><span>{i===0?'Client → Web':i===1?'Web → Enterprise':'Enterprise → Resource'}</span></div>}
-        </div>)}
-        <ServiceConnections boardElement={boardElement} edges={links} selectedIds={activeFlow.edges} selectedId={linkId} showAll={showAllEdges} onSelect={chooseLink}/>
-      </div>
-        </div>
-        <p className="tcd-diagram-hint">↔ 모바일에서는 구성도를 좌우로 이동할 수 있습니다. 연결선을 누르면 출발지·목적지·포트 정보를 확인할 수 있습니다.</p>
-      </div>
+      <TeamcenterAtlas
+        nodes={nodes} edges={links} activeFlow={activeFlow}
+        selectedNode={nodeId} selectedEdge={linkId}
+        showAll={showAllEdges} setShowAll={setShowAllEdges}
+        onNode={setNodeId} onEdge={chooseLink}
+      />
       <div className="tcd-selected-wire-panel" aria-live="polite">
         <span>SELECTED CONNECTION · {activeLink.id.toUpperCase()}</span>
         <div className="tcd-selected-wire-route"><strong>{nodes.find(n=>n.id===activeLink.from)?.title}</strong><ArrowRight size={18}/><strong>{nodes.find(n=>n.id===activeLink.to)?.title}</strong></div>

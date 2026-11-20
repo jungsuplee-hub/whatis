@@ -9,6 +9,7 @@ export type DiagramEdge = {
   status: 'drawing' | 'common' | 'verify'
   purpose: string
   check: string
+  route?: { start:'top'|'bottom'|'left'|'right';end:'top'|'bottom'|'left'|'right';via:[number,number][] }
 }
 
 type VisibleEdge = DiagramEdge & {
@@ -50,6 +51,24 @@ function routeEdge(board: HTMLDivElement, edge: DiagramEdge, index: number): Vis
   const to = getRelativeRect(board, edge.to)
   if (!from || !to) return null
 
+  if (edge.route) {
+    const anchor=(r:typeof from,side:'top'|'bottom'|'left'|'right')=>{
+      if(side==='top')return [r.cx,r.y] as const
+      if(side==='bottom')return [r.cx,r.y+r.h] as const
+      if(side==='left')return [r.x,r.cy] as const
+      return [r.x+r.w,r.cy] as const
+    }
+    const points=[anchor(from,edge.route.start),...edge.route.via,anchor(to,edge.route.end)]
+    const path=points.map((point,i)=>(i===0?'M ':'L ')+point[0]+' '+point[1]).join(' ')
+    let maxSpan=0, labelX=0,labelY=0
+    for(let i=1;i<points.length;i++){
+      const a=points[i-1],b=points[i]
+      if(Math.abs(a[1]-b[1])<2 && Math.abs(b[0]-a[0])>maxSpan){
+        maxSpan=Math.abs(b[0]-a[0]);labelX=(a[0]+b[0])/2;labelY=a[1]-9
+      }
+    }
+    return { ...edge,path,labelX,labelY,showLabel:maxSpan>=94 }
+  }
   const spread = ((index % 5) - 2) * 7
   const dx = to.cx - from.cx
   const dy = to.cy - from.cy
