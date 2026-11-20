@@ -29,3 +29,28 @@
 .privacy-demo{gap:17px;color:#688c65}.privacy-card{height:65px;width:105px;background:#fff;border-radius:9px;border:1px solid #bed2b3;box-shadow:0 3px 0 #d6e5cd;display:grid;place-items:center;font:800 17px 'DM Sans',sans-serif;letter-spacing:2px;color:#8a9e82}.privacy-demo>svg:nth-of-type(1){color:#7186bc;animation:shape-bob 2.5s infinite}.privacy-demo>svg:nth-of-type(2){color:#5d9458;animation:breath 2s infinite}
 @keyframes painting{0%,100%{filter:saturate(.65)}50%{filter:saturate(1.4)}}@keyframes voice-wave{0%,100%{transform:scaleY(.55)}50%{transform:scaleY(1.15)}}
 @media(max-width:450px){.image-caption{font-size:8px;padding:7px}.image-created{width:73px;height:73px}.image-demo{gap:7px}.compare-search{width:59px;height:65px}.compare-answer{width:60px;height:65px}.verify-question{font-size:9px;padding:9px 6px}.verify-check{width:67px;height:67px}.verify-check svg{width:22px}.verify-check strong{font-size:8px}.voice-demo{gap:6px}.voice-demo>svg{width:20px}.voice-bars{gap:2px}.voice-bars i{width:3px}.voice-text{width:42px}.token-origin{font-size:10px;padding:7px}.token-tiles span{font-size:9px;padding:6px}.privacy-card{width:65px}.privacy-demo{gap:6px}.privacy-demo svg{width:23px}}
+
+/* Only six curated cards have six genuinely distinct animations.
+   The wider catalog intentionally uses typographic identity instead of duplicated motion. */
+.story-grid>.story-tile .motion-scene .scene-live{display:none}
+.lesson-preview.lesson-poster{height:189px;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;padding:22px 23px;background:transparent}
+.lesson-poster-id{font:700 10px 'DM Sans',sans-serif;letter-spacing:1.1px;color:#75857b;max-width:100%;word-break:break-word}
+.lesson-poster-index{font:800 87px 'DM Sans',sans-serif;line-height:1;letter-spacing:-8px;color:#bfcdbd;opacity:.85;align-self:flex-end;position:absolute;right:23px;top:35px;transform:rotate(-8deg)}
+.lesson-poster-dot{height:18px;width:18px;background:#88a188;border-radius:50%;margin-top:auto;z-index:1}
+.lesson-poster-line{height:2px;background:#9cad96;position:absolute;left:53px;bottom:54px;width:calc(100% - 102px);z-index:1}
+.lesson-poster-subtitle{font-size:10px;font-weight:750;color:#667765;display:flex;align-items:center;gap:7px;position:relative;z-index:1;padding-top:15px;line-height:1.5;flex-wrap:wrap}
+.lesson-0 .lesson-poster-index{color:#afc5b9}.lesson-1 .lesson-poster-index{color:#d8cbb2}.lesson-2 .lesson-poster-index{color:#b9caab}.lesson-3 .lesson-poster-index{color:#c6c5d5}
+.subject-process{height:100%;min-height:300px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:23px;padding:24px 14px;position:relative;background:linear-gradient(160deg,#edf4e5,#e5ede1);border-radius:11px}
+.subject-process-tag{font:700 10px 'DM Sans',sans-serif;color:#849a80;letter-spacing:1.1px;text-align:center;max-width:100%;word-break:break-word}
+.subject-process-track{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;align-items:center;max-width:100%}
+.subject-process-pill{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #d9e6d1;color:#778d71;border-radius:999px;font-size:10px;padding:9px 10px;line-height:1.3}
+.subject-process-pill small{font:700 9px 'DM Sans',sans-serif;color:#9eac99}
+.subject-process-pill.now{color:#fff;background:#466e4c;border-color:#466e4c}
+.subject-process-pill.now small{color:#b8d9b8}
+.subject-process-focus{min-width:170px;max-width:92%;display:flex;align-items:center;gap:5px;flex-direction:column;background:#fff;border:1px solid #dce8d8;border-radius:14px;padding:20px 22px;box-shadow:0 15px 26px #1b3b2111;animation:message-rise .33s ease both}
+.subject-process-focus>span{font:800 10px 'DM Sans',sans-serif;color:#a1bb98}
+.subject-process-focus strong{font-size:19px;letter-spacing:-.5px;color:#46694a;text-align:center}
+.subject-process-focus small{font-size:12px;color:#81937e;text-align:center;line-height:1.6}
+.cinema-learn-next{border:0;border-bottom:1px solid #bfd4b9;border-radius:0;background:transparent;color:#466d4f;font:750 11.5px 'Pretendard Variable','Noto Sans KR',sans-serif;padding:4px 0;cursor:pointer}
+@media(max-width:760px){.lesson-preview.lesson-poster{height:145px;padding:14px}.lesson-poster-index{top:23px;right:15px;font-size:72px}.lesson-poster-subtitle{font-size:9px}.lesson-poster-line{bottom:48px}.subject-process{min-height:230px}.subject-process-pill{font-size:9px;padding:8px}}
+@media(max-width:450px){.lesson-preview.lesson-poster{height:160px}.subject-process{padding:18px 9px;min-height:220px}.subject-process-focus strong{font-size:16px}}

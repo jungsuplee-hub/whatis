@@ -5,6 +5,7 @@ import {
   Play, RotateCcw, Sparkles, WandSparkles
 } from 'lucide-react'
 import './conversation.css'
+import HiddenTechAtlas from './HiddenTechAtlas'
 
 type Episode = { question:string; answer:string; mode:'standard'|'search'; id:string }
 type PhaseName = 'typing'|'sending'|'context'|'tokens'|'compute'|'search'|'answer'|'complete'
@@ -78,6 +79,7 @@ export default function FlowPlayground() {
   const [draft,setDraft]=useState('')
   const [editing,setEditing]=useState(false)
   const [showWhy,setShowWhy]=useState(false)
+  const [techIndex,setTechIndex]=useState(0)
   const [reduced,setReduced]=useState(false)
 
   const phases=useMemo(()=>episode.mode==='search'?[...PHASES.slice(0,5),TOOL_PHASE,...PHASES.slice(5)]:PHASES,[episode.mode])
@@ -127,6 +129,12 @@ export default function FlowPlayground() {
     setPlaying(x=>!x);setEditing(false)
   }
   const onChangeDraft=(value:string)=>{setDraft(value);setEditing(true);setPlaying(false)}
+  const technologyForStage:Record<PhaseName,number>={typing:0,sending:0,context:1,tokens:2,compute:3,search:6,answer:10,complete:11}
+  const openTechnology=(index:number)=>{
+    setPlaying(false)
+    setTechIndex(index)
+    window.requestAnimationFrame(()=>document.getElementById('hidden-tech-atlas')?.scrollIntoView({behavior:'smooth',block:'start'}))
+  }
   return <section className="chat-cinema" id="how-it-works" aria-label="AI 질문 처리 체험">
     <div className="cinema-topline">
       <div className="cinema-tag"><span className="cinema-tag-light"/> INTERACTIVE STORY <span className="cinema-tag-separator">/</span> 01</div>
@@ -149,7 +157,7 @@ export default function FlowPlayground() {
                 {composing&&<div className="cinema-answer-text">{response}{!finished&&<span className="cinema-type-caret"/>}</div>}
                 {finished&&<>
                   <div className="message-complete"><Check size={13}/> 답변 완성</div>
-                  <a className="cinema-learn-next" href={'#general/'+(episode.id==='mistake'?'hallucination':episode.id==='weather'?'function-calling':'llm')}>이 뒤에 숨은 AI 기술 알아보기 <ArrowUpRight size={16}/></a>
+                  <button type="button" className="cinema-learn-next" onClick={()=>openTechnology(0)}>이 화면에서 숨은 기술 12개 보기 <ArrowUpRight size={16}/></button>
                 </>}
               </div>
             </div>
@@ -179,6 +187,7 @@ export default function FlowPlayground() {
           <p>{scene.phase.hint}</p>
           <button type="button" className="behind-why" onClick={()=>{setShowWhy(v=>!v);setPlaying(false)}} aria-expanded={showWhy}>{showWhy?'설명 접기':'왜 이렇게 될까?'} <ArrowUpRight size={15}/></button>
           {showWhy&&<div className="behind-extra">{EXPAND_HELP[stage]}</div>}
+          <button type="button" className="behind-tech-open" onClick={()=>openTechnology(technologyForStage[stage])}>이 단계의 기술 보기 <ArrowUpRight size={14}/></button>
         </div>
       </div>
     </div>
@@ -198,6 +207,7 @@ export default function FlowPlayground() {
         </button>)}
       </div>
     </div>
+    <HiddenTechAtlas index={techIndex} onIndexChange={setTechIndex}/>
     <div className="cinema-note"><CircleHelp size={14}/><span>공개된 기술 원리를 단순화한 애니메이션입니다. 실제 ChatGPT의 비공개 내부 동작이나 사고 과정을 재현한 것은 아닙니다.</span><span className="cinema-progress-value">{Math.round(percent)}%</span></div>
     <details className="cinema-sources"><summary>참고 자료</summary><a href="https://developers.openai.com/api/docs/guides/text" target="_blank" rel="noopener noreferrer">OpenAI · Text generation</a><a href="https://huggingface.co/docs/transformers/main_classes/tokenizer" target="_blank" rel="noopener noreferrer">Hugging Face · Tokenization</a><a href="https://developers.openai.com/api/docs/guides/function-calling" target="_blank" rel="noopener noreferrer">OpenAI · Function calling</a></details>
   </section>

@@ -109,3 +109,6 @@
 
 .cinema-learn-next{display:inline-flex;align-items:center;gap:7px;margin-top:15px;border-bottom:1px solid #bfd4b9;padding-bottom:4px;color:#466d4f;font-size:11.5px;font-weight:750;transition:gap .2s}
 .cinema-learn-next:hover{gap:11px;color:#244d32}
+
+.behind-tech-open{border:0;background:none;color:#99c7ab;padding:8px 0 0;display:inline-flex;align-items:center;gap:7px;font-size:10px;font-weight:750;align-self:start}
+.behind-tech-open:hover{color:#fff;text-decoration:underline}

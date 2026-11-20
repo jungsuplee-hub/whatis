@@ -23,7 +23,7 @@ const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='cat
 const friendly = (t:Topic) => lessons[t.id]?.heading||t.title
 const simple = (t:Topic) => lessons[t.id]?.short||t.summary
 const grouped=categories.filter(c=>c.area==='general')
-const featuredIds=['search-vs-ai','image-generation','rag','ai-agent','fine-tuning','hallucination']
+const featuredIds=['search-vs-ai','image-generation','hallucination','speech-to-text','tokens','personal-data']
 
 function App(){
   const [route,setRoute]=useState<Route>(routeFromHash)
@@ -142,7 +142,13 @@ const navLabel=(id:string):string=>({
 } as Record<string,string>)[id]||categoryById(id)?.title||id
 function TopicCards({items,onTopic}:{items:Topic[];onTopic:(t:Topic)=>void}){
   return <div className="lesson-grid">{items.map((t,i)=><button key={t.id} className={'lesson-tile lesson-'+(i%4)} onClick={()=>onTopic(t)}>
-    <div className="lesson-preview"><ConceptMotion category={t.category} topicId={t.id} compact label={t.title+' 움직이는 예시'}/></div>
+    <div className="lesson-preview lesson-poster">
+      <span className="lesson-poster-id">{t.english}</span>
+      <strong className="lesson-poster-index">{String(i+1).padStart(2,'0')}</strong>
+      <span className="lesson-poster-dot"/>
+      <span className="lesson-poster-line"/>
+      <span className="lesson-poster-subtitle">{t.stages[0]?.name} <ArrowRight size={13}/> {t.stages[t.stages.length-1]?.name}</span>
+    </div>
     <div className="lesson-tile-text"><span>{String(i+1).padStart(2,'0')} / {t.title}</span><strong>{friendly(t)}</strong><span className="lesson-arrow"><ArrowUpRight size={22}/></span></div>
   </button>)}</div>
 }
@@ -193,7 +199,13 @@ function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{to
     <div className="lesson-visual">
       <div className="lesson-visual-body">
         <div className="visual-overline"><span><i/> ANIMATED EXPLANATION</span><span>{step+1} / {topic.stages.length}</span></div>
-        <ConceptMotion category={topic.category} topicId={topic.id} step={step} label={topic.title+' 단계별 움직이는 설명'}/>
+        {['search-vs-ai','image-generation','hallucination','speech-to-text','tokens','personal-data'].includes(topic.id)
+          ? <ConceptMotion category={topic.category} topicId={topic.id} step={step} label={topic.title+' 전용 애니메이션'}/>
+          : <div className="subject-process" aria-label={topic.title+' 고유 처리 흐름'}>
+              <span className="subject-process-tag">THIS CONCEPT · {topic.english}</span>
+              <div className="subject-process-track">{topic.stages.map((s,i)=><span className={'subject-process-pill '+(i===step?'now':'')} key={i}><small>{String(i+1).padStart(2,'0')}</small>{s.name}</span>)}</div>
+              <div className="subject-process-focus" key={step}><span>{String(step+1).padStart(2,'0')}</span><strong>{phase.name}</strong><small>{phase.note}</small></div>
+            </div>}
         <div className="lesson-visual-caption"><span>{String(step+1).padStart(2,'0')}</span><div><strong>{phase.name}</strong><small>{phase.note}</small></div></div>
       </div>
       <div className="lesson-sequence">
