@@ -4,9 +4,10 @@ import {
   GitBranch, Globe2, Link2, LockKeyhole, ScanSearch, Server, ShieldCheck
 } from 'lucide-react'
 import './siemens-architect.css'
+import TeamcenterInfrastructure from './TeamcenterInfrastructure'
 
 type Product = 'teamcenter' | 'polarion'
-type View = 'logical' | 'deployment'
+type View = 'logical' | 'deployment' | 'infra'
 type IconName = 'browser' | 'app' | 'data' | 'integration' | 'security' | 'process'
 type ArchitectureNode = { id:string; title:string; subtitle:string; role:string; inspect:string; type:IconName }
 type Decision = { title:string; intro:string; questions:string[]; why:string; kind:string }
@@ -59,6 +60,9 @@ const products:Record<Product,{
 const sources=[
   {name:'Teamcenter 2606 · Siemens 공식 소개',url:'https://blogs.sw.siemens.com/teamcenter/teamcenter-2606/'},
   {name:'Active Workspace · Siemens 공식 소개',url:'https://blogs.sw.siemens.com/teamcenter/teamcenter-active-workspace-strategy/'},
+  {name:'Teamcenter 기본 아키텍처 · Microsoft Learn',url:'https://learn.microsoft.com/en-us/azure/architecture/example-scenario/manufacturing/teamcenter-baseline'},
+  {name:'Teamcenter 고가용성 참조 아키텍처 · AWS',url:'https://docs.aws.amazon.com/reference-architecture-diagrams/latest/siemens-teamcenter-plm/siemens-teamcenter-plm.html'},
+  {name:'Teamcenter FMS · Siemens 공개 설명',url:'https://blogs.sw.siemens.com/teamcenter/store-and-forward-with-file-management-system-fms/'},
   {name:'Polarion ALM 2606 · Siemens 공식 소개',url:'https://blogs.sw.siemens.com/polarion/polarion-alm-2606-whats-new-and-noteworthy/'},
   {name:'Polarion ALM · Siemens 제품 페이지',url:'https://www.siemens.com/en-us/products/polarion/application-lifecycle-management-alm/'}
 ]
@@ -69,14 +73,14 @@ const relationNodes=[
 ]
 export default function SiemensArchitect({onHome}:{onHome:()=>void}) {
   const [product,setProduct]=useState<Product>('teamcenter')
-  const [view,setView]=useState<View>('logical')
+  const [view,setView]=useState<View>('infra')
   const [selected,setSelected]=useState('experience')
   const [tab,setTab]=useState<'map'|'decisions'|'bridge'>('map')
   const [checks,setChecks]=useState<Record<string,boolean>>({})
   const config=products[product]
   const node=config.nodes.find(n=>n.id===selected)??config.nodes[0]
   const completed=useMemo(()=>config.decisions.reduce((n,d)=>n+(checks[product+'-'+d.kind]?1:0),0),[checks,config,product])
-  const pick=(next:Product)=>{setProduct(next);setSelected('experience');setView('logical');setTab('map')}
+  const pick=(next:Product)=>{setProduct(next);setSelected('experience');setView(next==='teamcenter'?'infra':'logical');setTab('map')}
   return <section className="sa-page">
     <div className="sa-path"><button type="button" onClick={onHome}><ArrowRight size={15}/> 일반 AI</button><span>/</span><strong>Siemens Architecture</strong></div>
     <header className="sa-intro">
@@ -99,8 +103,10 @@ export default function SiemensArchitect({onHome}:{onHome:()=>void}) {
         </div>
       </div>
       {tab==='map'&&<>
-        <div className="sa-map-head"><p>{config.description}</p><div className="sa-switch" role="group" aria-label="구성도 보기 방식"><button onClick={()=>setView('logical')} className={view==='logical'?'on':''}>논리 구조</button><button onClick={()=>setView('deployment')} className={view==='deployment'?'on':''}>배포 구역</button></div></div>
-        {view==='logical'?
+        <div className="sa-map-head"><p>{config.description}</p><div className="sa-switch" role="group" aria-label="구성도 보기 방식"><button onClick={()=>setView('logical')} className={view==='logical'?'on':''}>논리 구조</button><button onClick={()=>setView('deployment')} className={view==='deployment'?'on':''}>배포 구역</button>{product==='teamcenter'&&<button onClick={()=>setView('infra')} className={view==='infra'?'on':''}>인프라 구성도</button>}</div></div>
+        {view==='infra'&&product==='teamcenter'?
+          <TeamcenterInfrastructure/>
+          :view==='logical'?
           <div className="sa-map">
             <div className="sa-map-legend"><span><i/> SELECT A COMPONENT</span><span>각 요소를 눌러 역할 확인</span></div>
             <div className="sa-system-flow">
