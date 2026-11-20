@@ -8,7 +8,7 @@ import './systems-flow-atlas.css'
 type Point=[number,number]
 const placements:Record<FlowLayout,Point[]>={
  pipeline:[[30,77],[270,77],[510,77],[510,222],[270,222],[30,222]],
- fork:[[14,139],[178,139],[348,35],[348,139],[348,243],[520,139]],
+ fork:[[16,144],[203,144],[475,34],[475,144],[475,254],[675,144]],
  cycle:[[30,77],[270,77],[510,77],[510,222],[270,222],[30,222]],
  ladder:[[30,77],[270,77],[510,77],[30,222],[270,222],[510,222]],
  split:[[14,139],[180,54],[180,235],[365,54],[365,235],[526,139]],
@@ -18,6 +18,26 @@ const nodeWidth=142,nodeHeight=68
 function connector(a:Point,b:Point,reverse=false,layout?:FlowLayout,fromIndex?:number,toIndex?:number){
  const [ax,ay]=a,[bx,by]=b
  const dx=bx-ax,dy=by-ay
+ // The Agentic RAG retry edge travels around the outside of the lower row.
+ if(layout==='fork'&&fromIndex===4&&toIndex===1)
+  return 'M 546 322 V 334 H 182 V 202 H 203'
+ // Dedicated ports separate fork arrows instead of using a cramped branch spine.
+ // The upper branch enters the lower result from its top-right port,
+ // never against the outgoing right-hand arrow of that same result.
+ if(layout==='fork'&&fromIndex===2&&toIndex===4)
+  return 'M 617 68 H 635 V 232 H 588 V 254'
+ if(layout==='fork'&&fromIndex===1){
+  const sx=ax+nodeWidth,ex=bx
+  if(toIndex===2)return `M ${sx} ${ay+16} H 390 V ${by+34} H ${ex}`
+  if(toIndex===3)return `M ${sx} ${ay+34} H ${ex}`
+  if(toIndex===4)return `M ${sx} ${ay+52} H 410 V ${by+34} H ${ex}`
+ }
+ if(layout==='fork'&&toIndex===5){
+  const sx=ax+nodeWidth,ex=bx
+  if(fromIndex===2)return `M ${sx} ${ay+34} H 640 V ${by+16} H ${ex}`
+  if(fromIndex===3)return `M ${sx} ${ay+34} H ${ex}`
+  if(fromIndex===4)return `M ${sx} ${ay+34} H 654 V ${by+52} H ${ex}`
+ }
  // Split flowboards use explicit top/bottom lanes for long shortcuts.
  // Direct mid-lane routing would otherwise cross the other branch's cards.
  if(layout==='split'&&fromIndex===0&&toIndex===3)
@@ -58,7 +78,11 @@ function connector(a:Point,b:Point,reverse=false,layout?:FlowLayout,fromIndex?:n
  return `M ${sx} ${sy} H ${mid} V ${ey} H ${ex}`
 }
 const domainWord:Record<FlowDomain,string>={ai:'AI SYSTEMS',computer:'COMPUTER SYSTEMS',teamcenter:'TEAMCENTER 2606',polarion:'POLARION 2606'}
-const topicLayout:Record<string,FlowLayout>={foundations:'pipeline',models:'cycle',retrieval:'ladder',agents:'fork',training:'reverse',production:'split'}
+const topicLayout:Record<string,FlowLayout>={foundations:'pipeline',models:'cycle',retrieval:'ladder',training:'reverse',production:'split'}
+const topicSpecificLayout:Record<string,FlowLayout>={
+ 'ai-agent':'cycle','function-calling':'pipeline','mcp':'ladder',
+ 'orchestration':'cycle','context-memory':'reverse'
+}
 function defaultLayouts(i:number):FlowLayout{return (['pipeline','fork','cycle','ladder','split','reverse'] as FlowLayout[])[i%6]}
 export function stageFlow(input:{id:string;title:string;subtitle:string;steps:{title:string;subtitle:string;detail:string}[];domain:FlowDomain;seed?:string}):FlowDiagram{
  const stageNodes=input.steps.map((s,i)=>({id:`${input.id}-phase-${i}`,title:s.title,subtitle:s.subtitle,detail:s.detail}))
@@ -68,7 +92,7 @@ export function stageFlow(input:{id:string;title:string;subtitle:string;steps:{t
  const nodes=stageNodes.length>=5
   ?[first,...stageNodes.slice(0,5)]
   :[first,...stageNodes.slice(0,4),last]
- const layout=topicLayout[input.seed||'']||defaultLayouts([...input.id].reduce((n,c)=>n+c.charCodeAt(0),0))
+ const layout=topicSpecificLayout[input.id]||topicLayout[input.seed||'']||defaultLayouts([...input.id].reduce((n,c)=>n+c.charCodeAt(0),0))
  const links:Record<FlowLayout,[number,number][]>={
   pipeline:[[0,1],[1,2],[2,3],[3,4],[4,5]],
   fork:[[0,1],[1,2],[1,3],[1,4],[2,5],[3,5],[4,5]],
@@ -84,20 +108,24 @@ export function SystemsFlowDrawing({diagram,step,compact=false,onStep}:DrawingPr
  const uniqueId=useId().replace(/:/g,'')
  const nodes=diagram.nodes
  const positions=placements[diagram.layout]
+ const isFork=diagram.layout==='fork'
+ const boardWidth=isFork?840:680
+ const boardHeight=isFork?360:340
  return <div className={'systems-drawing '+(compact?'systems-drawing-compact':'')} role="img" aria-label={diagram.title+' 단계별 시스템 구조'}>
-  <svg viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+  <svg viewBox={`0 0 ${boardWidth} ${boardHeight}`} xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
    <defs>
     <pattern id={uniqueId+'dot'} width="23" height="23" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="currentColor" opacity=".09"/></pattern>
-    <marker id={uniqueId+'arrow'} viewBox="0 0 10 10" markerWidth="8" markerHeight="8" refX="9" refY="5" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="currentColor" strokeWidth="1.3"/></marker>
+    <marker id={uniqueId+'arrow'} viewBox="0 0 10 10" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" refX="9.5" refY="5" orient="auto"><path d="M1 1.5 L8.5 5 L1 8.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></marker>
    </defs>
-   <rect x="0" y="0" width="680" height="340" rx="13" className="systems-board-surface"/>
-   <rect x="0" y="0" width="680" height="340" rx="13" fill={'url(#'+uniqueId+'dot)'} opacity=".65"/>
+   <rect x="0" y="0" width={boardWidth} height={boardHeight} rx="13" className="systems-board-surface"/>
+   <rect x="0" y="0" width={boardWidth} height={boardHeight} rx="13" fill={'url(#'+uniqueId+'dot)'} opacity=".65"/>
    <g className="systems-edges">
     {diagram.links.map(([a,b],i)=>{
      const active=a===step||b===step
      const backwards=b<a&&Math.abs(a-b)>2&&diagram.layout==='reverse'
+     const feedback=b<a
      const d=connector(positions[a],positions[b],backwards,diagram.layout,a,b)
-     return <g key={i} data-from={a} data-to={b} className={'systems-edge '+(active?'systems-edge-active':'')}>
+     return <g key={i} data-from={a} data-to={b} className={'systems-edge '+(active?'systems-edge-active':'')+(feedback?' systems-edge-feedback':'')}>
        <path d={d} className="systems-edge-track" markerEnd={'url(#'+uniqueId+'arrow)'}/>
        <path d={d} className="systems-edge-moving"/>
        {(active||compact)&&<circle r="3.9" className="systems-data-packet">
@@ -114,8 +142,8 @@ export function SystemsFlowDrawing({diagram,step,compact=false,onStep}:DrawingPr
      <text x="12" y="46" className="systems-node-title" textLength={undefined}>{node.title.length>15?node.title.slice(0,14)+'…':node.title}</text>
      <text x="12" y="60" className="systems-node-subtitle">{node.subtitle.length>22?node.subtitle.slice(0,21)+'…':node.subtitle}</text>
     </g>})}
-   <text x="19" y="325" className="systems-board-mark">WHATIS / INTERACTIVE SYSTEM FLOW</text>
-   <text x="661" y="325" textAnchor="end" className="systems-board-mark">{String(step+1).padStart(2,'0')} / {String(nodes.length).padStart(2,'0')}</text>
+   <text x="19" y={boardHeight-15} className="systems-board-mark">WHATIS / INTERACTIVE SYSTEM FLOW</text>
+   <text x={boardWidth-19} y={boardHeight-15} textAnchor="end" className="systems-board-mark">{String(step+1).padStart(2,'0')} / {String(nodes.length).padStart(2,'0')}</text>
   </svg>
  </div>
 }
@@ -159,7 +187,7 @@ export function SystemsFlowFocus({diagram,embedded=false,onClose,initialStep=0,o
   </header>
   <div className="systems-focus-scroll">
    <div className="systems-focus-head"><h3>{diagram.title}</h3><p>{diagram.subtitle}</p></div>
-   <div className="systems-focus-diagram-scroll"><SystemsFlowDrawing diagram={diagram} step={current} onStep={select}/></div>
+   <div className="systems-focus-diagram-scroll" aria-label="좌우로 이동 가능한 시스템 연결도"><SystemsFlowDrawing diagram={diagram} step={current} onStep={select}/></div><p className="systems-scroll-hint">도식을 좌우로 밀면 가려진 연결과 구성요소도 볼 수 있어요.</p>
    <div className="systems-controls">
     <span>STEP {String(current+1).padStart(2,'0')} / {String(diagram.nodes.length).padStart(2,'0')}</span>
     <div>

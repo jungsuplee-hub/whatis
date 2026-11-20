@@ -23,6 +23,7 @@
 .systems-edge-moving{fill:none;stroke:#74b8a3;stroke-width:2.9;stroke-dasharray:4 14;stroke-dashoffset:0;animation:systems-travel 1.8s linear infinite;opacity:.6;pointer-events:none}
 .systems-data-packet{fill:#3abf97;stroke:#e3fff0;stroke-width:1.3;filter:drop-shadow(0 0 3px #45bf9980);pointer-events:none}
 .systems-edge-active .systems-edge-track{stroke:#2e9976;stroke-width:3.2}
+.systems-edge-feedback .systems-edge-track{stroke-dasharray:6 7;stroke:#76a8a5}
 .systems-edge-active .systems-edge-moving{stroke:#16815e;stroke-width:3.3;opacity:1}
 .systems-node{transition:opacity .18s ease}
 .systems-node-bg{fill:#fff;stroke:#a6c8b5;stroke-width:1.5;filter:drop-shadow(0 4px 6px #163d3d08)}
@@ -59,8 +60,9 @@
 .systems-focus-scroll{padding:23px 25px;overflow-y:auto;overscroll-behavior:contain;flex:1}
 .systems-focus-head h3{font-size:27px;font-weight:900;letter-spacing:-1px;margin:0 0 9px}
 .systems-focus-head p{font-size:13px;color:#7d9183;margin:0 0 18px;line-height:1.8}
-.systems-focus-diagram-scroll{width:100%;overflow-x:auto;overscroll-behavior-x:contain;background:#f4f8f5;border-radius:12px}
-.systems-focus-diagram-scroll .systems-drawing{width:100%;min-width:580px}
+.systems-focus-diagram-scroll{width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;background:#f4f8f5;border-radius:12px;scrollbar-width:thin;scrollbar-color:#a0c8b1 #f4f8f5}
+.systems-focus-diagram-scroll .systems-drawing{width:100%;min-width:680px}
+.systems-scroll-hint{display:none;margin:8px 0 0;font-size:11px;color:#69907a}
 .systems-controls{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:17px 0}
 .systems-controls>span{color:#6e9880;font:850 11px 'DM Sans',sans-serif}
 .systems-controls>div{display:flex;align-items:center;gap:7px}
@@ -112,7 +114,13 @@
  .systems-focus-top{padding:16px}
  .systems-focus-scroll{padding:15px 16px}
  .systems-focus-head h3{font-size:22px}
- .systems-focus-diagram-scroll .systems-drawing{min-width:610px}
+ .systems-focus-diagram-scroll{display:block;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+ .systems-focus-diagram-scroll .systems-drawing{width:840px;min-width:840px;max-width:none}
+ .systems-focus-diagram-scroll .systems-drawing svg{display:block;width:100%;height:auto}
+ .systems-focus-embedded .systems-focus-diagram-scroll{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+ .systems-drawing-compact{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+ .systems-drawing-compact svg{width:760px;min-width:760px;max-width:none}
+ .systems-scroll-hint{display:block}
  .systems-step-navigator{grid-template-columns:repeat(2,minmax(0,1fr))}
  .systems-focus-embedded .systems-focus-scroll{padding:13px}
  .systems-focus-embedded .systems-focus-top{padding:14px}
