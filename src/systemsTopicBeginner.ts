@@ -1,3 +1,4 @@
+import { additionalTopicStepBasics } from './systemsTopicBeginnerStageMore'
 /** One plain-language entry point for every existing lesson page.
  * Original technical lesson content remains unchanged and available below.
  */
@@ -67,6 +68,7 @@ export const topicBeginners:Record<string,string>={
  'grid-cloud':'여러 컴퓨터를 함께 활용하는 것과 인터넷을 통해 자원을 서비스로 제공하는 것은 비슷하지만 목표와 운영 방식이 달라요.'
 }
 export const topicStepBasics:Record<string,string[]>={
+ ...additionalTopicStepBasics,
  'ai-agent':[
  '사용자가 무엇을 끝내고 싶은지 AI 앱에 알려줘요. 무엇을 해도 되는지도 함께 정해야 해요.',
  'AI가 지금 어떤 일을 먼저 할지 정해요. 예를 들어 정보를 찾을지 계산할지 선택해요.',

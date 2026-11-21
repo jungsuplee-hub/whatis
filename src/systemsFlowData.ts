@@ -12,7 +12,7 @@ export type FlowDiagram={
  id:string;domain:FlowDomain;title:string;subtitle:string;layout:FlowLayout;
  nodes:FlowNode[];links:[number,number][];keyPoint:string;warning?:string;tag:string
  overview?:string;scenario?:string;scenarioLabel?:string;takeaways?:string[]
- beginnerLead?:string;beginnerAnalogy?:string;beginnerTerms?:{name:string;meaning:string}[]
+ beginnerLead?:string;beginnerTerms?:{name:string;meaning:string}[]
 }
 type Def=[string,FlowDomain,string,string,FlowLayout,string,string,string?,string?]
 const relations:Record<FlowLayout,[number,number][]>={
@@ -165,7 +165,7 @@ function parse(def:Def):FlowDiagram {
  if(nodes.length!==6)throw Error('Expected six nodes: '+id)
  return {id,domain,title,subtitle,layout,nodes,links:explicitLinks[id]??relations[layout],
   keyPoint,warning,tag,overview:guide.overview,scenario:guide.scenario,scenarioLabel:'구체적인 사용 사례',
-  beginnerLead:easy.lead,beginnerAnalogy:easy.analogy,beginnerTerms:easy.terms}
+  beginnerLead:easy.lead,beginnerTerms:easy.terms}
 }
 export const flowDiagrams=diagrams.map(parse)
 export const flowByDomain=(domain:FlowDomain)=>flowDiagrams.filter(d=>d.domain===domain)
