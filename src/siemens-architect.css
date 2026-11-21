@@ -32,3 +32,8 @@
  .sa-primary-tabs{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
  .sa-primary-tabs button{flex:0 0 auto;min-width:84px;padding:10px 8px;font-size:12px}
 }
+
+/* Teamcenter interactive usage learning entry */
+.sa-user-guide-entry{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:-29px 0 25px;padding:23px 27px;border-radius:13px;border:1px solid #b9dcda;background:linear-gradient(115deg,#ebf9f7,#f6fbf3)}
+.sa-user-guide-entry span{display:block;font:850 10px 'DM Sans',sans-serif;letter-spacing:1.4px;color:#38988f}.sa-user-guide-entry h3{font-size:20px;letter-spacing:-.6px;margin:9px 0}.sa-user-guide-entry p{font-size:11px;color:#738e85;margin:0}.sa-user-guide-entry button{background:#236d70;border:1px solid #236d70;border-radius:8px;padding:13px 15px;color:white;display:flex;align-items:center;justify-content:center;gap:10px;font-size:12px;font-weight:850;flex-shrink:0}
+@media(max-width:740px){.sa-user-guide-entry{flex-direction:column;align-items:stretch;padding:17px 18px;margin:-10px 0 20px}.sa-user-guide-entry h3{font-size:17px}.sa-user-guide-entry button{width:100%}}

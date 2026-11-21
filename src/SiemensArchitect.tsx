@@ -65,7 +65,7 @@ const relationNodes=[
   {title:'요구사항·검증',subtitle:'Polarion',details:'요구사항, 테스트, 추적 가능한 업무 항목'},
   {title:'연결 관계',subtitle:'Integration',details:'양쪽의 변경 영향·참조·책임 범위'}
 ]
-export default function SiemensArchitect({onHome}:{onHome:()=>void}) {
+export default function SiemensArchitect({onHome,onTeamcenterDemo}:{onHome:()=>void;onTeamcenterDemo:()=>void}) {
   const [product,setProduct]=useState<Product>('teamcenter')
   const [view,setView]=useState<View>('infra')
   const [selected,setSelected]=useState('experience')
@@ -87,6 +87,7 @@ export default function SiemensArchitect({onHome}:{onHome:()=>void}) {
         <span className="sa-product-name"><strong>{products[v].label}</strong><small>{products[v].subtitle}</small></span><span className="sa-product-version">2606</span><ArrowRight size={20}/>
       </button>)}
     </div>
+    <div className="sa-user-guide-entry"><div><span>NEW · INTERACTIVE USER GUIDE</span><h3>Teamcenter, 실제 화면처럼 직접 체험해 보세요.</h3><p>검색 · Item/Revision · BOM · 문서 · 워크플로 · 변경 관리 · 3D 개념 보기</p></div><button type="button" onClick={onTeamcenterDemo}>Teamcenter 사용자 가이드 열기 <ArrowRight size={17}/></button></div>
     <div className="sa-workspace">
       <div className="sa-workspace-header">
         <div><span className="sa-section-no">01 / EXPLORE</span><h2>{config.full} <span>설계 가이드</span></h2></div>
