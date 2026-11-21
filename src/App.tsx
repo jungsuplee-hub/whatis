@@ -252,7 +252,8 @@ function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{to
     <section className="systems-lesson-insert" aria-label={technicalName(topic)+' 전체 처리 과정'}>
       <SystemsFlowFocus key={topic.id} embedded diagram={stageFlow({
         id:topic.id,title:technicalName(topic)+' · 전체 동작 구조',subtitle:topic.summary,
-        domain:'ai',seed:topic.category,
+        domain:'ai',seed:topic.category,overview:topic.description,scenario:topic.analogy,scenarioLabel:'생활 속 쉬운 비유',
+        takeaways:topic.insights,warning:topic.caution,
         steps:topic.stages.map(s=>({title:s.name,subtitle:s.note,detail:s.detail}))
       })}/>
     </section>

@@ -137,7 +137,8 @@ function ComputerTopicPage({topic,onChapter,onTopic}:{topic:ComputerTopic;onChap
   <p className="computer-visual-caveat"><CircleHelp size={15}/> 개념을 이해하기 위한 애니메이션입니다. 실제 하드웨어의 내부 신호·처리 시간·상대적 크기를 그대로 나타내는 것은 아닙니다.</p>
   <SystemsFlowFocus key={topic.id} embedded diagram={stageFlow({
     id:topic.id,title:topic.title+' · 단계별 전체 구조',subtitle:topic.lede,
-    domain:'computer',seed:topic.chapter,steps:topic.steps
+    domain:'computer',seed:topic.chapter,overview:topic.lede,scenario:topic.takeaway,scenarioLabel:'핵심 정리',
+    warning:topic.reality,steps:topic.steps
   })}/>
 
   <section className="computer-topic-note">
