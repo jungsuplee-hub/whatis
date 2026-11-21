@@ -221,3 +221,12 @@
 
 .computer-topic-note{grid-template-columns:minmax(0,1fr)}
 .computer-topic-note>div:first-child{max-width:780px}
+
+.computer-hero-actions .computer-hero-secondary-action{background:transparent!important;border:1px solid #84b6c6!important;color:#246d84!important;box-shadow:none!important}
+.computer-hero-actions .computer-hero-secondary-action:hover{background:#e6f4f7!important}
+.computer-topic-breadcrumb .computer-lesson-lab-link{margin-left:auto;display:inline-flex;align-items:center;gap:7px;color:#197f9a;background:#e7f4f8;border:1px solid #bedbe5;padding:8px 11px;font-weight:750;font-size:11px}
+@media(max-width:640px){.computer-topic-breadcrumb .computer-lesson-lab-link{margin-left:0;order:2}.computer-hero-actions .computer-hero-secondary-action{padding:10px!important}}
+
+.computer-chapter-top-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:13px}
+.computer-chapter-lab-link{display:inline-flex;gap:8px;align-items:center;background:#e5f5f8;border:1px solid #b1d8e2;color:#247f99;padding:10px 13px;font-weight:750;font-size:12px}
+.computer-chapter-lab-link:hover{background:#d2edf3}

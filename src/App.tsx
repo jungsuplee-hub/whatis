@@ -9,6 +9,7 @@ const SiemensArchitect=lazy(()=>import('./SiemensArchitect'))
 const TeamcenterUserDemo=lazy(()=>import('./TeamcenterUserDemo'))
 const PolarionUserDemo=lazy(()=>import('./PolarionUserDemo'))
 const ComputerAtlas=lazy(()=>import('./ComputerAtlas'))
+const PracticeLab=lazy(()=>import('./PracticeLab'))
 import { categories, categoryById, generalTopics, topicById } from './data'
 import type { Topic, Area, Category } from './data'
 import { lessons } from './lessonContent'
@@ -18,14 +19,16 @@ import './service-examples.css'
 import './home-polish.css'
 import './mobile-clarity.css'
 
-type Route = {area: Area|'computer'; page:'home'|'category'|'topic'|'saved'|'tc-demo'|'polarion-demo';id?:string}
+type Route = {area: Area|'computer'; page:'home'|'category'|'topic'|'saved'|'tc-demo'|'polarion-demo'|'lab';id?:string}
 const routeFromHash = ():Route => {
   const paths=decodeURIComponent(window.location.hash.slice(1)).split('/').filter(Boolean)
   if(paths[0]==='computer'){
+    if(paths[1]==='lab')return {area:'computer',page:'lab',id:paths[2]}
     if(paths[1]==='chapter'&&paths[2])return {area:'computer',page:'category',id:paths[2]}
     if(paths[1])return {area:'computer',page:'topic',id:paths[1]}
     return {area:'computer',page:'home'}
   }
+  if(paths[0]==='general'&&paths[1]==='lab')return {area:'general',page:'lab',id:paths[2]}
   if(paths[0]==='siemens'&&paths[1]==='teamcenter-demo')return {area:'siemens',page:'tc-demo'}
   if(paths[0]==='siemens'&&paths[1]==='polarion-demo')return {area:'siemens',page:'polarion-demo'}
   const area:Area=paths[0]==='siemens'?'siemens':'general'
@@ -36,7 +39,7 @@ const routeFromHash = ():Route => {
   if(t?.area===area)return {area,page:'topic',id:t.id}
   return {area,page:'home'}
 }
-const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/'+(r.area==='computer'?'chapter':'category')+'/'+r.id:r.page==='saved'?'/saved':r.page==='tc-demo'?'/teamcenter-demo':r.page==='polarion-demo'?'/polarion-demo':'')
+const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/'+(r.area==='computer'?'chapter':'category')+'/'+r.id:r.page==='saved'?'/saved':r.page==='lab'?'/lab'+(r.id?'/'+r.id:''):r.page==='tc-demo'?'/teamcenter-demo':r.page==='polarion-demo'?'/polarion-demo':'')
 const technicalName = (t:Topic) => ({
   ai:'AI', 'machine-learning':'Machine Learning', 'deep-learning':'Deep Learning',
   'neural-networks':'Neural Network', 'supervised-learning':'Supervised Learning',
@@ -76,6 +79,14 @@ function App(){
   }
   const home=()=>navigate({area:'general',page:'home'})
   const computerHome=()=>navigate({area:'computer',page:'home'})
+  const aiLab=(topicId?:string)=>{
+    if(topicId)try{sessionStorage.setItem('whatis:practice:entry:ai',topicId)}catch{/* browser storage disabled */}
+    navigate({area:'general',page:'lab',id:topicId})
+  }
+  const computerLab=(topicId?:string)=>{
+    if(topicId)try{sessionStorage.setItem('whatis:practice:entry:computer',topicId)}catch{/* browser storage disabled */}
+    navigate({area:'computer',page:'lab',id:topicId})
+  }
   const computerTopic=(id:string)=>navigate({area:'computer',page:'topic',id})
   const computerChapter=(id:string)=>navigate({area:'computer',page:'category',id})
   const openTopic=(t:Topic)=>navigate({area:t.area,page:'topic',id:t.id})
@@ -124,14 +135,16 @@ function App(){
       </div>
     </header>
     <main className="site-main">
-      {route.page==='home'&&route.area==='general'&&<HomePage onTopic={openTopic} onCategory={openCategory} onSearch={()=>setSearchOpen(true)}/>}
+      {route.page==='home'&&route.area==='general'&&<HomePage onTopic={openTopic} onCategory={openCategory} onSearch={()=>setSearchOpen(true)} onLab={()=>aiLab()}/>}
+      {route.page==='lab'&&route.area==='general'&&<Suspense fallback={<div className="computer-page-loading" role="status">AI 실습 연구실을 준비하고 있습니다.</div>}><PracticeLab domain="ai" startId={route.id} onBack={home}/></Suspense>}
+      {route.page==='lab'&&route.area==='computer'&&<Suspense fallback={<div className="computer-page-loading" role="status">컴퓨터 구조 실습 연구실을 준비하고 있습니다.</div>}><PracticeLab domain="computer" startId={route.id} onBack={computerHome}/></Suspense>}
       {route.page==='home'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Siemens 아키텍처 화면을 준비하고 있습니다.</div>}><SiemensArchitect onHome={home} onTeamcenterDemo={()=>navigate({area:'siemens',page:'tc-demo'})} onPolarionDemo={()=>navigate({area:'siemens',page:'polarion-demo'})}/></Suspense>}
       {route.page==='tc-demo'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Teamcenter 학습 화면을 준비하고 있습니다.</div>}><TeamcenterUserDemo onBack={()=>navigate({area:'siemens',page:'home'})}/></Suspense>}
       {route.page==='polarion-demo'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Polarion 학습 화면을 준비하고 있습니다.</div>}><PolarionUserDemo onBack={()=>navigate({area:'siemens',page:'home'})}/></Suspense>}
-      {route.area==='computer'&&<Suspense fallback={<div className="computer-page-loading" role="status">컴퓨터 구조 학습 화면을 준비하고 있습니다.</div>}><ComputerAtlas view={route.page==='category'?'chapter':route.page==='topic'?'topic':'home'} id={route.id} onTopic={computerTopic} onChapter={computerChapter} onHome={computerHome}/></Suspense>}
-      {route.page==='category'&&category&&<TopicCollection key={category.id} category={category} onTopic={openTopic} onHome={home}/>}
+      {route.area==='computer'&&route.page!=='lab'&&<Suspense fallback={<div className="computer-page-loading" role="status">컴퓨터 구조 학습 화면을 준비하고 있습니다.</div>}><ComputerAtlas view={route.page==='category'?'chapter':route.page==='topic'?'topic':'home'} id={route.id} onTopic={computerTopic} onChapter={computerChapter} onHome={computerHome} onLab={computerLab}/></Suspense>}
+      {route.page==='category'&&category&&<TopicCollection key={category.id} category={category} onTopic={openTopic} onHome={home} onLab={()=>aiLab(generalTopics.find(t=>t.category===category.id)?.id)}/>}
       {route.page==='saved'&&<SavedCollection ids={saved} onTopic={openTopic} onHome={home}/>}
-      {route.page==='topic'&&topic&&<TopicLesson key={topic.id} topic={topic} onHome={home} onCategory={()=>openCategory(categoryById(topic.category)!)} onTopic={openTopic} bookmarked={saved.includes(topic.id)} onBookmark={()=>favorite(topic.id)}/>}
+      {route.page==='topic'&&topic&&<TopicLesson key={topic.id} topic={topic} onHome={home} onCategory={()=>openCategory(categoryById(topic.category)!)} onTopic={openTopic} onLab={()=>aiLab(topic.id)} bookmarked={saved.includes(topic.id)} onBookmark={()=>favorite(topic.id)}/>}
     </main>
     <footer className="site-footer"><span>whatis. <i>알수록 가까워지는 기술</i></span><span>기술을 눈으로 이해하는 인터랙티브 학습</span></footer>
     {searchOpen&&<div className="finder-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setSearchOpen(false)}}>
@@ -148,12 +161,13 @@ function App(){
   </div>
 }
 
-function HomePage({onTopic,onCategory,onSearch}:{onTopic:(t:Topic)=>void;onCategory:(c:Category)=>void;onSearch:()=>void}){
+function HomePage({onTopic,onCategory,onSearch,onLab}:{onTopic:(t:Topic)=>void;onCategory:(c:Category)=>void;onSearch:()=>void;onLab:()=>void}){
   return <>
     <section className="magazine-hero">
       <div className="hero-number"><span className="hero-number-dot"/> AN INTERACTIVE JOURNEY INTO AI</div>
       <h1>질문을 보내면,<br/><em>안에서는 무슨 일이?</em></h1>
       <p>채팅창에서 출발해 답변이 완성될 때까지. 직접 따라가 보세요.</p>
+      <div className="practice-entry-ai"><button onClick={onLab}><Play size={17}/> AI 실습 연구실 시작 <ArrowRight size={17}/></button><span>프롬프트 · 토큰 · RAG · 도구 · 사실 검증까지 8가지 실습</span></div>
       <div className="hero-scribble" aria-hidden="true"><span>?</span><span>→</span><span>!</span></div>
     </section>
     <div className="exhibit-label"><span><i/> 01 / 먼저 체험하기</span><span>화면을 눌러보세요</span></div>
@@ -192,11 +206,11 @@ function TopicCards({items,onTopic}:{items:Topic[];onTopic:(t:Topic)=>void}){
     <div className="lesson-tile-text"><strong>{friendly(t)}</strong><span className="lesson-arrow"><ArrowUpRight size={22}/></span></div>
   </button>)}</div>
 }
-function TopicCollection({category,onTopic,onHome}:{category:Category;onTopic:(t:Topic)=>void;onHome:()=>void}){
+function TopicCollection({category,onTopic,onHome,onLab}:{category:Category;onTopic:(t:Topic)=>void;onHome:()=>void;onLab:()=>void}){
   const list=generalTopics.filter(t=>t.category===category.id)
   return <section className="collection-page">
     <button className="back-link" onClick={onHome}><ArrowLeft size={17}/> 모든 이야기</button>
-    <header className="collection-head"><div><span className="kicker">CURIOUS ABOUT AI / {String(list.length).padStart(2,'0')} STORIES</span><h1>{navLabel(category.id)}</h1><span className="collection-tech-label">{category.title}</span><p>한 가지씩 선택하고, 움직이는 단계로 이해해 보세요.</p></div><div className="collection-motion"><ConceptMotion category={category.id} label={category.title+' 움직이는 예시'}/></div></header>
+    <header className="collection-head"><div><span className="kicker">CURIOUS ABOUT AI / {String(list.length).padStart(2,'0')} STORIES</span><h1>{navLabel(category.id)}</h1><span className="collection-tech-label">{category.title}</span><p>한 가지씩 선택하고, 움직이는 단계로 이해해 보세요.</p><button className="collection-practice-link" onClick={onLab}><Play size={15}/> 이 분야 직접 실습하기 <ArrowRight size={15}/></button></div><div className="collection-motion"><ConceptMotion category={category.id} label={category.title+' 움직이는 예시'}/></div></header>
     <TopicCards items={list} onTopic={onTopic}/>
   </section>
 }
@@ -208,7 +222,7 @@ function SavedCollection({ids,onTopic,onHome}:{ids:string[];onTopic:(t:Topic)=>v
     {list.length?<TopicCards items={list} onTopic={onTopic}/>:<div className="no-saved"><Bookmark size={37}/><p>아직 저장한 글이 없어요.</p><button onClick={onHome}>둘러보기 <ArrowRight size={16}/></button></div>}
   </section>
 }
-function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{topic:Topic;onHome:()=>void;onCategory:()=>void;onTopic:(t:Topic)=>void;bookmarked:boolean;onBookmark:()=>void}){
+function TopicLesson({topic,onHome,onCategory,onTopic,onLab,bookmarked,onBookmark}:{topic:Topic;onHome:()=>void;onCategory:()=>void;onTopic:(t:Topic)=>void;onLab:()=>void;bookmarked:boolean;onBookmark:()=>void}){
   const [step,setStep]=useState(0)
   const [playing,setPlaying]=useState(true)
   const [copied,setCopied]=useState(false)
@@ -229,7 +243,7 @@ function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{to
     try{await navigator.clipboard.writeText(window.location.href);setCopied(true)}catch{setCopied(false)}
   }
   return <article className="lesson-page">
-    <div className="lesson-navigation"><button className="back-link" onClick={onCategory}><ArrowLeft size={16}/> {navLabel(topic.category)}</button><button className="back-home" onClick={onHome}>전체 보기</button></div>
+    <div className="lesson-navigation"><button className="back-link" onClick={onCategory}><ArrowLeft size={16}/> {navLabel(topic.category)}</button><button className="lesson-practice-start" onClick={onLab}><Play size={14}/> AI 기능 직접 실습하기</button><button className="back-home" onClick={onHome}>전체 보기</button></div>
     <header className="lesson-head">
       <div><span className="kicker">A CLOSER LOOK · {category.title}</span><span className="lesson-tech-heading">{technicalName(topic)}</span><h1>{friendly(topic)}</h1><p>{simple(topic)}</p></div>
       <div className="lesson-actions">

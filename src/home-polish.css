@@ -49,3 +49,14 @@
  .story-grid>.story-tile .story-tile-bottom strong{font-size:12px}
  .magazine-hero h1{font-size:32px}
 }
+
+.practice-entry-ai{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:20px 0 0;position:relative;z-index:2}
+.practice-entry-ai button{display:flex;align-items:center;gap:9px;background:#147e9c;border:1px solid #147e9c;color:#fff;padding:12px 15px;font-size:13px;font-weight:750}
+.practice-entry-ai button:hover{background:#0d627d}
+.practice-entry-ai span{font-size:11px;color:#617e89;line-height:1.6}
+.lesson-practice-start{display:inline-flex;align-items:center;gap:7px;border:1px solid #9fc5cf!important;background:#eaf7f9!important;color:#257c96!important;padding:8px 12px!important;font-size:12px!important;font-weight:750}
+.lesson-practice-start:hover{background:#d9f0f4!important}
+@media(max-width:600px){.practice-entry-ai button{font-size:12px;padding:10px 12px}.practice-entry-ai span{width:100%}.lesson-practice-start{padding:7px!important}}
+
+.collection-practice-link{display:inline-flex;align-items:center;gap:8px;background:#e7f4f8;border:1px solid #b3d7e1;color:#287e97;font-size:12px;font-weight:750;padding:11px 13px;margin:17px 0 0}
+.collection-practice-link:hover{background:#d3ecf3}

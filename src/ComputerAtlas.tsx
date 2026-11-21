@@ -9,7 +9,7 @@ import { topicBeginners, topicStepBasics } from './systemsTopicBeginner'
 import { flowById } from './systemsFlowData'
 import './computer-atlas.css'
 
-type Props={view:'home'|'chapter'|'topic';id?:string;onTopic:(id:string)=>void;onChapter:(id:string)=>void;onHome:()=>void}
+type Props={view:'home'|'chapter'|'topic';id?:string;onTopic:(id:string)=>void;onChapter:(id:string)=>void;onHome:()=>void;onLab:(topicId?:string)=>void}
 const icons:Record<ComputerChapterId,LucideIcon>={hardware:Cpu,parallel:Gauge,memory:Layers3,operating:Monitor,virtual:Database,storage:HardDrive,resilience:ShieldCheck,cloud:Network}
 
 const journey=[
@@ -31,7 +31,7 @@ function ChapterCard({chapter,onChapter,index}:{chapter:ComputerChapter;onChapte
   </div>
  </button>
 }
-function ComputerHome({onChapter,onTopic}:{onChapter:(id:string)=>void;onTopic:(id:string)=>void}){
+function ComputerHome({onChapter,onTopic,onLab}:{onChapter:(id:string)=>void;onTopic:(id:string)=>void;onLab:(topicId?:string)=>void}){
  const [chapter,setChapter]=useState<ComputerChapterId>('hardware')
  const [search,setSearch]=useState('')
  const [journeyStep,setJourneyStep]=useState(0)
@@ -55,7 +55,8 @@ function ComputerHome({onChapter,onTopic}:{onChapter:(id:string)=>void;onTopic:(
       <h1>컴퓨터 안에서는<br/><em>무슨 일이 벌어질까?</em></h1>
       <p>전원을 켜고 프로그램을 실행하는 순간부터, CPU·메모리·운영체제·저장소가 함께 움직이는 모습을 따라가 보세요.</p>
       <div className="computer-hero-actions">
-        <button type="button" onClick={()=>onTopic('computer-parts')}>작동 원리 시작하기 <ArrowRight size={18}/></button>
+        <button type="button" onClick={()=>onLab()}><Play size={17}/> 컴퓨터 구조 직접 실습하기 <ArrowRight size={18}/></button>
+        <button type="button" className="computer-hero-secondary-action" onClick={()=>onTopic('computer-parts')}>작동 원리 읽기 <ArrowRight size={17}/></button>
         <span>8개 장 · {computerTopics.length}개 이야기</span>
       </div>
     </div>
@@ -90,11 +91,11 @@ function ComputerHome({onChapter,onTopic}:{onChapter:(id:string)=>void;onTopic:(
   </section>
  </div>
 }
-function ComputerChapterPage({chapter,onTopic,onHome}:{chapter:ComputerChapter;onTopic:(id:string)=>void;onHome:()=>void}){
+function ComputerChapterPage({chapter,onTopic,onHome,onLab}:{chapter:ComputerChapter;onTopic:(id:string)=>void;onHome:()=>void;onLab:(topicId?:string)=>void}){
  const [step,setStep]=useState(0)
  const Icon=icons[chapter.id]
  return <div className="computer-page computer-chapter-page">
-   <button type="button" className="computer-back" onClick={onHome}><ArrowLeft size={17}/> 모든 장 보기</button>
+   <div className="computer-chapter-top-actions"><button type="button" className="computer-back" onClick={onHome}><ArrowLeft size={17}/> 모든 장 보기</button><button type="button" className="computer-chapter-lab-link" onClick={()=>onLab(chapter.topicIds[0])}><Play size={15}/> 이 분야 직접 실습하기 <ArrowRight size={15}/></button></div>
    <div className="computer-chapter-intro"><div><span className="computer-eyebrow"><span/> CHAPTER {chapter.index}</span><Icon className="computer-chapter-large-icon" size={30}/><h1>{chapter.title}</h1><span className="computer-chapter-english">{chapter.technical}</span><p>{chapter.intro}</p></div>
    <div className="computer-chapter-demo"><ComputerMotion chapter={chapter.id} step={step}/><div className="computer-demo-navigator">{[0,1,2,3].map(n=><button type="button" aria-label={`${n+1}번째 시각화 단계`} aria-pressed={step===n} className={step===n?'active':''} onClick={()=>setStep(n)} key={n}/>)}</div></div></div>
    <SystemsFlowFocus embedded diagram={flowById(({
@@ -105,7 +106,7 @@ function ComputerChapterPage({chapter,onTopic,onHome}:{chapter:ComputerChapter;o
    <div className="computer-topic-list">{chapter.topicIds.map((id,i)=>{const t=computerById[id]!;return <button type="button" key={id} onClick={()=>onTopic(t.id)}><span className="computer-topic-num">{String(i+1).padStart(2,'0')}</span><div><span className="computer-chapter-eng">{t.technical}</span><strong>{t.title}</strong><p>{t.lede}</p></div><ArrowUpRight size={21}/></button>})}</div>
  </div>
 }
-function ComputerTopicPage({topic,onChapter,onTopic}:{topic:ComputerTopic;onChapter:(id:string)=>void;onTopic:(id:string)=>void}){
+function ComputerTopicPage({topic,onChapter,onTopic,onLab}:{topic:ComputerTopic;onChapter:(id:string)=>void;onTopic:(id:string)=>void;onLab:(topicId?:string)=>void}){
  const [step,setStep]=useState(0)
  const [playing,setPlaying]=useState(true)
  const [details,setDetails]=useState(true)
@@ -120,7 +121,7 @@ function ComputerTopicPage({topic,onChapter,onTopic}:{topic:ComputerTopic;onChap
  },[playing,topic.id,topic.steps.length])
  const change=(n:number)=>{setStep(n);setPlaying(false)}
  return <article className="computer-page computer-topic-page">
-  <div className="computer-topic-breadcrumb"><button type="button" onClick={()=>onChapter(chapter.id)}><ArrowLeft size={16}/> {chapter.title}</button><span>CHAPTER {chapter.index} / {String(current+1).padStart(2,'0')}</span></div>
+  <div className="computer-topic-breadcrumb"><button type="button" onClick={()=>onChapter(chapter.id)}><ArrowLeft size={16}/> {chapter.title}</button><button type="button" className="computer-lesson-lab-link" onClick={()=>onLab(topic.id)}><Play size={14}/> 이 개념을 직접 실습하기</button><span>CHAPTER {chapter.index} / {String(current+1).padStart(2,'0')}</span></div>
   <header className="computer-topic-hero"><span className="computer-eyebrow"><span/> INTERACTIVE EXPLANATION</span><span className="computer-topic-tech">{topic.technical}</span><h1>{topic.title}</h1><p>{topic.lede}</p></header>
   <div className="computer-lesson-body">
     <div className="computer-lesson-screen">
@@ -153,12 +154,12 @@ function ComputerTopicPage({topic,onChapter,onTopic}:{topic:ComputerTopic;onChap
   <button type="button" className="computer-next-topic" onClick={()=>onTopic(next.id)}><span><small>다음 이야기</small><strong>{next.title}</strong><em>{next.technical}</em></span><ArrowRight size={24}/></button>
  </article>
 }
-export default function ComputerAtlas({view,id,onTopic,onChapter,onHome}:Props){
+export default function ComputerAtlas({view,id,onTopic,onChapter,onHome,onLab}:Props){
  useEffect(()=>{
   const title=view==='topic'?computerById[id||'']?.title:view==='chapter'?computerChapterById[id||'']?.title:'컴퓨터 구조 · 운영체제'
   document.title=(title||'컴퓨터 구조 · 운영체제')+' | whatis.'
  },[view,id])
- if(view==='topic'&&id&&computerById[id])return <ComputerTopicPage key={id} topic={computerById[id]!} onChapter={onChapter} onTopic={onTopic}/>
- if(view==='chapter'&&id&&computerChapterById[id])return <ComputerChapterPage key={id} chapter={computerChapterById[id]!} onHome={onHome} onTopic={onTopic}/>
- return <ComputerHome onTopic={onTopic} onChapter={onChapter}/>
+ if(view==='topic'&&id&&computerById[id])return <ComputerTopicPage key={id} topic={computerById[id]!} onChapter={onChapter} onTopic={onTopic} onLab={onLab}/>
+ if(view==='chapter'&&id&&computerChapterById[id])return <ComputerChapterPage key={id} chapter={computerChapterById[id]!} onHome={onHome} onTopic={onTopic} onLab={onLab}/>
+ return <ComputerHome onTopic={onTopic} onChapter={onChapter} onLab={onLab}/>
 }
