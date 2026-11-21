@@ -562,3 +562,24 @@
 .pl-scenario-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:800px){.pl-scenario-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.pl-scenario-grid{grid-template-columns:1fr}.pl-test-instructions{padding:11px 9px 0}.pl-test-evidence{margin:8px}}
+
+/* Continuous curriculum coverage: Baseline, Reports and chapter index */
+.pl-main-panel>.training-course{margin:11px 12px 0;width:calc(100% - 24px)}
+.pl-curriculum-preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:15px 0 22px}
+.pl-curriculum-preview button{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #d1e2e8;padding:14px 11px;color:#4386a0;text-align:left;min-width:0}
+.pl-curriculum-preview button:hover{background:#edf8fa;border-color:#80bfd2}
+.pl-curriculum-preview button strong{flex:1;min-width:0;font-size:11px;color:#386f87}
+.pl-curriculum-preview button small{font-size:10px;color:#86a4b0;white-space:nowrap}
+.pl-report-filter{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:12px 0}
+.pl-report-filter label{display:flex;align-items:center;gap:8px;font-size:11px;color:#6b8e9e}
+.pl-report-filter select{padding:9px 12px;border:1px solid #c9dae1;background:#fff;color:#376e84}
+.pl-report-filter small{font-size:10px;color:#88a0ac}
+.pl-report-section{padding:17px}
+.pl-report-section h3{font-size:13px;color:#307c97;margin:9px 0 17px}
+.pl-report-line{display:grid;grid-template-columns:115px 1fr 40px;gap:12px;margin-bottom:12px;align-items:center;color:#64899a;font-size:11px}
+.pl-report-line>div{background:#e9f2f5;height:12px;min-width:0}
+.pl-report-line>div>i{display:block;height:12px;background:#4da1b8}
+.pl-report-line>strong{text-align:right;color:#377f9a}
+.pl-report-section>.pl-run-stats{margin-bottom:12px}
+@media(max-width:930px){.pl-curriculum-preview{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:670px){.pl-main-panel>.training-course{margin:7px;width:calc(100% - 14px)}.pl-curriculum-preview{grid-template-columns:1fr}.pl-report-line{grid-template-columns:80px 1fr 24px;gap:6px}}

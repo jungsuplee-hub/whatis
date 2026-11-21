@@ -7,7 +7,8 @@ export interface WorkLink {source:string;target:string;role:'verifies'|'relates 
 export interface PolarionDoc {id:string;title:string;space:string;status:'Draft'|'In Review'|'Approved';sections:{id:string;heading:string;body:string;workItemId?:string}[]}
 export interface Plan {id:string;title:string;start:string;end:string;status:'Not Started'|'In Progress'|'Finished';workItemIds:string[]}
 export interface TestRun {id:string;title:string;template:string;date:string;cases:Record<string,TestResult>;notes?:Record<string,string>}
-export interface PolarionState {workItems:WorkItem[];links:WorkLink[];documents:PolarionDoc[];plans:Plan[];testRuns:TestRun[];history:string[]}
+export interface PolarionBaseline {id:string;title:string;createdAt:string;items:{id:string;title:string;status:WorkStatus;priority:WorkPriority;assignee:string}[];linkCount:number}
+export interface PolarionState {workItems:WorkItem[];links:WorkLink[];documents:PolarionDoc[];plans:Plan[];testRuns:TestRun[];baselines:PolarionBaseline[];history:string[]}
 export const sampleDate='2026-11-21'
 export const seedPolarion=():PolarionState=>({
  workItems:[
@@ -47,9 +48,10 @@ export const seedPolarion=():PolarionState=>({
   {id:'TR-001',title:'배터리 기능 검증',template:'Manual Test',date:sampleDate,cases:{'DP-201':'Passed','DP-202':'Not Run'}},
   {id:'TR-002',title:'UI 회귀 시험',template:'Manual Test',date:sampleDate,cases:{'DP-203':'Not Run'}}
  ],
+ baselines:[],
  history:['학습용 예제 프로젝트를 준비했습니다.']
 })
-export type PolarionSection='home'|'work-items'|'documents'|'plans'|'test-runs'|'traceability'|'guide'
+export type PolarionSection='home'|'work-items'|'documents'|'plans'|'test-runs'|'traceability'|'baselines'|'reports'|'guide'
 export const polarionScenarios=[
  {id:'failure',title:'시험 실패 → 결함 연결 → 추적',steps:[
   {section:'test-runs' as PolarionSection,title:'Test Run 선택',description:'배터리 기능 검증 Test Run을 선택하세요.',event:'select-run'},
