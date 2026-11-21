@@ -4,6 +4,7 @@ import FlowPlayground from './FlowPlayground'
 import ConceptMotion from './ConceptMotion'
 import TopicStageScene from './TopicStageScene'
 import SystemsFlowGallery, { SystemsFlowFocus, stageFlow } from './SystemsFlowAtlas'
+import { topicBeginners, topicStepBasics } from './systemsTopicBeginner'
 const SiemensArchitect=lazy(()=>import('./SiemensArchitect'))
 const ComputerAtlas=lazy(()=>import('./ComputerAtlas'))
 import { categories, categoryById, generalTopics, topicById } from './data'
@@ -253,6 +254,7 @@ function TopicLesson({topic,onHome,onCategory,onTopic,bookmarked,onBookmark}:{to
       <SystemsFlowFocus key={topic.id} embedded diagram={stageFlow({
         id:topic.id,title:technicalName(topic)+' · 전체 동작 구조',subtitle:topic.summary,
         domain:'ai',seed:topic.category,overview:topic.description,scenario:topic.analogy,scenarioLabel:'생활 속 쉬운 비유',
+        beginnerLead:topicBeginners[topic.id],beginnerSteps:topicStepBasics[topic.id],
         takeaways:topic.insights,warning:topic.caution,
         steps:topic.stages.map(s=>({title:s.name,subtitle:s.note,detail:s.detail}))
       })}/>

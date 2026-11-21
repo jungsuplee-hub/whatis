@@ -5,6 +5,7 @@ import { computerById, computerChapterById, computerChapters, computerTopics, ty
 import ComputerMotion from './ComputerMotion'
 import ComputerDetailDiagram, { hasComputerDetailDiagram } from './ComputerDetailDiagram'
 import SystemsFlowGallery, { SystemsFlowFocus, stageFlow } from './SystemsFlowAtlas'
+import { topicBeginners, topicStepBasics } from './systemsTopicBeginner'
 import { flowById } from './systemsFlowData'
 import './computer-atlas.css'
 
@@ -138,6 +139,7 @@ function ComputerTopicPage({topic,onChapter,onTopic}:{topic:ComputerTopic;onChap
   <SystemsFlowFocus key={topic.id} embedded diagram={stageFlow({
     id:topic.id,title:topic.title+' · 단계별 전체 구조',subtitle:topic.lede,
     domain:'computer',seed:topic.chapter,overview:topic.lede,scenario:topic.takeaway,scenarioLabel:'핵심 정리',
+    beginnerLead:topicBeginners[topic.id],beginnerSteps:topicStepBasics[topic.id],
     warning:topic.reality,steps:topic.steps
   })}/>
 

@@ -87,9 +87,10 @@ function defaultLayouts(i:number):FlowLayout{return (['pipeline','fork','cycle',
 export function stageFlow(input:{
  id:string;title:string;subtitle:string;steps:{title:string;subtitle:string;detail:string}[];
  domain:FlowDomain;seed?:string;overview?:string;scenario?:string;scenarioLabel?:string;takeaways?:string[];warning?:string
+ beginnerLead?:string;beginnerAnalogy?:string;beginnerSteps?:string[];beginnerTerms?:{name:string;meaning:string}[]
 }):FlowDiagram{
- const stageNodes=input.steps.map((s,i)=>({id:`${input.id}-phase-${i}`,title:s.title,subtitle:s.subtitle,detail:s.detail}))
- const first:FlowNode={id:input.id+'-start',title:'시작',subtitle:'입력 / 요청',detail:input.subtitle}
+ const stageNodes=input.steps.map((s,i)=>({id:`${input.id}-phase-${i}`,title:s.title,subtitle:s.subtitle,detail:s.detail,beginner:input.beginnerSteps?.[i]}))
+ const first:FlowNode={id:input.id+'-start',title:'시작',subtitle:'입력 / 요청',detail:input.subtitle,beginner:input.beginnerLead}
  const last:FlowNode={id:input.id+'-end',title:'완료',subtitle:'처리 결과',detail:'지금까지 진행한 단계를 종합해 결과를 반환합니다.'}
  // Stage-specific node texts and explanations are sourced directly from the existing lesson.
  const nodes=stageNodes.length>=5
@@ -106,7 +107,8 @@ export function stageFlow(input:{
  }
  return {id:input.id+'-story',domain:input.domain,title:input.title,subtitle:input.subtitle,layout,nodes,links:links[layout],
   keyPoint:input.subtitle,tag:'STEP FLOW',overview:input.overview,scenario:input.scenario,
-  takeaways:input.takeaways,warning:input.warning,scenarioLabel:input.scenarioLabel}
+  takeaways:input.takeaways,warning:input.warning,scenarioLabel:input.scenarioLabel,
+  beginnerLead:input.beginnerLead,beginnerAnalogy:input.beginnerAnalogy,beginnerTerms:input.beginnerTerms}
 }
 type DrawingProps={diagram:FlowDiagram;step:number;compact?:boolean;onStep?:(n:number)=>void}
 export function SystemsFlowDrawing({diagram,step,compact=false,onStep}:DrawingProps){
@@ -165,7 +167,7 @@ export function SystemsFlowFocus({diagram,embedded=false,onClose,initialStep=0,o
  const outgoing=diagram.links.filter(([source])=>source===current).map(([,target])=>diagram.nodes[target].title)
  useEffect(()=>{
   if(onStepChange||!playing||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return
-  const timer=window.setInterval(()=>setLocalStep(s=>(s+1)%diagram.nodes.length),3000)
+  const timer=window.setInterval(()=>setLocalStep(s=>(s+1)%diagram.nodes.length),6500)
   return()=>window.clearInterval(timer)
  },[playing,diagram.id,diagram.nodes.length,onStepChange])
  useEffect(()=>{
@@ -203,10 +205,18 @@ export function SystemsFlowFocus({diagram,embedded=false,onClose,initialStep=0,o
      <button type="button" onClick={()=>select((current+1)%diagram.nodes.length)} aria-label="다음 단계"><ChevronRight size={17}/></button>
     </div>
    </div>
+   {(diagram.beginnerLead||diagram.beginnerAnalogy)&&<section className="systems-beginner-overview" aria-label="초보자를 위한 쉬운 설명">
+     <span>처음 배우는 사람을 위한 설명</span>
+     {diagram.beginnerLead&&<p>{diagram.beginnerLead}</p>}
+     {diagram.beginnerAnalogy&&<div className="systems-beginner-analogy"><strong>생활 속 비유</strong><p>{diagram.beginnerAnalogy}</p></div>}
+   </section>}
    <div className="systems-focus-explain">
     <span>현재 진행 단계 · {String(current+1).padStart(2,'0')}</span>
     <h4>{diagram.nodes[current].title}</h4><strong>{diagram.nodes[current].subtitle}</strong>
-    <div className="systems-focus-step-copy"><p>{diagram.nodes[current].detail}</p>
+    {diagram.nodes[current].beginner&&<div className="systems-beginner-step"><span>이 단계에서는 뭘 할까요?</span><p>{diagram.nodes[current].beginner}</p></div>}
+    <div className="systems-focus-step-copy">
+      <span className="systems-technical-label">조금 더 자세히 알아보기</span>
+      <p>{diagram.nodes[current].detail}</p>
       {diagram.nodes[current].more&&<p>{diagram.nodes[current].more}</p>}
     </div>
     <div className="systems-focus-path-links" aria-label="선택한 구성요소의 논리적 연결">
@@ -216,15 +226,22 @@ export function SystemsFlowFocus({diagram,embedded=false,onClose,initialStep=0,o
    </div>
    {(diagram.overview||diagram.scenario)&&<section className="systems-context" aria-label="기술 개요와 실제 적용">
      {diagram.overview&&<div><span>기술이 필요한 이유</span><p>{diagram.overview}</p></div>}
-     {diagram.scenario&&<div><span>{diagram.scenarioLabel||'이렇게 이해해 보세요'}</span><p>{diagram.scenario}</p></div>}
+     {diagram.scenario&&diagram.scenario!==diagram.beginnerLead&&<div><span>{diagram.scenarioLabel||'이렇게 이해해 보세요'}</span><p>{diagram.scenario}</p></div>}
    </section>}
    <div className="systems-step-navigator" role="group" aria-label="흐름 단계 선택">
     {diagram.nodes.map((n,i)=><button type="button" key={n.id} className={current===i?'active':''} onClick={()=>select(i)} aria-pressed={current===i}><span>{String(i+1).padStart(2,'0')}</span><strong>{n.title}</strong><small>{n.subtitle}</small></button>)}
    </div>
    <button type="button" className="systems-all-details-toggle" aria-expanded={showPath} onClick={()=>setShowPath(v=>!v)}>{showPath?'전체 단계 설명 접기':'전체 단계 설명 보기'} <span>{showPath?'−':'+'}</span></button>
    {showPath&&<div className="systems-all-details">{diagram.nodes.map((n,i)=><div key={n.id}><span>{String(i+1).padStart(2,'0')}</span>
-      <div><strong>{n.title}</strong><p>{n.detail}</p>{n.more&&<p>{n.more}</p>}</div>
+      <div><strong>{n.title}</strong>
+        {n.beginner&&<p className="systems-full-easy">{n.beginner}</p>}
+        <p>{n.detail}</p>{n.more&&<p>{n.more}</p>}
+      </div>
     </div>)}</div>}
+   {diagram.beginnerTerms&&diagram.beginnerTerms.length>0&&<section className="systems-beginner-terms" aria-label="어려운 말 풀이">
+     <span>어려운 말, 쉽게 풀어보기</span>
+     <div>{diagram.beginnerTerms.map(term=><div key={term.name}><strong>{term.name}</strong><p>{term.meaning}</p></div>)}</div>
+   </section>}
    {diagram.takeaways&&diagram.takeaways.length>0&&<section className="systems-takeaways"><span>알아두면 좋은 핵심 원리</span>
      <ul>{diagram.takeaways.map((item,i)=><li key={i}>{item}</li>)}</ul>
    </section>}

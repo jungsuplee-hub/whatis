@@ -163,3 +163,33 @@
  .systems-all-details>div{padding:13px 0}
  .systems-all-details>div>div p{font-size:12px}
 }
+
+/* Beginner-first teaching: plain language is visually primary, technical depth remains available. */
+.systems-beginner-overview{padding:18px 22px 19px;border:1px solid #d9e3d9;border-radius:11px;background:#fafbf8;margin:3px 0 19px}
+.systems-beginner-overview>span{display:block;font-weight:850;letter-spacing:-.15px;font-size:12px;color:#5e8771;margin-bottom:9px}
+.systems-beginner-overview>p{font-size:16px;line-height:1.78;font-weight:650;letter-spacing:-.25px;color:#294537;margin:0;word-break:keep-all}
+.systems-beginner-analogy{padding-top:15px;margin-top:15px;border-top:1px solid #e4ebe1}
+.systems-beginner-analogy>strong{font-size:11px;display:block;color:#748d7e;margin-bottom:7px}
+.systems-beginner-analogy>p{font-size:13px;line-height:1.85;color:#647b6c;margin:0;word-break:keep-all}
+.systems-beginner-step{background:#fff;border:1px solid #d6e8db;border-radius:10px;margin-top:14px;padding:15px 17px}
+.systems-beginner-step>span{font-size:11px;font-weight:850;color:#648875;display:block;margin-bottom:9px}
+.systems-beginner-step>p{font-size:15px;line-height:1.85;letter-spacing:-.2px;font-weight:620;color:#294c39;margin:0;word-break:keep-all}
+.systems-technical-label{font-size:11px;font-weight:800;color:#819c8a;display:block;margin-top:1px}
+.systems-focus-step-copy{border-top:1px solid #dbe6de;padding-top:14px;margin-top:16px}
+.systems-focus-step-copy p{color:#637e6d;font-size:12px;line-height:1.88}
+.systems-all-details p.systems-full-easy{font-size:13px;line-height:1.85;font-weight:700;color:#345d44;letter-spacing:-.15px;margin-bottom:11px}
+.systems-all-details>div>div p.systems-full-easy+p{margin-top:12px;border-top:1px dashed #e2e9e1;padding-top:11px}
+.systems-beginner-terms{margin:22px 0 16px;border-top:1px solid #e1e7df;padding-top:18px}
+.systems-beginner-terms>span{display:block;font-size:13px;font-weight:850;color:#365e49;margin-bottom:12px}
+.systems-beginner-terms>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.systems-beginner-terms>div>div{padding:12px 14px;min-width:0;background:#f8faf8;border:1px solid #e2eae3;border-radius:9px}
+.systems-beginner-terms strong{display:block;color:#3c6a50;font-size:12px;margin-bottom:6px}
+.systems-beginner-terms p{margin:0;color:#6b8574;font-size:12px;line-height:1.8;word-break:keep-all}
+@media(max-width:760px){
+ .systems-beginner-overview{padding:15px 16px;margin-bottom:14px}
+ .systems-beginner-overview>p{font-size:15px;line-height:1.84}
+ .systems-beginner-step{padding:14px}
+ .systems-beginner-step>p{font-size:14px;line-height:1.85}
+ .systems-beginner-terms>div{grid-template-columns:1fr}
+ .systems-beginner-terms>div>div{padding:12px}
+}

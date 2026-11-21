@@ -3,14 +3,16 @@
  * never production network blueprints or a claim that a component is mandatory.
  */
 import { flowGuides } from './systemsFlowGuides'
+import beginnerGuides from './systemsFlowBeginner'
 
 export type FlowDomain='ai'|'computer'|'teamcenter'|'polarion'
 export type FlowLayout='pipeline'|'fork'|'cycle'|'ladder'|'split'|'reverse'
-export type FlowNode={id:string;title:string;subtitle:string;detail:string;more?:string}
+export type FlowNode={id:string;title:string;subtitle:string;detail:string;more?:string;beginner?:string}
 export type FlowDiagram={
  id:string;domain:FlowDomain;title:string;subtitle:string;layout:FlowLayout;
  nodes:FlowNode[];links:[number,number][];keyPoint:string;warning?:string;tag:string
  overview?:string;scenario?:string;scenarioLabel?:string;takeaways?:string[]
+ beginnerLead?:string;beginnerAnalogy?:string;beginnerTerms?:{name:string;meaning:string}[]
 }
 type Def=[string,FlowDomain,string,string,FlowLayout,string,string,string?,string?]
 const relations:Record<FlowLayout,[number,number][]>={
@@ -153,14 +155,17 @@ const explicitLinks:Record<string,[number,number][]>={
 function parse(def:Def):FlowDiagram {
  const [id,domain,title,subtitle,layout,raw,keyPoint,tag='FLOW',warning]=def
  const guide=flowGuides[id]
+ const easy=beginnerGuides[id]
  if(!guide||guide.steps.length!==6)throw Error('Missing detailed guide for '+id)
+ if(!easy||easy.steps.length!==6)throw Error('Missing beginner guide for '+id)
  const nodes=raw.split(';').map((line,i)=>{
   const [name,sub,detail]=line.split('|')
-  return {id:id+'-'+i,title:name,subtitle:sub,detail,more:guide.steps[i]}
+  return {id:id+'-'+i,title:name,subtitle:sub,detail,more:guide.steps[i],beginner:easy.steps[i]}
  })
  if(nodes.length!==6)throw Error('Expected six nodes: '+id)
  return {id,domain,title,subtitle,layout,nodes,links:explicitLinks[id]??relations[layout],
-  keyPoint,warning,tag,overview:guide.overview,scenario:guide.scenario,scenarioLabel:'구체적인 사용 사례'}
+  keyPoint,warning,tag,overview:guide.overview,scenario:guide.scenario,scenarioLabel:'구체적인 사용 사례',
+  beginnerLead:easy.lead,beginnerAnalogy:easy.analogy,beginnerTerms:easy.terms}
 }
 export const flowDiagrams=diagrams.map(parse)
 export const flowByDomain=(domain:FlowDomain)=>flowDiagrams.filter(d=>d.domain===domain)
