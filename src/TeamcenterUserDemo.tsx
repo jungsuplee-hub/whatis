@@ -1,15 +1,17 @@
 import {useEffect, useMemo, useState} from 'react'
 import {
-  Activity, ArrowLeft, ArrowRight, BookOpen, Box, Check, CheckCircle2, ChevronDown,
+  ArrowLeft, ArrowRight, BookOpen, Box, Check, CheckCircle2, ChevronDown,
   ChevronRight, CircleHelp, ClipboardCheck, ExternalLink, FileCheck2, FileText, Filter,
-  Folder, FolderOpen, GitBranch, History, Home, Layers3, ListTree, Maximize2, Menu, Minus,
-  Package, Plus, RotateCcw, RotateCw, Save, Search, Settings2, ShieldCheck, Sparkles, Workflow, X
+  Folder, FolderOpen, GitBranch, Home, Layers3, ListTree, Maximize2, Menu, Minus,
+  Package, Plus, RotateCcw, RotateCw, Save, Search, Settings2, ShieldCheck, Workflow, X,
+  Bell, Grid3X3, MessageSquare, Pencil, LayoutDashboard, Maximize, Minimize
 } from 'lucide-react'
 import {
   createDemoData, glossary, sources, tours, type BomRow,
   type DemoData, type DemoRecord, type DemoStatus, type Section
 } from './teamcenter-demo-data'
 import './teamcenter-user-demo.css'
+import './teamcenter-aw-2606.css'
 
 const nav = [
   {id:'home',title:'홈',label:'대시보드',icon:Home},
@@ -81,6 +83,15 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   const [guideQuery,setGuideQuery]=useState('')
   const [newBomId,setNewBomId]=useState('DEMO-1700')
   const [showAddBom,setShowAddBom]=useState(false)
+  const [launcherOpen,setLauncherOpen]=useState(false)
+  const [profileOpen,setProfileOpen]=useState(false)
+  const [notificationsOpen,setNotificationsOpen]=useState(false)
+  const [focusMode,setFocusMode]=useState(false)
+  const [showFilters,setShowFilters]=useState(true)
+  const [sessionGroup,setSessionGroup]=useState('Engineering')
+  const [sessionRole,setSessionRole]=useState('Designer')
+  const [revisionRule,setRevisionRule]=useState('Latest Working')
+  const [workMode,setWorkMode]=useState<'Content'|'Details'|'Relations'>('Content')
 
   useEffect(()=>{try{localStorage.setItem(savedKey,JSON.stringify(data))}catch{ /* storage disabled */ }},[data])
   useEffect(()=>{document.title='Teamcenter 사용자 가이드 & 체험 데모 | whatis.'},[])
@@ -115,7 +126,7 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   }
   const notify=(message:string)=>{setToast(message);window.setTimeout(()=>setToast(s=>s===message?'':s),4500)}
   const go=(s:Section)=>{
-    setSection(s);setMobileNav(false)
+    setSection(s);setMobileNav(false);setLauncherOpen(false);setProfileOpen(false);setNotificationsOpen(false);setWorkMode('Content')
     if(s==='inbox')advance('open-inbox')
     if(s==='home')advance('open-home')
     if(s==='changes'&&selectedChange?.status==='검토 중')advance('show-change')
@@ -229,35 +240,59 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
       <div className="tcg-explain"><CircleHelp size={16}/><span><strong>Item / Revision</strong>은 관리 대상과 그 개정판을 구분합니다. 이 데모는 개정판을 단순히 문자로 나타내며 실제 사이트별 규칙과 다를 수 있습니다.</span></div>
     </div>
   }
-  const renderHome=()=> <div className="tcg-home">
-    <div className="tcg-page-title"><div><span className="tcg-overline">MY WORKSPACE / OVERVIEW</span><h2>안녕하세요, 데모 사용자님</h2><p>제품 개발 데이터를 직접 탐색하면서 Teamcenter의 기본 업무 흐름을 배워보세요.</p></div><Tag status="학습용 환경"/></div>
-    <div className="tcg-stats">
-      {[{n:records.filter(r=>r.kind==='Item').length,label:'관리 아이템',icon:Package},{n:filteredDocs.length,label:'관리 문서',icon:FileText},{n:pending,label:'승인 대기',icon:ClipboardCheck},{n:data.changes.filter(c=>c.status!=='완료').length,label:'진행 중 변경',icon:GitBranch}].map(o=><div className="tcg-stat" key={o.label}><o.icon size={20}/><strong>{o.n}<small>건</small></strong><span>{o.label}</span></div>)}
+  const renderHome=()=> <div className="tcg-aw-home">
+    <div className="tcg-aw-dashboard">
+      <section className="tcg-aw-widget tcg-aw-tasks">
+        <header className="tcg-aw-widget-title"><strong>Tasks</strong><div><button title="검색" onClick={()=>go('inbox')}><Search size={14}/></button><button title="작업함 열기" onClick={()=>go('inbox')}><ArrowRight size={14}/></button></div></header>
+        <div className="tcg-aw-widget-scroll">{data.tasks.filter(t=>t.status==='대기').slice(0,7).map(t=><button className="tcg-aw-task-row" key={t.id} onClick={()=>{setSelectedTaskId(t.id);go('inbox')}}><span className="tcg-aw-task-icon"><ClipboardCheck size={19}/></span><span><strong>{t.title}</strong><small>{t.id} · Assigned to: Demo User</small><small>Target: {t.target}</small></span></button>)}{pending===0&&<div className="tcg-aw-empty"><ClipboardCheck size={35}/><strong>No Tasks</strong><small>현재 처리할 작업이 없습니다.</small></div>}</div>
+      </section>
+      <section className="tcg-aw-widget tcg-aw-recent">
+        <header className="tcg-aw-widget-title"><strong>Recent</strong><div><button title="최근 항목 검색" onClick={()=>go('search')}><Search size={14}/></button><button title="검색으로 이동" onClick={()=>go('search')}><ArrowRight size={14}/></button></div></header>
+        <div className="tcg-aw-recent-grid">{records.slice(0,6).map(r=><button key={r.id} onClick={()=>{setSelectedId(r.id);go('search')}}><TileIcon kind={r.kind}/><span><strong>{r.name}</strong><small>{r.id}</small><small>Revision: {r.revision}</small></span></button>)}</div>
+      </section>
+      <section className="tcg-aw-widget tcg-aw-actions">
+        <header className="tcg-aw-widget-title"><strong>Actions</strong><button title="전체 도구" onClick={()=>setLauncherOpen(true)}><Grid3X3 size={15}/></button></header>
+        <div className="tcg-aw-action-list">
+          {[{icon:FileText,name:'Create Document',desc:'문서 및 리비전을 생성합니다',section:'explorer'},{icon:Package,name:'Create Part',desc:'새 부품과 아이템을 생성합니다',section:'explorer'},{icon:ListTree,name:'Structure Manager',desc:'제품 구조와 BOM을 편집합니다',section:'structure'},{icon:Search,name:'Advanced Search',desc:'Teamcenter 객체를 검색합니다',section:'search'},{icon:Workflow,name:'Submit to Workflow',desc:'문서 검토 프로세스를 시작합니다',section:'documents'},{icon:GitBranch,name:'Create Change',desc:'변경 통지와 영향 항목을 관리합니다',section:'changes'}].map(item=><button key={item.name} onClick={()=>{go(item.section as Section);if(item.name==='Create Part'||item.name==='Create Document'){setCreateKind(item.name==='Create Part'?'Item':'Document');setSelectedFolder(item.name==='Create Part'?'제품 개발':'제품 문서');setShowCreate(true)}}}><item.icon size={20}/><span><strong>{item.name}</strong><small>{item.desc}</small></span><ChevronRight size={14}/></button>)}
+        </div>
+      </section>
+      <section className="tcg-aw-widget tcg-aw-changes">
+        <header className="tcg-aw-widget-title"><strong>Changes</strong><button title="변경 관리 열기" onClick={()=>go('changes')}><ArrowRight size={14}/></button></header>
+        <div>{data.changes.map(c=><button className="tcg-aw-task-row" key={c.id} onClick={()=>{setSelectedChangeId(c.id);go('changes')}}><span className="tcg-aw-task-icon change"><GitBranch size={19}/></span><span><strong>{c.title}</strong><small>{c.id} · {c.status}</small><small>{c.reason}</small></span></button>)}</div>
+      </section>
+      <section className="tcg-aw-widget tcg-aw-report">
+        <header className="tcg-aw-widget-title"><strong>Report Dashboard</strong><button title="보고서 설명" onClick={()=>go('guide')}><CircleHelp size={15}/></button></header>
+        <div className="tcg-aw-report-charts">
+          <div><strong>My Modified Objects</strong><small>Total Objects: {records.length}</small><div className="tcg-aw-bars">{[{name:'Item Revision',value:records.filter(r=>r.kind==='Item').length},{name:'Document',value:filteredDocs.length}].map((v,i)=><div className="tcg-aw-bar-group" key={v.name}><div className="tcg-aw-bar-area"><span style={{height:Math.max(10,Math.round(v.value/Math.max(records.length,1)*100))+'%',background:i===0?'#3684a6':'#d9b348'}}><b>{v.value}</b></span></div><small>{v.name}</small></div>)}</div></div>
+          <div><strong>My Group Released Objects</strong><small>Released Objects: {records.filter(r=>r.status==='승인됨').length}</small><div className="tcg-aw-bars">{[{name:'Item Revision',value:records.filter(r=>r.kind==='Item'&&r.status==='승인됨').length},{name:'Document',value:records.filter(r=>r.kind==='Document'&&r.status==='승인됨').length}].map((v,i)=><div className="tcg-aw-bar-group" key={v.name}><div className="tcg-aw-bar-area"><span style={{height:Math.max(10,Math.round(v.value/Math.max(records.length,1)*100))+'%',background:i===0?'#3684a6':'#d9b348'}}><b>{v.value}</b></span></div><small>{v.name}</small></div>)}</div></div>
+        </div>
+      </section>
     </div>
-    <div className="tcg-dashboard-grid">
-      <section className="tcg-panel tcg-welcome-panel"><div className="tcg-panel-head"><h3><Sparkles size={18}/> 추천 체험 과정</h3><span>GET STARTED</span></div>
-        <p>처음 사용한다면 검색 → 제품 구조 → 문서 검토 순서로 시작하세요. 모든 데이터는 가상 예시입니다.</p>
-        <div className="tcg-tour-grid">{tours.map((t,i)=><button className="tcg-tour-tile" key={t.id} onClick={()=>startTour(t.id)}><span>{String(i+1).padStart(2,'0')}</span><strong>{t.title.slice(5)}</strong><small>{t.subtitle}</small><ArrowRight size={16}/></button>)}</div>
+    <div className="tcg-aw-training-link"><BookOpen size={15}/> <span>처음 사용하시나요? 실제 도구를 사용하는 <strong>단계별 체험 실습</strong>으로 시작하세요.</span><button onClick={()=>startTour('find')}>실습 시작 <ArrowRight size={14}/></button></div>
+  </div>
+  const renderSearch=()=> <div className="tcg-aw-search">
+    <div className="tcg-aw-results-bar"><div><strong>Search Results</strong><span>{filtered.length} results · {query?'“'+query+'”':'All Items'}</span></div><div><button onClick={()=>setShowFilters(v=>!v)}><Filter size={15}/> Filters</button><button onClick={()=>setQuery('')} title="검색 초기화"><RotateCcw size={15}/></button></div></div>
+    <div className={'tcg-aw-search-grid '+(!showFilters?'no-filters':'')}>
+      {showFilters&&<aside className="tcg-aw-facets">
+        <header><strong>Filters</strong><button onClick={()=>{setKindFilter('all');setStatusFilter('all')}}>Clear</button></header>
+        <div className="tcg-aw-facet-group"><strong><ChevronDown size={14}/> Object Type</strong>
+          {[{value:'all',title:'All Types',count:records.length},{value:'Item',title:'Item',count:records.filter(r=>r.kind==='Item').length},{value:'Document',title:'Document',count:filteredDocs.length}].map(v=><button className={kindFilter===v.value?'active':''} key={v.value} onClick={()=>setKindFilter(v.value as typeof kindFilter)}><span className="tcg-aw-facet-square"/>{v.title}<small>{v.count}</small></button>)}
+        </div>
+        <div className="tcg-aw-facet-group"><strong><ChevronDown size={14}/> Release Status</strong>{['all','작업 중','검토 중','승인됨'].map(v=><button className={statusFilter===v?'active':''} key={v} onClick={()=>setStatusFilter(v)}><span className="tcg-aw-facet-square"/>{v==='all'?'All Status':v}</button>)}</div>
+        <div className="tcg-aw-facet-foot"><CircleHelp size={16}/> 검색 필터는 학습용 예제 객체에 적용됩니다.</div>
+      </aside>}
+      <section className="tcg-aw-results">
+        <div className="tcg-aw-results-toolbar"><strong>Results <span>({filtered.length})</span></strong><div><button title="정렬/표 보기" onClick={()=>notify('목록은 이름/ID로 탐색할 수 있습니다.')}><ListTree size={16}/></button><button title="재조회" onClick={()=>setQuery(v=>v.trim())}><RotateCcw size={15}/></button></div></div>
+        <div className="tcg-search-line"><Search size={16}/><input aria-label="제품 데이터 검색" placeholder="Search in results (예: 배터리, DEMO-1100)" value={query} onChange={e=>{setQuery(e.target.value);if(e.target.value.trim())advance('search')}}/><button onClick={()=>setQuery('')} aria-label="검색어 지우기"><X size={15}/></button></div>
+        <RecordTable rows={filtered} selectedId={selectedId} onSelect={id=>selectRecord(id,'search')}/>
       </section>
-      <section className="tcg-panel tcg-inbox-card"><div className="tcg-panel-head"><h3>내 작업함</h3><button onClick={()=>go('inbox')}>전체 보기 <ArrowRight size={14}/></button></div>
-        {data.tasks.filter(t=>t.status==='대기').slice(0,4).map(t=><button className="tcg-card-row" key={t.id} onClick={()=>{setSelectedTaskId(t.id);go('inbox')}}><ClipboardCheck size={19}/><span><strong>{t.title}</strong><small>{t.target} · {t.priority} 우선순위</small></span><ChevronRight size={16}/></button>)}
-        {pending===0&&<p className="tcg-empty-small">현재 대기 중인 승인 작업이 없습니다.</p>}
-      </section>
-      <section className="tcg-panel tcg-shortcuts"><div className="tcg-panel-head"><h3>빠른 실행</h3><span>COMMON ACTIONS</span></div>
-        <div>{[{id:'search',name:'아이템 검색',icon:Search},{id:'structure',name:'BOM 열기',icon:ListTree},{id:'documents',name:'문서 검토',icon:FileText},{id:'viewer',name:'3D 보기',icon:Box}].map(o=><button key={o.id} onClick={()=>go(o.id as Section)}><o.icon size={20}/>{o.name}<ArrowRight size={15}/></button>)}</div>
-      </section>
-      <section className="tcg-panel tcg-activity"><div className="tcg-panel-head"><h3>최근 활동</h3><History size={17}/></div>{data.history.slice(0,5).map((v,i)=><div key={i}><span className="tcg-pulse"/><span>{v}</span></div>)}</section>
+      <aside className="tcg-aw-preview"><div className="tcg-aw-preview-tabs"><button className="active">Overview</button><button onClick={()=>go('explorer')}>Open</button><button onClick={()=>go('guide')} title="도움말"><CircleHelp size={14}/></button></div><div className="tcg-aw-preview-scroll">{renderInspector(selected)}</div></aside>
     </div>
   </div>
-  const renderSearch=()=> <><PageHeading eyebrow="FIND DATA" title="통합 검색" desc="아이템과 문서의 이름, ID, 담당자를 검색하고 결과를 선택해 상세 속성을 확인하세요."/>
-    <div className="tcg-search-line"><Search size={20}/><input aria-label="제품 데이터 검색" autoFocus placeholder="이름이나 ID를 입력하세요 (예: 배터리, DEMO-1100)" value={query} onChange={e=>{setQuery(e.target.value);if(e.target.value.trim())advance('search')}}/><button onClick={()=>setQuery('')} aria-label="검색어 지우기"><X size={16}/></button></div>
-    <div className="tcg-filters"><Filter size={15}/><span>종류</span><select aria-label="종류 필터" value={kindFilter} onChange={e=>setKindFilter(e.target.value as typeof kindFilter)}><option value="all">모든 종류</option><option value="Item">Item</option><option value="Document">Document</option></select><span>상태</span><select aria-label="상태 필터" value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}><option value="all">모든 상태</option>{['작업 중','검토 중','승인됨'].map(v=><option key={v}>{v}</option>)}</select><small>{filtered.length}개 결과</small></div>
-    <div className="tcg-content-columns"><div className="tcg-panel tcg-table-panel"><RecordTable rows={filtered} selectedId={selectedId} onSelect={id=>selectRecord(id,'search')}/></div><aside className="tcg-panel tcg-side-panel"><PanelHead title="속성" subtitle="선택한 데이터 객체"/>{renderInspector(selected)}</aside></div>
-  </>
   const renderExplorer=()=> <><PageHeading eyebrow="EXPLORER" title="폴더와 아이템 탐색기" desc="폴더를 열어 관련 데이터를 확인하고 새 아이템 또는 문서를 생성하는 연습을 해보세요."/>
     <div className="tcg-toolbar"><button className="tcg-primary" onClick={()=>setShowCreate(x=>!x)}><Plus size={16}/> 새 객체 생성</button><span className="tcg-spacer"/><span className="tcg-muted">예제 프로젝트 / 전동 스쿠터 개발</span></div>
     {showCreate&&<section className="tcg-panel tcg-create-panel"><div className="tcg-panel-head"><h3>새 객체 생성</h3><IconBtn title="닫기" onClick={()=>setShowCreate(false)}><X size={17}/></IconBtn></div><div className="tcg-form-grid"><label>객체 종류<select value={createKind} onChange={e=>setCreateKind(e.target.value as NewItemType)}><option value="Item">Item (부품·제품)</option><option value="Document">Document (문서)</option></select></label><label>이름<input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="이름 입력"/></label><label className="tcg-span-all">설명<input value={newDescription} onChange={e=>setNewDescription(e.target.value)} placeholder="선택 입력"/></label></div><button className="tcg-primary" onClick={addRecord} disabled={!newName.trim()}><Plus size={15}/> 생성하기</button></section>}
-    <div className="tcg-explorer-grid"><div className="tcg-panel tcg-folders"><PanelHead title="프로젝트 폴더" subtitle="예제 구조"/>{folders.map(f=><button key={f} className={selectedFolder===f?'active':''} onClick={()=>setSelectedFolder(f)}><Folder size={18}/>{f}<span>{records.filter(r=>r.folder===f).length}</span></button>)}</div><div className="tcg-panel"><PanelHead title={selectedFolder} subtitle="Contents"/><RecordTable rows={records.filter(r=>r.folder===selectedFolder)} selectedId={selectedId} onSelect={id=>selectRecord(id,'explorer')}/></div><aside className="tcg-panel tcg-side-panel"><PanelHead title="속성" subtitle="선택한 아이템"/>{renderInspector(selected)}</aside></div>
+    <div className="tcg-explorer-grid"><div className="tcg-panel tcg-folders"><PanelHead title="Explorer" subtitle="Folders"/><button onClick={()=>setSelectedFolder('제품 개발')}><BookOpen size={16}/> Favorites</button><button onClick={()=>setSelectedFolder('전장 설계')}><Search size={16}/> Active Folders</button><button onClick={()=>setSelectedFolder('제품 개발')}><Home size={16}/> Home</button><div className="tcg-folder-tree-caption"><ChevronDown size={14}/> Projects</div>{folders.map(f=><button key={f} className={selectedFolder===f?'active':''} onClick={()=>setSelectedFolder(f)}><Folder size={18}/>{f}<span>{records.filter(r=>r.folder===f).length}</span></button>)}</div><div className="tcg-panel"><PanelHead title={selectedFolder} subtitle="Contents"/><RecordTable rows={records.filter(r=>r.folder===selectedFolder)} selectedId={selectedId} onSelect={id=>selectRecord(id,'explorer')}/></div><aside className="tcg-panel tcg-side-panel"><PanelHead title="속성" subtitle="선택한 아이템"/>{renderInspector(selected)}</aside></div>
   </>
   const visibleBom=():Array<BomRow & {level:number}>=>
     {const result:Array<BomRow & {level:number}>=[];const walk=(parent:string|null,level:number)=>{data.bom.filter(r=>r.parent===parent).forEach(r=>{result.push({...r,level});if(openRows.includes(r.key))walk(r.key,level+1)})};walk(null,0);return result}
@@ -341,25 +376,50 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
     }
   }
   return <section className="tcg-page">
-    <div className="tcg-breadcrumb"><button onClick={onBack}><ArrowLeft size={15}/> Siemens 아키텍처</button><ChevronRight size={13}/><span>Teamcenter 사용자 가이드</span><span className="tcg-breadcrumb-badge">NEW / INTERACTIVE</span></div>
-    <header className="tcg-hero"><div><span className="tcg-kicker"><span/> INTERACTIVE PRODUCT TOUR · 2606</span><h1>Teamcenter,<br/><em>직접 써보면서 이해하기.</em></h1><p>메뉴 설명만 읽는 대신 부품 검색, BOM 수정, 문서 등록, 승인과 변경 관리까지 손으로 체험하는 사용자 가이드입니다.</p><div className="tcg-hero-actions"><button onClick={()=>startTour('find')}><Sparkles size={17}/> 첫 실습 시작 <ArrowRight size={16}/></button><button onClick={()=>{go('guide')}}><BookOpen size={17}/> 기능·용어 먼저 보기</button></div></div><div className="tcg-hero-illustration"><div className="tcg-hero-card"><span>PRODUCT LIFECYCLE</span><div className="tcg-hero-track"><span>Part</span><ArrowRight size={18}/><span>BOM</span><ArrowRight size={18}/><span>Review</span></div><strong>데이터 한 개가 승인까지 가는 여정</strong><div><i/><i/><i/></div></div><div className="tcg-hero-number">08 <small>WORKSPACES</small></div></div></header>
-    <div className="tcg-demo-label"><div><Activity size={16}/><strong>LIVE INTERACTION</strong><span>실제 서버 연동 없는 학습용 시뮬레이션</span></div><button onClick={reset}><RotateCcw size={15}/> 데모 초기화</button></div>
-    <div className="tcg-frame">
-      <div className="tcg-appbar"><button className="tcg-mobile-menu" onClick={()=>setMobileNav(x=>!x)} aria-label="메뉴 열기"><Menu size={21}/></button><div className="tcg-mark"><span>TC</span><strong>Teamcenter</strong><small>LEARNING SANDBOX</small></div>
-        <div className="tcg-global-search"><Search size={17}/><input value={query} onChange={e=>{setQuery(e.target.value);if(e.target.value.trim())advance('search')}} onFocus={()=>setSection('search')} placeholder="Global search  /  ID 또는 이름 검색" aria-label="전역 검색"/><kbd>DEMO</kbd></div>
-        <div className="tcg-user"><span className="tcg-user-dot">D</span><span>Demo User<small>Design Engineering</small></span><ChevronDown size={15}/></div>
+    <div className="tcg-breadcrumb"><button onClick={onBack}><ArrowLeft size={15}/> Siemens 아키텍처</button><ChevronRight size={13}/><span>Teamcenter 사용자 가이드</span><span className="tcg-breadcrumb-badge">2606 · ACTIVE WORKSPACE</span></div>
+    <div className="tcg-shell-heading"><div><span className="tcg-shell-kicker">TEAMCENTER 2606 / INTERACTIVE TRAINING</span><h1>Active Workspace <span>사용자 체험</span></h1><p>실제 Teamcenter 화면 구성을 참고한 학습용 인터페이스 · 변경 사항은 이 브라우저에만 저장됩니다.</p></div>
+      <div className="tcg-shell-controls"><button onClick={()=>startTour('find')}><BookOpen size={15}/> 단계별 실습</button><button onClick={()=>go('guide')}><CircleHelp size={15}/> 사용 가이드</button><button onClick={reset}><RotateCcw size={15}/> 초기화</button></div>
+    </div>
+    <div className={'tcg-frame '+(focusMode?'tcg-focus-mode':'')}>
+      <div className="tcg-appbar">
+        <button className="tcg-mobile-menu" onClick={()=>setMobileNav(x=>!x)} aria-label="메뉴 열기"><Menu size={20}/></button>
+        <button className="tcg-mark" onClick={()=>go('home')} title="Teamcenter Home"><span>Tc</span><strong>Teamcenter</strong></button>
+        <div className="tcg-global-search">
+          <select aria-label="검색 범위" value={kindFilter==='all'?'Any Category':kindFilter} onChange={e=>{setKindFilter(e.target.value==='Any Category'?'all':e.target.value as 'Item'|'Document');go('search')}}><option>Any Category</option><option>Item</option><option>Document</option></select>
+          <div className="tcg-global-search-field"><input value={query} onChange={e=>{setQuery(e.target.value);if(e.target.value.trim())advance('search')}} onFocus={()=>setSection('search')} onKeyDown={e=>{if(e.key==='Enter')go('search')}} placeholder="Search" aria-label="전역 검색"/><button aria-label="검색하기" title="검색하기" onClick={()=>go('search')}><Search size={16}/></button></div>
+        </div>
+        <div className="tcg-appbar-tools">
+          <button title="활성 변경" aria-label="활성 변경" onClick={()=>go('changes')}><GitBranch size={17}/></button>
+          <button title="대시보드 편집" aria-label="대시보드 편집" onClick={()=>notify('이 학습 화면에서는 대시보드 레이아웃이 고정되어 있습니다.')}><Pencil size={16}/></button>
+          <button title="알림" aria-label="알림" onClick={()=>{setNotificationsOpen(v=>!v);setProfileOpen(false)}}><Bell size={17}/>{pending>0&&<i/>}</button>
+          <button title="토론" aria-label="토론" onClick={()=>notify('토론 화면은 학습용 데모에서 제공하지 않습니다.')}><MessageSquare size={16}/></button>
+          <button title={focusMode?'확대 보기 종료':'전체 화면에 가깝게 보기'} aria-label="화면 확대" onClick={()=>setFocusMode(v=>!v)}>{focusMode?<Minimize size={17}/>:<Maximize size={17}/>}</button>
+          <button className="tcg-session-trigger" title="현재 사용자와 작업 컨텍스트" aria-label="사용자 설정 열기" onClick={()=>{setProfileOpen(v=>!v);setNotificationsOpen(false)}}><span className="tcg-user-dot">D</span><ChevronDown size={13}/></button>
+          <strong className="tcg-siemens-wordmark">DEMO <small>2606</small></strong>
+        </div>
+        {notificationsOpen&&<div className="tcg-session-popover tcg-alerts-popover"><strong><Bell size={16}/> 알림</strong>{data.tasks.filter(t=>t.status==='대기').map(t=><button key={t.id} onClick={()=>{setSelectedTaskId(t.id);go('inbox')}}>{t.title}<small>검토 대기 · {t.id}</small></button>)}{pending===0&&<p>대기 중인 알림이 없습니다.</p>}</div>}
+        {profileOpen&&<div className="tcg-session-popover tcg-user-popover"><strong>Demo User <small>학습용 작업 컨텍스트</small></strong>
+          <label>Group<select value={sessionGroup} onChange={e=>setSessionGroup(e.target.value)}><option>Engineering</option><option>Manufacturing</option><option>Quality</option></select></label>
+          <label>Role<select value={sessionRole} onChange={e=>setSessionRole(e.target.value)}><option>Designer</option><option>Reviewer</option><option>Engineer</option></select></label>
+          <label>Revision Rule<select value={revisionRule} onChange={e=>setRevisionRule(e.target.value)}><option>Latest Working</option><option>Latest Released</option></select></label>
+          <p>표시 컨텍스트 체험용입니다. 실제 권한과 리비전 규칙을 적용하지 않습니다.</p>
+          <button onClick={()=>go('guide')}><CircleHelp size={15}/> 세션 속성 알아보기</button>
+        </div>}
       </div>
-      <div className="tcg-app-layout"><nav className={'tcg-sidebar '+(mobileNav?'open':'')} aria-label="Teamcenter 데모 탐색"><div className="tcg-side-label">WORKSPACES</div>
-        {nav.map(o=><button key={o.id} className={section===o.id?'selected':''} onClick={()=>go(o.id)} title={o.label}><o.icon size={17}/><span>{o.title}</span>{o.id==='inbox'&&pending>0&&<b>{pending}</b>}</button>)}
-        <div className="tcg-sidebar-foot"><ShieldCheck size={16}/><span>로컬 데모 모드<br/><small>읽기·수정 모두 체험 가능</small></span></div>
+      <div className="tcg-app-layout"><nav className={'tcg-sidebar '+(mobileNav?'open':'')} aria-label="Teamcenter 데모 탐색">
+        <button className="tcg-nav-previous" title="홈으로 돌아가기" onClick={()=>go('home')}><ArrowLeft size={17}/><span>이전</span></button>
+        {nav.map(o=><button key={o.id} className={section===o.id?'selected':''} onClick={()=>go(o.id)} title={o.label}><o.icon size={18}/><span>{o.title}</span>{o.id==='inbox'&&pending>0&&<b>{pending}</b>}</button>)}
+        <button className="tcg-launcher-toggle" title="Launcher · 전체 도구" aria-label="Launcher 열기" onClick={()=>setLauncherOpen(v=>!v)}><Grid3X3 size={19}/><span>Launcher</span></button>
       </nav>
-      <div className="tcg-main-area"><div className="tcg-location"><span>Teamcenter Demo</span><ChevronRight size={13}/><strong>{nav.find(o=>o.id===section)?.title}</strong><span className="tcg-spacer"/><span className="tcg-example-badge">예제 데이터 · 2606</span></div>
+      <div className="tcg-main-area"><div className="tcg-location"><span>Teamcenter</span><ChevronRight size={13}/><strong>{nav.find(o=>o.id===section)?.title}</strong><span className="tcg-spacer"/><span className="tcg-example-badge">TRAINING DEMO · NOT CONNECTED</span></div>
+        {launcherOpen&&<div className="tcg-launcher-overlay"><div className="tcg-launcher-header"><strong>Launcher</strong><button onClick={()=>setLauncherOpen(false)} aria-label="Launcher 닫기"><X size={18}/></button></div><div className="tcg-launcher-search"><Search size={16}/> Pinned Tools</div><div className="tcg-launcher-grid">{nav.filter(n=>n.id!=='home').map(n=><button key={n.id} onClick={()=>go(n.id)}><n.icon size={22}/><span>{n.title}</span></button>)}</div><div className="tcg-launcher-bottom"><span>PINNED DATA</span><p>고정된 데이터가 없습니다.</p></div></div>}
+        {['structure','documents'].includes(section)&&<div className="tcg-workmode-bar"><div className="tcg-workmode-tabs">{(['Content','Details','Relations'] as const).map(mode=><button key={mode} className={workMode===mode?'active':''} onClick={()=>setWorkMode(mode)}>{mode}</button>)}</div><div className="tcg-workmode-command"><span>{section==='structure'?'DEMO-1000 · Rev B':'Document Management'}</span><IconBtn title="전체 컨텐츠 보기" onClick={()=>setWorkMode('Content')}><LayoutDashboard size={16}/></IconBtn></div></div>}
         {activeTour&&<div className={'tcg-tour-callout '+(tourDone?'done':'')}><div className="tcg-tour-track"><span>GUIDED PRACTICE</span><strong>{activeTour.title}</strong><div className="tcg-tour-progress">{activeTour.steps.map((_,i)=><span key={i} className={tourDone||i<=tourStep?'on':''}/>)}</div></div>
           <div className="tcg-tour-instruction"><span>STEP {String(tourStep+1).padStart(2,'0')} / {activeTour.steps.length}</span><strong>{tourDone?'실습 완료!':activeStep?.title}</strong><p>{tourDone?'이번 시나리오의 주요 기능을 모두 체험했습니다.':' '+(activeStep?.description||'')}</p><small>{tourDone?'다른 실습도 시작해 보세요.':'조작 힌트: '+activeStep?.hint}</small></div><div className="tcg-tour-buttons">{!tourDone&&activeStep&&section!==activeStep.section&&<button className="tcg-primary" onClick={()=>go(activeStep.section)}>해당 화면 열기 <ArrowRight size={14}/></button>}{!tourDone&&<button className="tcg-quiet" onClick={()=>{if(tourStep===activeTour.steps.length-1)setTourDone(true);else setTourStep(i=>i+1)}}>단계 건너뛰기</button>}<button className="tcg-quiet" onClick={()=>{setTourId(null);setTourDone(false)}}><X size={14}/> 닫기</button></div>
         </div>}
-        <div className="tcg-work-content">{renderContent()}</div>
+        <div className="tcg-work-content">{workMode==='Details'&&section==='structure'?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Details / 속성" subtitle="Selected Object"/>{renderInspector(byId(data.bom.find(r=>r.key===selectedOccurrence)?.recordId||''))}</div>:workMode==='Details'&&section==='documents'?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Document Details" subtitle="Selected Object"/>{renderInspector(selectedDoc)}</div>:workMode==='Relations'&&['structure','documents'].includes(section)?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Relations / 연결 관계" subtitle="Related Objects"/>{(section==='structure'?data.bom:filteredDocs.map((r,i)=>({key:r.id,recordId:r.id,parent:null,qty:i+1}))).map(rel=><button className="tcg-relation-row" key={rel.key} onClick={()=>{setSelectedId(rel.recordId);setWorkMode('Details')}}><Package size={17}/>{byId(rel.recordId)?.name}<small>{rel.recordId}</small><ChevronRight size={15}/></button>)}</div>:renderContent()}</div>
       </div></div>
-      <div className="tcg-app-status"><span><i/> SIMULATION ONLINE</span><span>Teamcenter 2606 concepts · Original learning UI</span><button onClick={()=>go('guide')}><CircleHelp size={13}/> 도움말</button></div>
+      <div className="tcg-app-status"><button onClick={()=>setLauncherOpen(v=>!v)}><Grid3X3 size={14}/> Launcher</button><span><i/> LOCAL SIMULATION</span><span>Active Workspace 2606 UI-inspired · no Teamcenter connection</span><button onClick={()=>go('guide')}><CircleHelp size={13}/> Help</button></div>
     </div>
     <div className="tcg-after-demo"><div><span>BEYOND THE SIMULATION</span><h2>실무에서는 무엇이 더 필요할까요?</h2><p>실제 Teamcenter 환경에서는 사용자 권한, 워크플로 템플릿, 데이터 모델, 조직 정책, 저장소 구성에 따라 가능한 명령과 화면이 달라집니다. 이 페이지는 학습용 예제 데이터만 변경합니다.</p></div><button onClick={()=>go('guide')}>참고 문서와 핵심 용어 <ArrowRight size={16}/></button></div>
     {toast&&<div className="tcg-toast" role="status"><CheckCircle2 size={18}/>{toast}<button onClick={()=>setToast('')} aria-label="알림 닫기"><X size={15}/></button></div>}
