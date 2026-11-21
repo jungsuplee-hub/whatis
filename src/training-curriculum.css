@@ -67,3 +67,47 @@
 .training-course-outline-footer>button{display:flex;align-items:center;gap:5px;border:1px solid #cfdfe5;background:#fff;color:#6c8b9b;padding:7px 10px;font-size:10px}
 @media(max-width:1050px){.training-course-now{flex-wrap:wrap}.training-course-now-buttons{flex-direction:row}.training-course-progress{min-width:120px}}
 @media(max-width:680px){.training-course{margin-bottom:9px}.training-course-main{padding:10px;gap:9px}.training-course-brand{min-width:180px}.training-course-brand strong{font-size:12px}.training-course-commands{width:100%;justify-content:flex-start}.training-course-commands button{padding:9px;font-size:10px}.training-course-progress{flex:1;min-width:110px}.training-course-progress span{font-size:9px}.training-course-now{display:block;padding:10px}.training-course-now-head{min-width:0}.training-course-now-info{min-width:0;margin:12px 0}.training-course-now-info h3{font-size:13px}.training-course-now-buttons{flex-wrap:wrap}.training-course-lesson-list{grid-template-columns:1fr;padding:7px}.training-course-outline-tools{padding:8px}.training-course-outline-head{padding:12px 9px 7px}.training-course-outline-footer{padding:10px}.training-course-done,.training-course-resume{flex-wrap:wrap}}
+
+/* Active user-training target. It highlights the actual clickable/input element
+   without placing an overlay over the original interaction. */
+.training-focus-target{
+  outline:3px solid #ffb52d !important;
+  outline-offset:3px !important;
+  box-shadow:0 0 0 6px rgba(255,184,36,.25),0 0 19px rgba(255,171,18,.54) !important;
+  position:relative;
+  z-index:12;
+  animation:training-next-pulse 1.7s ease-in-out infinite !important;
+}
+@keyframes training-next-pulse{
+  0%,100%{outline-color:#f9aa1c;box-shadow:0 0 0 4px rgba(255,184,36,.19),0 0 15px rgba(255,171,18,.46)}
+  50%{outline-color:#ffd168;box-shadow:0 0 0 9px rgba(255,184,36,.29),0 0 25px rgba(255,171,18,.74)}
+}
+.training-focus-indicator{
+  pointer-events:none;
+  position:fixed;
+  z-index:2147483000;
+  border:1px solid #e6a31c;
+  border-radius:5px;
+  background:#fff5ce;
+  color:#764a0b;
+  box-shadow:0 4px 13px rgba(91,64,14,.2);
+  padding:7px 9px;
+  font:700 11px/1.2 "Noto Sans KR",Arial,sans-serif;
+  width:max-content;
+  max-width:152px;
+  white-space:nowrap;
+}
+.training-course-now-buttons .training-course-find-target{
+  border-color:#e3b54c;
+  background:#fff6db;
+  color:#8c620d;
+  font-weight:700;
+}
+.training-course-now-buttons .training-course-find-target:hover{background:#ffeab2}
+@media(max-width:680px){
+ .training-focus-indicator{font-size:10px;padding:6px 7px;max-width:200px}
+ .training-course-now-buttons .training-course-find-target{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ .training-focus-target{animation:none!important}
+}

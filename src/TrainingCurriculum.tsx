@@ -1,6 +1,7 @@
 import {useEffect,useState} from 'react'
 import {ArrowRight,BookOpen,Check,CheckCircle2,ChevronDown,ChevronRight,Clock,History,LayoutList,ListChecks,Pause,Play,RotateCcw,Search,SkipForward,X} from 'lucide-react'
 import './training-curriculum.css'
+import {TrainingSpotlight} from './TrainingSpotlight'
 
 export type TrainingLesson<S extends string> = {
   id:string
@@ -90,8 +91,9 @@ type Props<S extends string> = {
   lessons:readonly TrainingLesson<S>[]
   course:TrainingCourseReturn<S>
   onResetData:()=>void
+  brand:'polarion'|'teamcenter'
 }
-export function TrainingCurriculum<S extends string>({title,lessons,course,onResetData}:Props<S>){
+export function TrainingCurriculum<S extends string>({title,lessons,course,onResetData,brand}:Props<S>){
   const [find,setFind]=useState('')
   const [expanded,setExpanded]=useState<string[]>([])
   const chapters=[...new Set(lessons.map(x=>x.chapter))]
@@ -99,6 +101,7 @@ export function TrainingCurriculum<S extends string>({title,lessons,course,onRes
   const started=progress.activeId!==null||course.passedCount>0
   const chapterNumber=current?chapters.indexOf(current.chapter)+1:0
   return <div className="training-course" data-training-host>
+    <TrainingSpotlight step={current} brand={brand} paused={progress.paused}/>
     <div className="training-course-main">
       <div className="training-course-brand"><BookOpen size={19}/><span>{title}<strong>{finished?'전체 과정 종료':current&&!progress.paused?'연속 실습 진행 중':started?'이전 진행 기록이 있습니다':'사용자 기능 전체 실습'}</strong></span></div>
       <div className="training-course-progress" aria-label={'전체 실습 '+doneCount+'/'+lessons.length+'개 완료'}>
@@ -114,7 +117,7 @@ export function TrainingCurriculum<S extends string>({title,lessons,course,onRes
     {current&&!progress.paused&&<div className="training-course-now" role="region" aria-label="현재 실습 단계">
       <div className="training-course-now-head"><span>CHAPTER {String(chapterNumber).padStart(2,'0')} / {chapters.length} · STEP {indexOfCurrent(lessons,current)+1} / {lessons.length}</span><strong>{current.chapter}</strong></div>
       <div className="training-course-now-info"><h3>{current.title}</h3><p>{current.description}</p><div><ArrowRight size={14}/><strong>화면에서 실행할 작업:</strong> {current.hint}</div></div>
-      <div className="training-course-now-buttons"><button onClick={()=>course.jump(current.id)}><ArrowRight size={14}/> 기능 화면으로 이동</button><button onClick={course.skip} title="체험하지 않은 단계로 기록"><SkipForward size={14}/> 건너뛰기</button></div>
+      <div className="training-course-now-buttons"><button className="training-course-find-target" onClick={()=>{const target=document.querySelector('[data-training-focus]');if(target)target.scrollIntoView({behavior:'smooth',block:'center'});else course.jump(current.id)}}><ArrowRight size={14}/> 다음 작업 위치 보기</button><button onClick={()=>course.jump(current.id)}><ArrowRight size={14}/> 기능 화면으로 이동</button><button onClick={course.skip} title="체험하지 않은 단계로 기록"><SkipForward size={14}/> 건너뛰기</button></div>
     </div>}
     {finished&&<div className="training-course-done"><CheckCircle2 size={17}/><span><strong>전체 실습 목차를 끝까지 진행했습니다.</strong> 직접 조작으로 완료한 {doneCount}개와 건너뛴 {skipped.size}개를 구분해 기록했습니다.</span><button onClick={()=>course.setListOpen(true)}>결과 확인</button></div>}
     {started&&progress.paused&&!finished&&<div className="training-course-resume"><Clock size={16}/> 이전 학습 위치가 저장되어 있습니다. <button onClick={course.start}>이어서 실습하기 <ArrowRight size={14}/></button></div>}
