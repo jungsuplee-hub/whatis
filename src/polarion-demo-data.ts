@@ -2,11 +2,11 @@ export type WorkType='Requirement'|'Test Case'|'Defect'|'Task'|'Change Request'
 export type WorkStatus='Open'|'In Progress'|'In Review'|'Approved'|'Done'
 export type WorkPriority='High'|'Medium'|'Low'
 export type TestResult='Not Run'|'Passed'|'Failed'|'Blocked'
-export interface WorkItem {id:string;title:string;type:WorkType;status:WorkStatus;priority:WorkPriority;assignee:string;description:string;updated:string;comments:string[]}
+export interface WorkItem {id:string;title:string;type:WorkType;status:WorkStatus;priority:WorkPriority;assignee:string;description:string;updated:string;comments:string[];attachments?:string[]}
 export interface WorkLink {source:string;target:string;role:'verifies'|'relates to'|'depends on'|'implements'}
 export interface PolarionDoc {id:string;title:string;space:string;status:'Draft'|'In Review'|'Approved';sections:{id:string;heading:string;body:string;workItemId?:string}[]}
 export interface Plan {id:string;title:string;start:string;end:string;status:'Not Started'|'In Progress'|'Finished';workItemIds:string[]}
-export interface TestRun {id:string;title:string;template:string;date:string;cases:Record<string,TestResult>}
+export interface TestRun {id:string;title:string;template:string;date:string;cases:Record<string,TestResult>;notes?:Record<string,string>}
 export interface PolarionState {workItems:WorkItem[];links:WorkLink[];documents:PolarionDoc[];plans:Plan[];testRuns:TestRun[];history:string[]}
 export const sampleDate='2026-11-21'
 export const seedPolarion=():PolarionState=>({
@@ -51,6 +51,20 @@ export const seedPolarion=():PolarionState=>({
 })
 export type PolarionSection='home'|'work-items'|'documents'|'plans'|'test-runs'|'traceability'|'guide'
 export const polarionScenarios=[
+ {id:'failure',title:'시험 실패 → 결함 연결 → 추적',steps:[
+  {section:'test-runs' as PolarionSection,title:'Test Run 선택',description:'배터리 기능 검증 Test Run을 선택하세요.',event:'select-run'},
+  {section:'test-runs' as PolarionSection,title:'실패 결과 기록',description:'Test Case의 결과를 Failed로 변경하세요.',event:'record-failure'},
+  {section:'test-runs' as PolarionSection,title:'결함 생성',description:'선택한 실패 항목의 Create linked Defect를 눌러 결함을 만드세요.',event:'create-defect'},
+  {section:'work-items' as PolarionSection,title:'결함과 링크 확인',description:'새로 생성된 Defect를 목록에서 선택해 연결된 Test Case를 확인하세요.',event:'select-item'}
+ ]},
+
+ {id:'review',title:'Work Item 검토 → 승인 → 이력 확인',steps:[
+  {section:'work-items' as PolarionSection,title:'검토할 항목 선택',description:'요구사항을 선택하고 목록 아래 Work Item Editor를 확인하세요.',event:'select-item'},
+  {section:'work-items' as PolarionSection,title:'검토 요청',description:'Request Review 버튼으로 검토 상태를 만드세요.',event:'submit-item-review'},
+  {section:'work-items' as PolarionSection,title:'승인 처리',description:'Approve 버튼을 눌러 검토 결과를 기록하세요.',event:'approve-item'},
+  {section:'work-items' as PolarionSection,title:'처리 이력 확인',description:'Review · History · Attachments 탭에서 검토 이력을 확인하세요.',event:'show-activity'}
+ ]},
+
  {id:'req',title:'요구사항 작성 → 테스트 연결',steps:[
   {section:'work-items' as PolarionSection,title:'Work Item 생성',description:'Create 버튼을 눌러 Requirement 유형의 새 Work Item을 생성하세요.',event:'create-item'},
   {section:'work-items' as PolarionSection,title:'요구사항 확인',description:'방금 생성한 항목을 선택해 제목·상태·설명을 확인하세요.',event:'select-item'},

@@ -64,6 +64,7 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   const [tourId,setTourId]=useState<string|null>(null)
   const [tourStep,setTourStep]=useState(0)
   const [tourDone,setTourDone]=useState(false)
+  const [tourSkipped,setTourSkipped]=useState(0)
   const [openRows,setOpenRows]=useState<string[]>(['occ-0'])
   const [selectedOccurrence,setSelectedOccurrence]=useState('occ-1')
   const [showCompare,setShowCompare]=useState(false)
@@ -91,7 +92,11 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   const [sessionGroup,setSessionGroup]=useState('Engineering')
   const [sessionRole,setSessionRole]=useState('Designer')
   const [revisionRule,setRevisionRule]=useState('Latest Working')
-  const [workMode,setWorkMode]=useState<'Content'|'Details'|'Relations'>('Content')
+  const [workflowTarget,setWorkflowTarget]=useState<string|null>(null)
+  const [workflowTemplate,setWorkflowTemplate]=useState('Review Demo')
+  const [workflowReviewer,setWorkflowReviewer]=useState('나 (검토자)')
+  const [workflowNote,setWorkflowNote]=useState('')
+  const [workMode,setWorkMode]=useState<'Content'|'Details'|'Relations'|'Activity'>('Content')
 
   useEffect(()=>{try{localStorage.setItem(savedKey,JSON.stringify(data))}catch{ /* storage disabled */ }},[data])
   useEffect(()=>{document.title='Teamcenter 사용자 가이드 & 체험 데모 | whatis.'},[])
@@ -112,6 +117,7 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   const filteredDocs=records.filter(r=>r.kind==='Document')
   const folders=['제품 개발','전장 설계','기구 설계','제품 문서']
   const eventList:Record<string,string[]> = {
+    lifecycle:['create-record','save-record','new-revision','add-bom','submit-review','open-inbox','select-task','comment-task','decide-task','open-home'],
     find:['search','select-record','save-record','new-revision'],
     bom:['expand','select-row','quantity','where-used'],
     document:['select-document','attach-file','submit-review','open-inbox'],
@@ -143,7 +149,7 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   const startTour=(id:string)=>{
     const tour=tours.find(t=>t.id===id)
     if(!tour)return
-    setTourId(id);setTourStep(0);setTourDone(false);setSection(tour.steps[0].section)
+    setTourId(id);setTourStep(0);setTourDone(false);setTourSkipped(0);setSection(tour.steps[0].section)
     setSelectedId('DEMO-1100');setSelectedDocId('DEMO-D202');setSelectedTaskId('TASK-001')
     setToast('실습 시작: 화면 속 조작을 따라 해보세요.')
     window.requestAnimationFrame(()=>document.querySelector('.tcg-frame')?.scrollIntoView({behavior:'smooth',block:'start'}))
@@ -175,16 +181,26 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
     setData(old=>({...old,records:[...old.records,r],history:['새 객체 생성: '+r.id,...old.history]}))
     setSelectedId(id);if(createKind==='Document')setSelectedDocId(id)
     setNewName('');setNewDescription('');setShowCreate(false)
-    notify('새 '+(createKind==='Document'?'문서':'아이템')+'을 생성했습니다.')
+    if(createKind==='Item')setNewBomId(id)
+    notify('새 '+(createKind==='Document'?'문서':'아이템')+'을 생성했습니다.');advance('create-record')
   }
   const submitReview=(id:string)=>{
-    const r=byId(id);if(!r)return
+    if(!byId(id))return
+    if(data.tasks.some(t=>t.target===id&&t.status==='대기')){notify('이미 해당 객체의 대기 중인 검토 작업이 있습니다.');return}
+    setWorkflowTarget(id);setWorkflowTemplate('Review Demo');setWorkflowReviewer('나 (검토자)');setWorkflowNote('')
+  }
+  const confirmWorkflow=()=>{
+    const r=byId(workflowTarget||'');if(!r)return
+    if(data.tasks.some(t=>t.target===r.id&&t.status==='대기')){notify('대기 중인 검토 작업이 이미 존재합니다.');setWorkflowTarget(null);return}
+    const taskId=uid('TASK-',data.tasks.length+1)
     setData(old=>({...old,
-      tasks:[{id:uid('TASK-',old.tasks.length+1),title:r.name+' 검토 요청',target:id,assignee:'나 (검토자)',status:'대기',comment:'',priority:'보통'},...old.tasks],
-      records:old.records.map(v=>v.id===id?{...v,status:'검토 중'}:v),
-      history:['검토 워크플로 시작: '+id,...old.history]
+      tasks:[{id:taskId,title:r.name+' · '+workflowTemplate,target:r.id,assignee:workflowReviewer,status:'대기',comment:'',priority:'보통'},...old.tasks],
+      records:old.records.map(v=>v.id===r.id?{...v,status:'검토 중'}:v),
+      history:['워크플로 요청: '+r.id+' · '+workflowTemplate+' · '+workflowReviewer+(workflowNote?' · '+workflowNote:''),
+        ...old.history]
     }))
-    notify('받은 작업에 검토 요청이 생성되었습니다.');advance('submit-review')
+    setSelectedTaskId(taskId);setComment('');setWorkflowTarget(null)
+    notify('새 검토 작업 '+taskId+'이(가) 받은 작업에 생성되었습니다.');advance('submit-review')
   }
   const addFile=()=>{
     if(!selectedDoc||!fileName.trim())return
@@ -204,7 +220,8 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   const addBom=()=>{
     const id=data.bom.length+1
     setData(old=>({...old,bom:[...old.bom,{key:'occ-'+id,parent:'occ-0',recordId:newBomId,qty:1}],history:['BOM 구성품 연결: '+newBomId,...old.history]}))
-    setShowAddBom(false);notify('선택한 부품을 최상위 어셈블리에 추가했습니다.')
+    setShowAddBom(false);setSelectedOccurrence('occ-'+id);setSelectedId(newBomId)
+    notify('선택한 부품을 최상위 어셈블리에 추가했습니다.');advance('add-bom')
   }
   const addAffected=()=>{
     if(!selectedChange)return
@@ -219,9 +236,9 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   }
   const reset=()=>{
     if(!window.confirm('학습용으로 변경한 부품, 문서, 작업, BOM을 처음 상태로 되돌릴까요?'))return
-    setData(createDemoData());setSection('home');setTourId(null);setTourDone(false);setTourStep(0)
+    setData(createDemoData());setSection('home');setTourId(null);setTourDone(false);setTourStep(0);setTourSkipped(0)
     setSelectedId('DEMO-1100');setSelectedTaskId('TASK-001');setSelectedDocId('DEMO-D202')
-    setOpenRows(['occ-0']);setEditor(false);notify('데모 데이터가 초기화되었습니다.')
+    setOpenRows(['occ-0']);setEditor(false);setWorkflowTarget(null);notify('데모 데이터가 초기화되었습니다.')
   }
   const renderInspector=(record:DemoRecord|undefined)=>{
     if(!record)return <p className="tcg-muted">항목을 선택하면 여기에 상세 정보가 표시됩니다.</p>
@@ -249,6 +266,7 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
         <label>담당자<input value={editOwner} onChange={e=>setEditOwner(e.target.value)} maxLength={35}/></label>
         <label>설명<textarea value={editDescription} onChange={e=>setEditDescription(e.target.value)} rows={4} maxLength={500}/></label>
       </div>:<div className="tcg-description"><span>설명</span><p>{record.description}</p></div>}
+      <details className="tcg-object-history"><summary><RotateCcw size={14}/> 객체 처리 이력 ({data.history.filter(h=>h.includes(record.id)).length})</summary>{data.history.filter(h=>h.includes(record.id)).map((h,i)=><div key={i}>{h}</div>)}{!data.history.some(h=>h.includes(record.id))&&<p>아직 이 객체의 변경 이력이 없습니다.</p>}</details>
       <div className="tcg-explain"><CircleHelp size={16}/><span><strong>Item / Revision</strong>은 관리 대상과 그 개정판을 구분합니다. 이 데모는 개정판을 단순히 문자로 나타내며 실제 사이트별 규칙과 다를 수 있습니다.</span></div>
     </div>
   }
@@ -280,7 +298,7 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
         </div>
       </section>
     </div>
-    <div className="tcg-aw-training-link"><BookOpen size={15}/> <span>처음 사용하시나요? 실제 도구를 사용하는 <strong>단계별 체험 실습</strong>으로 시작하세요.</span><button onClick={()=>startTour('find')}>실습 시작 <ArrowRight size={14}/></button></div>
+    <div className="tcg-aw-training-link"><BookOpen size={15}/> <span>처음 사용하시나요? 실제 도구를 사용하는 <strong>단계별 체험 실습</strong>으로 시작하세요.</span><button onClick={()=>startTour('lifecycle')}>종합 실습 시작 <ArrowRight size={14}/></button></div>
   </div>
   const renderSearch=()=> <div className="tcg-aw-search">
     <div className="tcg-aw-results-bar"><div><strong>Search Results</strong><span>{filtered.length} results · {query?'“'+query+'”':'All Items'}</span></div><div><button onClick={()=>setShowFilters(v=>!v)}><Filter size={15}/> Filters</button><button onClick={()=>setQuery('')} title="검색 초기화"><RotateCcw size={15}/></button></div></div>
@@ -366,7 +384,8 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
     </section><aside className="tcg-panel tcg-side-panel"><PanelHead title="부품 선택" subtitle="클릭해 세부 정보 확인"/>{['DEMO-1100','DEMO-1200','DEMO-1300','DEMO-1400','DEMO-1500','DEMO-1600'].map(id=><button key={id} className={'tcg-viewer-part '+(viewerPart===id?'selected':'')} onClick={()=>setViewerPart(id)}><Box size={16}/><span>{byId(id)?.name}</span><ChevronRight size={15}/></button>)}<div className="tcg-divider"/><h3>{byId(viewerPart)?.name}</h3><Tag status={byId(viewerPart)?.status||'작업 중'}/><p className="tcg-description-text">{byId(viewerPart)?.description}</p><div className="tcg-explain"><CircleHelp size={15}/><span>이 도해는 UI 실습을 위해 직접 그린 벡터 그림입니다. 형상, 치수, 조립 관계는 실제 설계품이나 CAD 데이터가 아닙니다.</span></div></aside></div>
   </>
   const renderGuide=()=> <><PageHeading eyebrow="LEARN & REFERENCE" title="Teamcenter 사용자 가이드" desc="화면을 조작하기 전에 핵심 용어와 업무 순서를 알아보세요. 기초 개념부터 실제 기능을 연결했습니다."/>
-    <div className="tcg-guide-intro"><BookOpen size={27}/><div><strong>초보자에게 권장하는 학습 순서</strong><p>① 검색과 속성 확인 → ② 제품 구조(BOM) → ③ 문서/첨부 → ④ 승인 워크플로 → ⑤ 변경 통지 → ⑥ 모델 시각화</p></div><button className="tcg-primary" onClick={()=>startTour('find')}>첫 실습 시작 <ArrowRight size={15}/></button></div>
+    <div className="tcg-guide-intro"><BookOpen size={27}/><div><strong>초보자에게 권장하는 학습 순서</strong><p>① 검색과 속성 확인 → ② 제품 구조(BOM) → ③ 문서/첨부 → ④ 승인 워크플로 → ⑤ 변경 통지 → ⑥ 모델 시각화</p></div><button className="tcg-primary" onClick={()=>startTour('lifecycle')}>종합 실습 시작 <ArrowRight size={15}/></button></div>
+    <div className="tcg-practice-grid">{tours.map(t=><button key={t.id} className={'tcg-practice-card '+(t.id==='lifecycle'?'featured':'')} onClick={()=>startTour(t.id)}><span>{t.id==='lifecycle'?'END-TO-END':'GUIDED WORKFLOW'}</span><strong>{t.title}</strong><small>{t.subtitle}</small><em>{t.steps.length}단계 실습 시작 <ArrowRight size={14}/></em></button>)}</div>
     <div className="tcg-guide-title"><div><h3>핵심 용어 사전</h3><p>검색해 필요한 개념만 확인할 수 있습니다.</p></div><div className="tcg-guide-search"><Search size={17}/><input placeholder="용어 찾기" value={guideQuery} onChange={e=>setGuideQuery(e.target.value)}/></div></div>
     <div className="tcg-glossary-grid">{glossary.filter(g=>[g.name,g.meaning].join(' ').toLowerCase().includes(guideQuery.toLowerCase())).map(g=><div key={g.name}><strong>{g.name}</strong><p>{g.meaning}</p></div>)}</div>
     <div className="tcg-guide-title"><div><h3>참고한 원문 문서</h3><p>사용자가 제공한 Teamcenter 2606 자료의 기능·용어를 참고했습니다. 원문 접근에는 파일 소유자의 권한이 필요할 수 있습니다.</p></div></div>
@@ -389,7 +408,7 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   return <section className="tcg-page">
     <div className="tcg-breadcrumb"><button onClick={onBack}><ArrowLeft size={15}/> Siemens 아키텍처</button><ChevronRight size={13}/><span>Teamcenter 사용자 가이드</span><span className="tcg-breadcrumb-badge">2606 · ACTIVE WORKSPACE</span></div>
     <div className="tcg-shell-heading"><div><span className="tcg-shell-kicker">TEAMCENTER 2606 / INTERACTIVE TRAINING</span><h1>Active Workspace <span>사용자 체험</span></h1><p>실제 Teamcenter 화면 구성을 참고한 학습용 인터페이스 · 변경 사항은 이 브라우저에만 저장됩니다.</p></div>
-      <div className="tcg-shell-controls"><button onClick={()=>startTour('find')}><BookOpen size={15}/> 단계별 실습</button><button onClick={()=>go('guide')}><CircleHelp size={15}/> 사용 가이드</button><button onClick={reset}><RotateCcw size={15}/> 초기화</button></div>
+      <div className="tcg-shell-controls"><button onClick={()=>startTour('lifecycle')}><BookOpen size={15}/> 종합 실습</button><button onClick={()=>go('guide')}><CircleHelp size={15}/> 사용 가이드</button><button onClick={reset}><RotateCcw size={15}/> 초기화</button></div>
     </div>
     <div className={'tcg-frame '+(focusMode?'tcg-focus-mode':'')}>
       <div className="tcg-appbar">
@@ -424,15 +443,24 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
       </nav>
       <div className="tcg-main-area"><div className="tcg-location"><span>Teamcenter</span><ChevronRight size={13}/><strong>{nav.find(o=>o.id===section)?.title}</strong><span className="tcg-spacer"/><span className="tcg-example-badge">TRAINING DEMO · NOT CONNECTED</span></div>
         {launcherOpen&&<div className="tcg-launcher-overlay"><div className="tcg-launcher-header"><strong>Launcher</strong><button onClick={()=>setLauncherOpen(false)} aria-label="Launcher 닫기"><X size={18}/></button></div><div className="tcg-launcher-search"><Search size={16}/> Pinned Tools</div><div className="tcg-launcher-grid">{nav.filter(n=>n.id!=='home').map(n=><button key={n.id} onClick={()=>go(n.id)}><n.icon size={22}/><span>{n.title}</span></button>)}</div><div className="tcg-launcher-bottom"><span>PINNED DATA</span><p>고정된 데이터가 없습니다.</p></div></div>}
-        {['structure','documents'].includes(section)&&<div className="tcg-workmode-bar"><div className="tcg-workmode-tabs">{(['Content','Details','Relations'] as const).map(mode=><button key={mode} className={workMode===mode?'active':''} onClick={()=>setWorkMode(mode)}>{mode}</button>)}</div><div className="tcg-workmode-command"><span>{section==='structure'?'DEMO-1000 · Rev B':'Document Management'}</span><IconBtn title="전체 컨텐츠 보기" onClick={()=>setWorkMode('Content')}><LayoutDashboard size={16}/></IconBtn></div></div>}
+        {['structure','documents'].includes(section)&&<div className="tcg-workmode-bar"><div className="tcg-workmode-tabs">{(['Content','Details','Relations','Activity'] as const).map(mode=><button key={mode} className={workMode===mode?'active':''} onClick={()=>setWorkMode(mode)}>{mode}</button>)}</div><div className="tcg-workmode-command"><span>{section==='structure'?'DEMO-1000 · Rev B':'Document Management'}</span><IconBtn title="전체 컨텐츠 보기" onClick={()=>setWorkMode('Content')}><LayoutDashboard size={16}/></IconBtn></div></div>}
         {activeTour&&<div className={'tcg-tour-callout '+(tourDone?'done':'')}><div className="tcg-tour-track"><span>GUIDED PRACTICE</span><strong>{activeTour.title}</strong><div className="tcg-tour-progress">{activeTour.steps.map((_,i)=><span key={i} className={tourDone||i<=tourStep?'on':''}/>)}</div></div>
-          <div className="tcg-tour-instruction"><span>STEP {String(tourStep+1).padStart(2,'0')} / {activeTour.steps.length}</span><strong>{tourDone?'실습 완료!':activeStep?.title}</strong><p>{tourDone?'이번 시나리오의 주요 기능을 모두 체험했습니다.':' '+(activeStep?.description||'')}</p><small>{tourDone?'다른 실습도 시작해 보세요.':'조작 힌트: '+activeStep?.hint}</small></div><div className="tcg-tour-buttons">{!tourDone&&activeStep&&section!==activeStep.section&&<button className="tcg-primary" onClick={()=>go(activeStep.section)}>해당 화면 열기 <ArrowRight size={14}/></button>}{!tourDone&&<button className="tcg-quiet" onClick={()=>{if(tourStep===activeTour.steps.length-1)setTourDone(true);else setTourStep(i=>i+1)}}>단계 건너뛰기</button>}<button className="tcg-quiet" onClick={()=>{setTourId(null);setTourDone(false)}}><X size={14}/> 닫기</button></div>
+          <div className="tcg-tour-instruction"><span>STEP {String(tourStep+1).padStart(2,'0')} / {activeTour.steps.length}</span><strong>{tourDone?(tourSkipped?'학습 경로 종료 · 건너뛰기 '+tourSkipped+'단계':'실습 완료!'):activeStep?.title}</strong><p>{tourDone?(tourSkipped?'일부 단계는 실제 조작 없이 건너뛰었습니다.':'모든 단계를 실제 조작으로 완료했습니다.'):' '+(activeStep?.description||'')}</p><small>{tourDone?'다른 실습도 시작해 보세요.':'조작 힌트: '+activeStep?.hint}</small></div><div className="tcg-tour-buttons">{!tourDone&&activeStep&&section!==activeStep.section&&<button className="tcg-primary" onClick={()=>go(activeStep.section)}>해당 화면 열기 <ArrowRight size={14}/></button>}{!tourDone&&<button className="tcg-quiet" onClick={()=>{setTourSkipped(n=>n+1);if(tourStep===activeTour.steps.length-1)setTourDone(true);else setTourStep(i=>i+1)}}>단계 건너뛰기</button>}<button className="tcg-quiet" onClick={()=>{setTourId(null);setTourDone(false)}}><X size={14}/> 닫기</button></div>
         </div>}
-        <div className="tcg-work-content">{workMode==='Details'&&section==='structure'?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Details / 속성" subtitle="Selected Object"/>{renderInspector(byId(data.bom.find(r=>r.key===selectedOccurrence)?.recordId||''))}</div>:workMode==='Details'&&section==='documents'?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Document Details" subtitle="Selected Object"/>{renderInspector(selectedDoc)}</div>:workMode==='Relations'&&['structure','documents'].includes(section)?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Relations / 연결 관계" subtitle="Related Objects"/>{(section==='structure'?data.bom:filteredDocs.map((r,i)=>({key:r.id,recordId:r.id,parent:null,qty:i+1}))).map(rel=><button className="tcg-relation-row" key={rel.key} onClick={()=>{setSelectedId(rel.recordId);setWorkMode('Details')}}><Package size={17}/>{byId(rel.recordId)?.name}<small>{rel.recordId}</small><ChevronRight size={15}/></button>)}</div>:renderContent()}</div>
+        <div className="tcg-work-content">{workMode==='Activity'&&['structure','documents'].includes(section)?<div className="tcg-panel tcg-workmode-detail tcg-activity-view"><PanelHead title="Activity / 작업 이력" subtitle="Local training session"/>{data.history.map((h,i)=><div key={i}><RotateCcw size={14}/><span>{h}</span></div>)}</div>:workMode==='Details'&&section==='structure'?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Details / 속성" subtitle="Selected Object"/>{renderInspector(byId(data.bom.find(r=>r.key===selectedOccurrence)?.recordId||''))}</div>:workMode==='Details'&&section==='documents'?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Document Details" subtitle="Selected Object"/>{renderInspector(selectedDoc)}</div>:workMode==='Relations'&&['structure','documents'].includes(section)?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Relations / 연결 관계" subtitle="Related Objects"/>{(section==='structure'?data.bom:filteredDocs.map((r,i)=>({key:r.id,recordId:r.id,parent:null,qty:i+1}))).map(rel=><button className="tcg-relation-row" key={rel.key} onClick={()=>{setSelectedId(rel.recordId);setWorkMode('Details')}}><Package size={17}/>{byId(rel.recordId)?.name}<small>{rel.recordId}</small><ChevronRight size={15}/></button>)}</div>:renderContent()}</div>
       </div></div>
       <div className="tcg-app-status"><button onClick={()=>setLauncherOpen(v=>!v)}><Grid3X3 size={14}/> Launcher</button><span><i/> LOCAL SIMULATION</span><span>Active Workspace 2606 UI-inspired · no Teamcenter connection</span><button onClick={()=>go('guide')}><CircleHelp size={13}/> Help</button></div>
     </div>
     <div className="tcg-after-demo"><div><span>BEYOND THE SIMULATION</span><h2>실무에서는 무엇이 더 필요할까요?</h2><p>실제 Teamcenter 환경에서는 사용자 권한, 워크플로 템플릿, 데이터 모델, 조직 정책, 저장소 구성에 따라 가능한 명령과 화면이 달라집니다. 이 페이지는 학습용 예제 데이터만 변경합니다.</p></div><button onClick={()=>go('guide')}>참고 문서와 핵심 용어 <ArrowRight size={16}/></button></div>
+    {workflowTarget&&<div className="tcg-workflow-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setWorkflowTarget(null)}}><div className="tcg-workflow-dialog" role="dialog" aria-modal="true" aria-label="검토 워크플로 생성">
+      <header><Workflow size={19}/><strong>Submit to Workflow</strong><button onClick={()=>setWorkflowTarget(null)} aria-label="닫기"><X size={18}/></button></header>
+      <p>선택한 객체에 학습용 워크플로를 생성합니다. 실제 업무 템플릿과 역할은 고객별로 다릅니다.</p>
+      <div className="tcg-workflow-selected"><Package size={19}/><span><strong>{byId(workflowTarget)?.name}</strong><small>{workflowTarget} · Rev {byId(workflowTarget)?.revision}</small></span></div>
+      <label>Process Template<select value={workflowTemplate} onChange={e=>setWorkflowTemplate(e.target.value)}><option>Review Demo</option><option>Release Demo</option></select></label>
+      <label>Review Participant<select value={workflowReviewer} onChange={e=>setWorkflowReviewer(e.target.value)}><option>나 (검토자)</option><option>품질 검토자</option><option>설계 검토자</option></select></label>
+      <label>Instructions<textarea rows={3} value={workflowNote} onChange={e=>setWorkflowNote(e.target.value)} placeholder="검토 내용 또는 요청 사항 (선택)"/></label>
+      <footer><button className="tcg-secondary" onClick={()=>setWorkflowTarget(null)}>Cancel</button><button className="tcg-primary" onClick={confirmWorkflow}><Workflow size={15}/> Submit</button></footer>
+    </div></div>}
     {toast&&<div className="tcg-toast" role="status"><CheckCircle2 size={18}/>{toast}<button onClick={()=>setToast('')} aria-label="알림 닫기"><X size={15}/></button></div>}
   </section>
 }

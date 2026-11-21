@@ -1,8 +1,8 @@
 import {useEffect,useMemo,useState} from 'react'
 import {
   ArrowLeft,ArrowRight,Bell,BookOpen,CalendarDays,Check,CheckCircle2,ChevronDown,ChevronLeft,ChevronRight,
-  CircleHelp,ClipboardCheck,FileText,Folder,GitBranch,Grid2X2,
-  Home,Link2,List,Menu,MessageSquare,Network,Pencil,Plus,RefreshCw,Save,Search,
+  CircleHelp,ClipboardCheck,Clock,FileText,Folder,GitBranch,Grid2X2,
+  History,Home,Link2,List,Maximize,Menu,MessageSquare,Minimize,Network,Pencil,Plus,RefreshCw,Save,Search,
   Settings,ShieldCheck,SquareCheck,TestTube2,X
 } from 'lucide-react'
 import {
@@ -84,13 +84,30 @@ export default function PolarionUserDemo({onBack}:{onBack:()=>void}){
   const [scenario,setScenario]=useState<string|null>(null)
   const [tourStep,setTourStep]=useState(0)
   const [tourDone,setTourDone]=useState(false)
+  const [tourSkipped,setTourSkipped]=useState(0)
   const [guideSearch,setGuideSearch]=useState('')
   const [navSearch,setNavSearch]=useState('')
   const [view,setView]=useState<'Table'|'Tree'>('Table')
+  const [itemTab,setItemTab]=useState<'details'|'activity'>('details')
+  const [quickCreateOpen,setQuickCreateOpen]=useState(false)
+  const [focusMode,setFocusMode]=useState(false)
+  const [compactMode,setCompactMode]=useState(false)
+  const [selectedCase,setSelectedCase]=useState('DP-201')
+  const [runNote,setRunNote]=useState('')
+  const [fileLabel,setFileLabel]=useState('')
+  const [watching,setWatching]=useState<string[]>(()=>{try{return JSON.parse(localStorage.getItem('whatis:polarion-watch-v1')||'[]') as string[]}catch{return []}})
   const [treeOpen,setTreeOpen]=useState<string[]>(seedPolarion().workItems.map(i=>i.id))
 
   useEffect(()=>{document.title='Polarion ALM 2606 · 사용자 체험 | whatis.'},[])
+  useEffect(()=>{
+    const selectedRunRecord=data.testRuns.find(r=>r.id===selectedRun)
+    if(!selectedRunRecord)return
+    const first=Object.keys(selectedRunRecord.cases)[0]||''
+    setSelectedCase(previous=>previous in selectedRunRecord.cases?previous:first)
+    setRunNote(selectedRunRecord.notes?.[first]||'')
+  },[selectedRun])
   useEffect(()=>{try{localStorage.setItem(storage,JSON.stringify(data))}catch{/* private browser */}},[data])
+  useEffect(()=>{try{localStorage.setItem('whatis:polarion-watch-v1',JSON.stringify(watching))}catch{/* private browser */}},[watching])
   const byId=(id:string)=>data.workItems.find(i=>i.id===id)
   const item=byId(selected)
   const doc=data.documents.find(d=>d.id===selectedDoc)
@@ -128,16 +145,17 @@ export default function PolarionUserDemo({onBack}:{onBack:()=>void}){
     else setTourStep(i=>i+1)
   }
   const go=(s:PolarionSection)=>{
-    setSection(s);setMenuOpen(false);setProfile(false);setDocEditing(false);setItemEditing(false)
+    setSection(s);setMenuOpen(false);setProfile(false);setQuickCreateOpen(false);setDocEditing(false);setItemEditing(false)
     if(s==='traceability')advance('show-trace')
   }
   const selectItem=(id:string)=>{
-    setSelected(id);setItemEditing(false);advance('select-item')
+    setSelected(id);setItemEditing(false);setItemTab('details');advance('select-item')
+    window.requestAnimationFrame(()=>document.querySelector('.pl-work-detail')?.scrollIntoView({behavior:'smooth',block:'nearest'}))
   }
   const startScenario=(id:string)=>{
     const sc=polarionScenarios.find(s=>s.id===id)
     if(!sc)return
-    setScenario(id);setTourStep(0);setTourDone(false);setSection(sc.steps[0].section)
+    setScenario(id);setTourStep(0);setTourDone(false);setTourSkipped(0);setSection(sc.steps[0].section)
     setSearch('');setTypeFilter('All');setStatusFilter('All')
     window.requestAnimationFrame(()=>document.querySelector('.pl-workspace')?.scrollIntoView({behavior:'smooth',block:'start'}))
   }
@@ -155,12 +173,13 @@ export default function PolarionUserDemo({onBack}:{onBack:()=>void}){
     const newItem:WorkItem={id,title:createTitle.trim(),type:createType,description:createDescription.trim(),status:'Open',priority:'Medium',assignee:'Demo User',comments:[],updated:sampleDate}
     setData(prev=>({...prev,workItems:[newItem,...prev.workItems],history:['Work Item 생성: '+id,...prev.history]}))
     setSelected(id);setCreateOpen(false);setCreateTitle('');setCreateDescription('');setSearch('');setTypeFilter('All');setStatusFilter('All')
-    setSection('work-items');announce('새 Work Item '+id+' 생성 완료 (데모)');advance('create-item')
+    setSection('work-items');setItemTab('details');announce('새 Work Item '+id+' 생성 완료 (데모)');advance('create-item')
+    window.requestAnimationFrame(()=>document.querySelector('.pl-work-detail')?.scrollIntoView({behavior:'smooth',block:'nearest'}))
   }
   const saveItem=()=>{
     if(!item||!editTitle.trim())return
     setData(prev=>({...prev,workItems:prev.workItems.map(x=>x.id===item.id?{...x,title:editTitle.trim(),description:editDescription,assignee:editAssignee.trim()||'Demo User',status:editStatus,priority:editPriority,updated:sampleDate}:x),history:['Work Item 편집: '+item.id,...prev.history]}))
-    setItemEditing(false);announce('변경 사항이 저장되었습니다.')
+    setItemEditing(false);announce('변경 사항이 저장되었습니다.');advance('edit-item')
   }
   const setItemStatus=(status:WorkStatus)=>{
     if(!item)return
@@ -170,7 +189,7 @@ export default function PolarionUserDemo({onBack}:{onBack:()=>void}){
   const addComment=()=>{
     if(!item||!comment.trim())return
     setData(prev=>({...prev,workItems:prev.workItems.map(x=>x.id===item.id?{...x,comments:[...x.comments,comment.trim()]}:x),history:['댓글: '+item.id,...prev.history]}))
-    setComment('');announce('댓글을 추가했습니다.')
+    setComment('');announce('댓글을 추가했습니다.');advance('comment-item')
   }
   const addLink=()=>{
     if(!item||!linkTarget||linkTarget===item.id)return
@@ -229,20 +248,64 @@ export default function PolarionUserDemo({onBack}:{onBack:()=>void}){
   const recordTest=(id:string,status:TestResult)=>{
     if(!run)return
     setData(prev=>({...prev,testRuns:prev.testRuns.map(r=>r.id===run.id?{...r,cases:{...r.cases,[id]:status}}:r),history:[run.id+' / '+id+' 시험 결과: '+status,...prev.history]}))
-    announce('시험 결과: '+status);if(status!=='Not Run')advance('record-test')
+    setSelectedCase(id);announce('시험 결과: '+status)
+    if(status!=='Not Run'){advance('record-test');if(status==='Failed')advance('record-failure')}
   }
   const attachCase=()=>{
     if(!run||!runAttach||run.cases[runAttach])return
     setData(prev=>({...prev,testRuns:prev.testRuns.map(r=>r.id===run.id?{...r,cases:{...r.cases,[runAttach]:'Not Run'}}:r),history:['Test Run에 Test Case 추가: '+runAttach,...prev.history]}))
     announce('Test Case를 추가했습니다.')
   }
+  const saveTestNote=()=>{
+    if(!run||!selectedCase)return
+    setData(prev=>({...prev,testRuns:prev.testRuns.map(r=>r.id===run.id?{...r,notes:{...r.notes,[selectedCase]:runNote.trim()}}:r),history:['Test evidence updated: '+run.id+' / '+selectedCase,...prev.history]}))
+    announce('시험 수행 메모가 저장되었습니다.')
+  }
+  const createDefect=()=>{
+    if(!run||!selectedCase||run.cases[selectedCase]!=='Failed')return
+    const id='DP-'+(Math.max(600,...data.workItems.map(i=>Number(i.id.split('-')[1])||0))+1)
+    const test=byId(selectedCase)
+    const newItem:WorkItem={id,title:'시험 실패: '+(test?.title||selectedCase),type:'Defect',status:'Open',priority:'High',assignee:'Demo QA',description:run.title+' / '+selectedCase+' 시험 실패를 검토하기 위한 학습용 결함입니다.'+(runNote.trim()?' 실행 메모: '+runNote.trim():''),updated:sampleDate,comments:[]}
+    setData(prev=>({...prev,workItems:[newItem,...prev.workItems],links:[...prev.links,{source:id,target:selectedCase,role:'relates to'}],history:['Defect '+id+' created from '+run.id+' / '+selectedCase,...prev.history]}))
+    setSelected(id);setSearch('');setStatusFilter('All');setTypeFilter('All')
+    advance('create-defect');go('work-items');announce('Defect '+id+' 생성 및 테스트 링크 연결 완료')
+  }
   const reset=()=>{
     if(!window.confirm('Polarion 데모 데이터와 학습 진행을 초기 상태로 되돌릴까요?'))return
     setData(seedPolarion());setSection('home');setSelected('DP-101');setSelectedDoc('DOC-001');setSelectedRun('TR-001')
-    setScenario(null);setTourDone(false);setTourStep(0);setSearch('');setTypeFilter('All');announce('데모 데이터 초기화 완료')
+    setScenario(null);setTourDone(false);setTourStep(0);setTourSkipped(0);setSearch('');setTypeFilter('All');setWatching([]);setItemTab('details');announce('데모 데이터 초기화 완료')
   }
   const openCreate=(type:WorkType='Requirement')=>{
     setCreateType(type);setCreateOpen(true);setCreateTitle('');setCreateDescription('')
+  }
+  const startReview=()=>{
+    if(!item||item.status==='In Review')return
+    setData(prev=>({...prev,workItems:prev.workItems.map(w=>w.id===item.id?{...w,status:'In Review' as WorkStatus,updated:sampleDate}:w),history:['Review requested for '+item.id+' by Demo User',...prev.history]}))
+    setItemTab('activity');announce(item.id+' 검토 요청 완료');advance('submit-item-review')
+  }
+  const resolveReview=(approve:boolean)=>{
+    if(!item||item.status!=='In Review')return
+    const status:WorkStatus=approve?'Approved':'Open'
+    setData(prev=>({...prev,workItems:prev.workItems.map(w=>w.id===item.id?{...w,status,updated:sampleDate}:w),history:[(approve?'Approved ':'Changes requested for ')+item.id+' by Demo Reviewer',...prev.history]}))
+    setItemTab('activity');announce(approve?'검토 승인 완료':'수정 요청 완료');advance(approve?'approve-item':'rework-item')
+  }
+  const toggleWatching=()=>{
+    if(!item)return
+    setWatching(old=>old.includes(item.id)?old.filter(id=>id!==item.id):[...old,item.id])
+    announce(watching.includes(item.id)?'관심 항목에서 해제했습니다.':'관심 항목에 추가했습니다.')
+  }
+  const attachItemFile=()=>{
+    if(!item||!fileLabel.trim())return
+    const name=fileLabel.trim().replace(/[\\/]/g,'_')
+    setData(prev=>({...prev,workItems:prev.workItems.map(w=>w.id===item.id?{...w,attachments:[...(w.attachments||[]),name]}:w),history:['Attachment added to '+item.id+': '+name,...prev.history]}))
+    setFileLabel('');announce('파일명을 등록했습니다. 실제 파일은 업로드되지 않습니다.')
+  }
+  const chooseQuickCreate=(kind:'work'|'doc'|'run'|'plan')=>{
+    setQuickCreateOpen(false)
+    if(kind==='work'){openCreate();return}
+    if(kind==='doc'){go('documents');setNewDocOpen(true)}
+    if(kind==='run'){go('test-runs');setNewRunOpen(true)}
+    if(kind==='plan'){go('plans');setNewPlanOpen(true)}
   }
   const renderHome=()=> <div className="pl-home">
     <div className="pl-page-heading"><div><span>PROJECT HOME · DRIVE PILOT</span><h2>Drive Pilot Project</h2><p>요구사항부터 검증 결과까지 연결하는 제품 개발 ALM 학습 프로젝트</p></div><span className="pl-demo-tag">Sample Project / Training</span></div>
@@ -256,20 +319,35 @@ export default function PolarionUserDemo({onBack}:{onBack:()=>void}){
       <section className="pl-card pl-home-docs"><header><h3><FileText size={17}/> Documents & Pages</h3><button onClick={()=>go('documents')}>Browse <ArrowRight size={14}/></button></header>{data.documents.map(d=><button key={d.id} onClick={()=>{selectDoc(d.id);go('documents')}}><FileText size={21}/><span><strong>{d.title}</strong><small>Space: {d.space} · {d.status}</small></span><ChevronRight size={14}/></button>)}</section>
       <section className="pl-card pl-home-progress"><header><h3><TestTube2 size={17}/> Test Progress</h3><button onClick={()=>go('test-runs')}>Test Runs <ArrowRight size={14}/></button></header>{data.testRuns.map(r=>{const stats=Object.values(r.cases),done=stats.filter(x=>x!=='Not Run').length;return <button className="pl-progress-row" key={r.id} onClick={()=>{setSelectedRun(r.id);go('test-runs')}}><span><strong>{r.title}</strong><small>{done} / {stats.length} executed</small></span><span className="pl-bar"><i style={{width:(done/Math.max(1,stats.length)*100)+'%'}}/></span></button>})}</section>
     </div>
-    <div className="pl-home-guide"><BookOpen size={21}/><span><strong>Learn by doing</strong><small>원문 가이드에서 확인한 사용 흐름을 3개 실습으로 연습하세요.</small></span><button onClick={()=>startScenario('req')}>시작하기 <ArrowRight size={15}/></button></div>
+    <div className="pl-home-guide"><BookOpen size={21}/><span><strong>Learn by doing</strong><small>원문 가이드에서 확인한 사용 흐름을 5개 실습으로 연습하세요.</small></span><button onClick={()=>startScenario('req')}>시작하기 <ArrowRight size={15}/></button></div>
   </div>
   const renderItemDetails=()=>{
     if(!item)return <div className="pl-empty">Work Item을 선택하세요.</div>
     const related=data.links.filter(l=>l.source===item.id||l.target===item.id)
     return <div className="pl-item-details">
-      <div className="pl-item-title"><ItemIcon type={item.type}/><div><small>{item.type} · {item.id}</small><h3>{item.title}</h3></div>{labelStatus(item.status)}</div>
-      <div className="pl-commandbar"><strong>Work Item Editor</strong><div>{itemEditing?<><button onClick={saveItem}><Save size={15}/> Save</button><button onClick={()=>setItemEditing(false)}><X size={15}/> Cancel</button></>:<><button onClick={()=>setItemEditing(true)}><Pencil size={15}/> Edit</button><button onClick={()=>setShowLink(x=>!x)}><Link2 size={15}/> Link</button></>}</div></div>
+      <div className="pl-item-title"><ItemIcon type={item.type}/><div><small>DRIVE PILOT / {item.type.toUpperCase()} / {item.id}</small><h3>{item.id} – {item.title}</h3></div><div className="pl-title-meta"><span>Updated {item.updated}</span>{labelStatus(item.status)}</div></div>
+      <div className="pl-commandbar"><strong>WORK ITEM EDITOR</strong><div>{itemEditing?<><button onClick={saveItem}><Save size={15}/> Save</button><button onClick={()=>setItemEditing(false)}><X size={15}/> Cancel</button></>:<><button onClick={()=>{setItemTab('details');setItemEditing(true)}}><Pencil size={15}/> Edit</button><button onClick={()=>{setItemTab('details');setShowLink(true)}}><Link2 size={15}/> Link</button><button onClick={toggleWatching}><Check size={15}/> {watching.includes(item.id)?'Watching':'Watch'}</button>{item.status==='In Review'?<><button onClick={()=>resolveReview(true)}><CheckCircle2 size={15}/> Approve</button><button onClick={()=>resolveReview(false)}><RefreshCw size={15}/> Rework</button></>:<button onClick={startReview}><ShieldCheck size={15}/> Request Review</button>}</>}</div></div>
+      <div className="pl-item-tabs"><button className={itemTab==='details'?'active':''} onClick={()=>setItemTab('details')}>Fields · Description · Links</button><button className={itemTab==='activity'?'active':''} onClick={()=>{setItemTab('activity');advance('show-activity')}}>Review · History · Attachments</button></div>
+      {itemTab==='details'?<>
       {itemEditing?<div className="pl-edit-fields"><label>Title<input value={editTitle} onChange={e=>setEditTitle(e.target.value)}/></label><label>Assignee<input value={editAssignee} onChange={e=>setEditAssignee(e.target.value)}/></label><div className="pl-two-fields"><label>Status<select value={editStatus} onChange={e=>setEditStatus(e.target.value as WorkStatus)}>{STATUSES.map(s=><option key={s}>{s}</option>)}</select></label><label>Priority<select value={editPriority} onChange={e=>setEditPriority(e.target.value as typeof editPriority)}>{['High','Medium','Low'].map(s=><option key={s}>{s}</option>)}</select></label></div><label>Description<textarea rows={4} value={editDescription} onChange={e=>setEditDescription(e.target.value)}/></label></div>:<><div className="pl-property-grid">{[['Type',item.type],['Status',item.status],['Priority',item.priority],['Assignee',item.assignee],['Updated',item.updated]].map(([k,v])=><div key={k}><span>{k}</span><strong>{v}</strong></div>)}</div><h4 className="pl-section-title">Description</h4><p className="pl-description">{item.description}</p><div className="pl-status-quick"><label>Quick status change</label><select aria-label="빠른 상태 전환" value={item.status} onChange={e=>setItemStatus(e.target.value as WorkStatus)}>{STATUSES.map(s=><option key={s}>{s}</option>)}</select></div></>}
       <div className="pl-section-heading"><h4><Link2 size={15}/> Linked Work Items</h4><button onClick={()=>setShowLink(v=>!v)}><Plus size={14}/> Add Link</button></div>
       {related.length?related.map((l,i)=><div key={i} className="pl-linked-row"><Link2 size={14}/><span><small>{l.role}</small><strong>{l.source===item.id?l.target:l.source} · {byId(l.source===item.id?l.target:l.source)?.title}</strong></span><button title="연결 삭제" aria-label="연결 삭제" onClick={()=>{setData(prev=>({...prev,links:prev.links.filter(x=>x!==l)}));announce('연결을 해제했습니다.')}}><X size={14}/></button></div>):<p className="pl-muted">연결된 Work Item이 없습니다.</p>}
       {showLink&&<div className="pl-inline-form"><label>Relation<select value={linkRole} onChange={e=>setLinkRole(e.target.value as typeof linkRole)}>{['verifies','relates to','depends on','implements'].map(x=><option key={x}>{x}</option>)}</select></label><label>Target<select value={linkTarget} onChange={e=>setLinkTarget(e.target.value)}>{data.workItems.filter(x=>x.id!==item.id).map(x=><option value={x.id} key={x.id}>{x.id} · {x.title}</option>)}</select></label><button className="pl-primary" onClick={addLink}><Plus size={14}/> Add Link</button></div>}
       <div className="pl-section-heading"><h4><MessageSquare size={15}/> Comments ({item.comments.length})</h4></div>{item.comments.map((c,i)=><div className="pl-comment" key={i}><strong>Demo User</strong><p>{c}</p></div>)}
       <div className="pl-comment-input"><input value={comment} onChange={e=>setComment(e.target.value)} placeholder="Add a comment" onKeyDown={e=>{if(e.key==='Enter')addComment()}}/><button onClick={addComment} disabled={!comment.trim()}>Add</button></div>
+      </>:<div className="pl-activity-panel">
+        <section><h4><ShieldCheck size={16}/> Review and Approval</h4><p>학습용 승인 단계입니다. 실제 Polarion 워크플로는 프로젝트 설정에 따라 달라집니다.</p>
+          <div className="pl-review-flow"><span className={item.status!=='Open'?'checked':''}>Open / Draft</span><ArrowRight size={15}/><span className={item.status==='In Review'?'current':''}>In Review</span><ArrowRight size={15}/><span className={item.status==='Approved'?'checked':''}>Approved</span></div>
+          <div className="pl-review-buttons">{item.status==='In Review'?<><button className="pl-primary" onClick={()=>resolveReview(true)}><CheckCircle2 size={15}/> Approve</button><button className="pl-secondary" onClick={()=>resolveReview(false)}><RefreshCw size={15}/> Request Rework</button></>:<button className="pl-primary" onClick={startReview}><ShieldCheck size={15}/> Request Review</button>}</div>
+        </section>
+        <section><h4><History size={16}/> Work Item History</h4>
+          {(data.history.filter(h=>h.includes(item.id)).length?data.history.filter(h=>h.includes(item.id)):['Example item '+item.id+' loaded']).map((line,i)=><div className="pl-history-entry" key={i}><Clock size={14}/><span>{line}</span><small>Demo session</small></div>)}
+        </section>
+        <section><h4><FileText size={16}/> Attachments</h4>
+          {(item.attachments||[]).map((file,i)=><div className="pl-attachment" key={i}><FileText size={15}/>{file}<button title="파일명 연결 해제" onClick={()=>setData(prev=>({...prev,workItems:prev.workItems.map(w=>w.id===item.id?{...w,attachments:(w.attachments||[]).filter((_,index)=>index!==i)}:w)}))}><X size={14}/></button></div>)}
+          <div className="pl-comment-input"><input value={fileLabel} onChange={e=>setFileLabel(e.target.value)} placeholder="File label (e.g. test-plan.pdf)" onKeyDown={e=>{if(e.key==='Enter')attachItemFile()}}/><button onClick={attachItemFile} disabled={!fileLabel.trim()}>Add</button></div><p className="pl-muted">파일 이름만 기록하며 실제 콘텐츠를 업로드하지 않습니다.</p>
+        </section>
+      </div>}
     </div>
   }
   const renderWorkItems=()=> <div className="pl-view">
@@ -279,7 +357,7 @@ export default function PolarionUserDemo({onBack}:{onBack:()=>void}){
       <div className="pl-list-search"><Search size={17}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search Work Items by title or ID"/><select aria-label="종류 필터" value={typeFilter} onChange={e=>setTypeFilter(e.target.value as typeof typeFilter)}><option>All</option>{TYPES.map(t=><option key={t}>{t}</option>)}</select><select aria-label="상태 필터" value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}><option>All</option>{STATUSES.map(s=><option key={s}>{s}</option>)}</select></div>
       <div className="pl-table-scroll"><table className="pl-table"><thead><tr><th>Key / ID</th><th>Title</th><th>Type</th><th>Status</th><th>Assignee</th></tr></thead><tbody>{visibleRows.map(({item:i,level,hasChildren})=><tr key={i.id} tabIndex={0} className={selected===i.id?'active':''} onKeyDown={e=>{if(e.key==='Enter')selectItem(i.id)}} onClick={()=>selectItem(i.id)}><td>{i.id}</td><td><span className="pl-table-title" style={{paddingLeft:view==='Tree'?level*21:0}}>{view==='Tree'&&(hasChildren?<button className="pl-tree-toggle" aria-expanded={treeOpen.includes(i.id)} aria-label={treeOpen.includes(i.id)?'하위 항목 접기':'하위 항목 펼치기'} onClick={e=>{e.stopPropagation();setTreeOpen(rows=>rows.includes(i.id)?rows.filter(x=>x!==i.id):[...rows,i.id])}}>{treeOpen.includes(i.id)?<ChevronDown size={14}/>:<ChevronRight size={14}/>}</button>:<span className="pl-tree-spacer"/>)}<ItemIcon type={i.type}/><strong>{i.title}</strong></span></td><td>{i.type}</td><td>{labelStatus(i.status)}</td><td>{i.assignee}</td></tr>)}</tbody></table>{filtered.length===0&&<div className="pl-empty">검색 조건에 맞는 Work Item이 없습니다.</div>}</div>
       {view==='Tree'&&<div className="pl-table-hint"><GitBranch size={14}/> Tree View: 링크 방향에 따라 하위 항목을 배치했습니다. 화살표로 펼치고 접을 수 있습니다.</div>}
-    </section><aside className="pl-card pl-work-detail">{renderItemDetails()}</aside></div>
+    </section><section className="pl-card pl-work-detail"><div className="pl-work-detail-heading"><SquareCheck size={16}/> SELECTED WORK ITEM <span>{selected} · 항목 선택 후 아래에서 편집</span></div>{renderItemDetails()}</section></div>
   </div>
   const renderDocuments=()=> <div className="pl-view"><div className="pl-page-heading"><div><span>DRIVE PILOT / DOCUMENTS</span><h2>Documents & Pages</h2><p>LiveDocs · Spaces · Work Items in Documents</p></div><button className="pl-primary" onClick={()=>setNewDocOpen(v=>!v)}><Plus size={15}/> Create Document</button></div>
     {newDocOpen&&<div className="pl-creation-bar"><input placeholder="새 문서 이름" value={docName} onChange={e=>setDocName(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')createDoc()}}/><button className="pl-primary" onClick={createDoc} disabled={!docName.trim()}>Create</button><button onClick={()=>setNewDocOpen(false)}>Cancel</button></div>}
@@ -313,7 +391,14 @@ export default function PolarionUserDemo({onBack}:{onBack:()=>void}){
       <section className="pl-card pl-entity-body">{run&&<><div className="pl-entity-title"><div><small>{run.id} · {run.template}</small><h3>{run.title}</h3></div><span className="pl-demo-tag">Manual Test</span></div>
         <div className="pl-run-stats">{RESULTS.map(result=><div key={result} className={'result-'+result.toLowerCase().replace(' ','-')}><strong>{Object.values(run.cases).filter(v=>v===result).length}</strong><small>{result}</small></div>)}</div>
         <div className="pl-section-heading"><h4>Test Records</h4><span>{Object.values(run.cases).filter(v=>v!=='Not Run').length} / {Object.keys(run.cases).length} executed</span></div>
-        <div className="pl-table-scroll"><table className="pl-table pl-test-table"><thead><tr><th>Test Case</th><th>Result</th><th>Action</th></tr></thead><tbody>{Object.entries(run.cases).map(([id,result])=><tr key={id}><td><span className="pl-test-id">{id}</span><strong>{byId(id)?.title||id}</strong></td><td>{labelStatus(result)}</td><td><select aria-label={id+' 실행 결과'} value={result} onChange={e=>recordTest(id,e.target.value as TestResult)}>{RESULTS.map(x=><option key={x}>{x}</option>)}</select></td></tr>)}</tbody></table></div>
+        <div className="pl-table-scroll"><table className="pl-table pl-test-table"><thead><tr><th>Test Case</th><th>Result</th><th>Action</th></tr></thead><tbody>{Object.entries(run.cases).map(([id,result])=><tr key={id}><td><button className={'pl-test-case-button '+(selectedCase===id?'active':'')} onClick={()=>{setSelectedCase(id);setRunNote(run.notes?.[id]||'')}}><span className="pl-test-id">{id}</span><strong>{byId(id)?.title||id}</strong></button></td><td>{labelStatus(result)}</td><td><select aria-label={id+' 실행 결과'} value={result} onChange={e=>recordTest(id,e.target.value as TestResult)}>{RESULTS.map(x=><option key={x}>{x}</option>)}</select></td></tr>)}</tbody></table></div>
+        {selectedCase&&selectedCase in run.cases&&<div className="pl-test-step-detail">
+          <div className="pl-section-heading"><h4><ClipboardCheck size={16}/> Manual Test Execution · {selectedCase}</h4>{labelStatus(run.cases[selectedCase])}</div>
+          <div className="pl-test-instructions"><strong>{byId(selectedCase)?.title||selectedCase}</strong><ol><li>테스트 대상과 사전 조건을 확인합니다.</li><li>정의된 테스트 절차를 수행합니다. (학습용 예시)</li><li>기대 결과와 실제 결과를 비교하고 판정합니다.</li></ol></div>
+          <label className="pl-test-evidence">Actual Result / Execution Notes<textarea rows={3} value={runNote} onChange={e=>setRunNote(e.target.value)} placeholder="수행 중 확인한 내용을 입력해 보세요."/></label>
+          <div className="pl-test-actions"><button className="pl-secondary" onClick={saveTestNote}><Save size={14}/> Save Notes</button>
+          {run.cases[selectedCase]==='Failed'&&<button className="pl-primary" onClick={createDefect}><Plus size={15}/> Create linked Defect</button>}</div>
+        </div>}
         <div className="pl-inline-form"><label>Add Test Case<select value={runAttach} onChange={e=>setRunAttach(e.target.value)}>{testCases.map(i=><option value={i.id} key={i.id}>{i.id} · {i.title}</option>)}</select></label><button className="pl-secondary" onClick={attachCase} disabled={Boolean(run.cases[runAttach])}><Plus size={14}/> Add</button></div>
         <div className="pl-run-summary"><CheckCircle2 size={18}/><span>현재 실행률: <strong>{Math.round(Object.values(run.cases).filter(v=>v!=='Not Run').length/Math.max(Object.keys(run.cases).length,1)*100)}%</strong></span><button onClick={()=>{advance('view-test');announce('Test Run 실행 결과를 확인했습니다.')}}>Review Summary <ArrowRight size={14}/></button></div>
       </>}</section></div>
@@ -333,27 +418,28 @@ export default function PolarionUserDemo({onBack}:{onBack:()=>void}){
   const content=()=>{
     switch(section){case 'home':return renderHome();case 'work-items':return renderWorkItems();case 'documents':return renderDocuments();case 'plans':return renderPlans();case 'test-runs':return renderRuns();case 'traceability':return renderTrace();case 'guide':return renderGuide()}
   }
-  return <div className="pl-demo-root">
+  return <div className={'pl-demo-root '+(focusMode?'immersive ':'')+(compactMode?'compact':'')}>
     <div className="pl-backbar"><button onClick={onBack}><ArrowLeft size={15}/> Siemens 아키텍처</button><ChevronRight size={14}/><span>Polarion 2606 사용자 체험</span><span className="pl-spacer"/><span className="pl-training-badge"><ShieldCheck size={13}/> LEARNING SANDBOX</span></div>
     <div className="pl-introduction"><div><span>POLARION ALM 2606 · INTERACTIVE EXPERIENCE</span><h1>Polarion 사용자 가이드</h1><p>원문에 설명된 Navigation·Work Items·LiveDocs·Plans·Test Runs를 독자적인 체험 UI로 구성했습니다.</p></div><button onClick={()=>go('guide')}><BookOpen size={15}/> 사용자 가이드</button><button onClick={reset}><RefreshCw size={15}/> 초기화</button></div>
     <div className="pl-workspace">
       <header className="pl-header"><button className="pl-brand" onClick={()=>go('home')} title="Home"><span className="pl-brand-glyph">P</span><span>POLARION</span></button>
         <button className="pl-context" onClick={()=>{setSidebar(true);go('home')}}><span className="pl-project-icon"><GitBranch size={20}/></span><strong>Drive Pilot <ChevronDown size={13}/></strong></button>
         <div className="pl-header-path"><ChevronRight size={15}/><span>{NAV.find(n=>n.id===section)?.title}</span></div><span className="pl-spacer"/>
-        <div className="pl-header-actions"><button className="pl-quick-create" onClick={()=>openCreate()}><Plus size={15}/> CREATE...</button><IconAction title="사용자 도움말" onClick={()=>go('guide')}><CircleHelp size={18}/></IconAction><IconAction title="알림" onClick={()=>announce('이 데모에는 서버 알림이 없습니다.')}><Bell size={18}/></IconAction><IconAction title="세션 도구" onClick={()=>setProfile(v=>!v)}><Settings size={18}/></IconAction></div>
-        {profile&&<div className="pl-profile-menu"><strong>Demo User</strong><small>Demo project / local simulation</small><button onClick={()=>{setTools(true);setProfile(false)}}>Tools / Settings</button><button onClick={()=>{setProfile(false);go('guide')}}>Help</button></div>}
+        <div className="pl-header-actions"><button className="pl-quick-create" onClick={()=>{setQuickCreateOpen(v=>!v);setProfile(false)}}><Plus size={15}/> CREATE...</button><IconAction title="사용자 도움말" onClick={()=>go('guide')}><CircleHelp size={18}/></IconAction><IconAction title="알림" onClick={()=>announce('이 데모에는 서버 알림이 없습니다.')}><Bell size={18}/></IconAction><IconAction title={focusMode?'일반 보기로 돌아가기':'앱 집중 보기'} onClick={()=>setFocusMode(v=>!v)}>{focusMode?<Minimize size={18}/>:<Maximize size={18}/>}</IconAction><IconAction title="세션 도구" onClick={()=>setProfile(v=>!v)}><Settings size={18}/></IconAction></div>
+        {quickCreateOpen&&<div className="pl-quick-menu"><strong>CREATE NEW...</strong><button onClick={()=>chooseQuickCreate('work')}><SquareCheck size={16}/> Work Item</button><button onClick={()=>chooseQuickCreate('doc')}><FileText size={16}/> Document</button><button onClick={()=>chooseQuickCreate('plan')}><CalendarDays size={16}/> Plan</button><button onClick={()=>chooseQuickCreate('run')}><TestTube2 size={16}/> Test Run</button></div>}
+        {profile&&<div className="pl-profile-menu"><strong>Demo User</strong><small>Demo project / local simulation</small><button onClick={()=>{setTools(true);setProfile(false)}}>Tools / Settings</button><button onClick={()=>setCompactMode(v=>!v)}>View: {compactMode?'Compact':'Normal'} (Switch)</button><button onClick={()=>{setProfile(false);go('guide')}}>Help</button></div>}
       </header>
       <div className="pl-main">
         <aside className={'pl-sidebar '+(!sidebar?'collapsed':'')+(menuOpen?' mobile-open':'')}>
           <div className="pl-sidebar-top"><button title="Topics/Tools 변경" aria-label="Topics 또는 Tools 변경" onClick={()=>setTools(v=>!v)}><Settings size={18}/></button><button title="즐겨찾기" onClick={()=>go('home')}><Grid2X2 size={18}/></button><button className="pl-collapse" title={sidebar?'탐색 축소':'탐색 확장'} aria-label="탐색 영역 접기/펼치기" onClick={()=>setSidebar(v=>!v)}>{sidebar?<ChevronLeft size={18}/>:<ChevronRight size={18}/>}</button></div>
-          {sidebar&&<><label className="pl-sidebar-search"><Search size={15}/><input placeholder="Search Topics" value={navSearch} onChange={e=>setNavSearch(e.target.value)}/></label>
+          {sidebar&&<><label className="pl-sidebar-search" title="Enter: 프로젝트 Work Item 검색"><Search size={15}/><input placeholder="Search Topics / Items" value={navSearch} onChange={e=>setNavSearch(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&navSearch.trim()){setSearch(navSearch);setNavSearch('');go('work-items')}}}/></label>
             <div className="pl-side-profile"><span className="pl-avatar">D</span><div><small>Demo User</small><strong>{tools?'Tools':'Drive Pilot'}</strong></div></div>
           </>}
           <nav className="pl-topics" aria-label="Polarion 데모 탐색">{tools?<>{[{title:'My Account',icon:Settings,action:()=>setProfile(true)},{title:'Manage Shortcuts',icon:Grid2X2,action:()=>announce('학습용 환경에서는 바로가기가 고정되어 있습니다.')},{title:'Help',icon:CircleHelp,action:()=>go('guide')},{title:'Topics',icon:List,action:()=>setTools(false)}].map(n=><button key={n.title} title={n.title} onClick={n.action}><n.icon size={17}/>{sidebar&&<span>{n.title}</span>}</button>)}</>:NAV.filter(n=>n.title.toLowerCase().includes(navSearch.toLowerCase())||!navSearch).map(n=><button key={n.id} className={section===n.id?'active':''} title={n.detail} onClick={()=>go(n.id)}><n.icon size={18}/>{sidebar&&<span>{n.title}</span>}</button>)}</nav>
           {sidebar&&<div className="pl-sidebar-footer"><small>Polarion 2606 concepts</small><span>Demo only · No server access</span></div>}
         </aside>
         <main className="pl-main-panel"><div className="pl-location"><button className="pl-mobile-menu" onClick={()=>setMenuOpen(v=>!v)} aria-label="프로젝트 메뉴 열기"><Menu size={17}/></button><span>Drive Pilot</span><ChevronRight size={13}/><strong>{NAV.find(n=>n.id===section)?.title}</strong><span className="pl-spacer"/><span>DEMO PROJECT</span></div>
-          {scenarioInfo&&<div className={'pl-tour '+(tourDone?'complete':'')}><div className="pl-tour-step"><span>GUIDED PRACTICE · {scenarioInfo.title}</span><strong>{tourDone?'실습 완료':tourCurrent?.title}</strong><p>{tourDone?'실습 단계를 모두 완료했습니다.':tourCurrent?.description}</p></div><div className="pl-tour-progress"><span>STEP {tourStep+1}/{scenarioInfo.steps.length}</span><div>{scenarioInfo.steps.map((s,i)=><i key={s.title} className={tourDone||i<=tourStep?'active':''}/>)}</div></div><div className="pl-tour-buttons">{!tourDone&&tourCurrent?.section!==section&&<button onClick={()=>go(tourCurrent!.section)}>화면 열기</button>}{!tourDone&&<button onClick={()=>{if(tourStep===scenarioInfo.steps.length-1)setTourDone(true);else setTourStep(x=>x+1)}}>단계 건너뛰기</button>}<button onClick={()=>setScenario(null)}><X size={16}/></button></div></div>}
+          {scenarioInfo&&<div className={'pl-tour '+(tourDone?'complete':'')}><div className="pl-tour-step"><span>GUIDED PRACTICE · {scenarioInfo.title}</span><strong>{tourDone?(tourSkipped?'학습 경로 종료 · 건너뛰기 '+tourSkipped+'단계':'실습 완료'):tourCurrent?.title}</strong><p>{tourDone?(tourSkipped?'일부 단계는 실제 조작 없이 건너뛰었습니다.': '모든 단계를 실제 조작으로 완료했습니다.'):tourCurrent?.description}</p></div><div className="pl-tour-progress"><span>STEP {tourStep+1}/{scenarioInfo.steps.length}</span><div>{scenarioInfo.steps.map((s,i)=><i key={s.title} className={tourDone||i<=tourStep?'active':''}/>)}</div></div><div className="pl-tour-buttons">{!tourDone&&tourCurrent?.section!==section&&<button onClick={()=>go(tourCurrent!.section)}>화면 열기</button>}{!tourDone&&<button onClick={()=>{setTourSkipped(n=>n+1);if(tourStep===scenarioInfo.steps.length-1)setTourDone(true);else setTourStep(x=>x+1)}}>단계 건너뛰기</button>}<button onClick={()=>setScenario(null)}><X size={16}/></button></div></div>}
           <div className="pl-content">{content()}</div>
         </main>
       </div>

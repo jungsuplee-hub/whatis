@@ -378,3 +378,35 @@
  .tcg-inspector-command span{font-size:9px}
  .tcg-aw-preview .tcg-inspector-commandbar>strong{display:none}
 }
+
+/* Instructor-led Teamcenter lifecycle practice — simulated Active Workspace dialogs */
+.tcg-practice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0 24px}
+.tcg-practice-card{border:1px solid #cedfe6;background:#fff;display:flex;flex-direction:column;gap:8px;align-items:flex-start;text-align:left;padding:15px 13px;color:#557c90;min-width:0}
+.tcg-practice-card:hover{border-color:#75b7cf;background:#f3fafd}
+.tcg-practice-card>span{font-size:9px;color:#6296a7;font-weight:700;letter-spacing:.5px}
+.tcg-practice-card>strong{font-size:12px;color:#2c5f77;line-height:1.5}
+.tcg-practice-card>small{font-size:10px;color:#8aa1ab;line-height:1.4}
+.tcg-practice-card>em{display:flex;align-items:center;gap:7px;font-style:normal;font-size:10px;font-weight:700;color:#2784a0;margin-top:auto}
+.tcg-practice-card.featured{grid-column:1/-1;position:relative;border:1px solid #9ccfda;background:linear-gradient(98deg,#e5f3f7,#fafdfd);padding:17px 18px}
+.tcg-practice-card.featured>strong{font-size:15px}
+.tcg-object-history{margin-top:13px;border:1px solid #d2e2e8;background:#f8fbfc;color:#577b91;font-size:10px}
+.tcg-object-history>summary{display:flex;align-items:center;gap:7px;padding:10px;cursor:pointer;font-size:10px;font-weight:700;color:#387a93}
+.tcg-object-history>div{border-top:1px solid #e0ebee;padding:9px 12px;line-height:1.65;overflow-wrap:anywhere}
+.tcg-object-history>p{padding:9px 12px;margin:0;color:#8fa5ac}
+.tcg-activity-view{padding-bottom:17px}
+.tcg-activity-view>div:not(.tcg-panel-head){display:flex;align-items:start;gap:9px;margin:8px 14px;border-bottom:1px solid #e3ecf0;padding:9px 0;font-size:11px;line-height:1.7;color:#4c798b}
+.tcg-activity-view>div svg{flex-shrink:0;margin-top:2px;color:#61a0b7}
+.tcg-workflow-overlay{position:fixed;inset:0;z-index:300;background:#102f4299;display:grid;place-items:center;padding:20px}
+.tcg-workflow-dialog{width:min(520px,100%);max-height:94vh;overflow:auto;background:#fff;box-shadow:0 18px 50px #17445766;border:1px solid #b8d0da;color:#3b6a7f}
+.tcg-workflow-dialog>header{display:flex;align-items:center;gap:10px;border-bottom:1px solid #cddfe6;background:#e7f2f6;height:51px;padding:0 17px;color:#247f9c}
+.tcg-workflow-dialog header strong{font-size:14px;flex:1}
+.tcg-workflow-dialog header button{border:0;background:transparent;color:#6c8d9d}
+.tcg-workflow-dialog>p{font-size:11px;color:#7894a2;line-height:1.7;margin:17px 17px 10px}
+.tcg-workflow-selected{display:flex;align-items:center;gap:11px;border:1px solid #d4e7ed;background:#f7fbfd;margin:12px 17px;padding:12px;color:#4285a2}
+.tcg-workflow-selected span{display:flex;flex-direction:column;gap:5px}
+.tcg-workflow-selected strong{font-size:12px}
+.tcg-workflow-selected small{font-size:10px;color:#9aacb6}
+.tcg-workflow-dialog>label{display:flex;flex-direction:column;gap:6px;padding:0 17px;margin:13px 0;color:#567f93;font-size:11px;font-weight:700}
+.tcg-workflow-dialog select,.tcg-workflow-dialog textarea{font:11px Arial,'Noto Sans KR',sans-serif;min-width:0;width:100%;border:1px solid #bed5de;color:#356e84;background:#fff;padding:10px}
+.tcg-workflow-dialog>footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 17px;border-top:1px solid #d9e6ec;background:#f9fbfc}
+@media(max-width:740px){.tcg-practice-grid{grid-template-columns:1fr}.tcg-practice-card.featured{grid-column:auto}.tcg-workflow-dialog>header{height:46px}.tcg-workflow-overlay{padding:12px}}

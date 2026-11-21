@@ -57,6 +57,19 @@ export const createDemoData = ():DemoData => ({
 export interface DemoTourStep { section: Section; title: string; description: string; hint: string }
 export interface DemoTour { id:string; title:string; subtitle:string; steps:DemoTourStep[] }
 export const tours:DemoTour[] = [
+  {id:'lifecycle',title:'00 · 새 부품부터 승인까지 실전 체험',subtitle:'생성 → 편집 → 리비전 → BOM → 검토 → 승인',steps:[
+    {section:'explorer',title:'새 부품 생성',description:'탐색기에서 생성하기를 눌러 새 Item을 만드세요.',hint:'Item 유형 선택 → 이름 작성 → 생성'},
+    {section:'explorer',title:'속성 저장',description:'방금 만든 부품의 오른쪽 패널에서 Edit을 눌러 설명을 수정하고 저장하세요.',hint:'Edit → 설명 수정 → Save Edits'},
+    {section:'explorer',title:'새 개정판 생성',description:'Revise를 눌러 Item Revision 값을 A에서 B로 바꿔 보세요.',hint:'오른쪽 Revise 실행'},
+    {section:'structure',title:'제품 BOM에 부품 연결',description:'제품 구조에서 구성품 추가를 눌러 새로 만든 부품을 최상위 제품에 연결하세요.',hint:'구성품 추가 → 새 부품 선택 → 연결'},
+    {section:'structure',title:'검토 워크플로 요청',description:'추가한 부품의 오른쪽 Workflow 메뉴에서 검토자와 템플릿을 선택하고 제출하세요.',hint:'Workflow → Review Demo → Submit'},
+    {section:'inbox',title:'받은 작업 열기',description:'받은 작업 화면으로 이동해 방금 생성된 검토 작업을 찾으세요.',hint:'좌측 받은 작업 클릭'},
+    {section:'inbox',title:'검토 작업 선택',description:'신규 부품에 대한 검토 작업을 선택하세요.',hint:'목록의 새 작업 선택'},
+    {section:'inbox',title:'검토 의견 기록',description:'검토 의견을 작성해 보세요.',hint:'검토 의견 입력'},
+    {section:'inbox',title:'승인 처리',description:'승인을 눌러 부품의 상태를 승인됨으로 전환하세요.',hint:'승인 버튼'},
+    {section:'home',title:'대시보드로 복귀',description:'홈에서 남은 작업과 활동 결과를 확인하세요.',hint:'홈 버튼'}
+  ]},
+
   {id:'find',title:'01 · 부품을 검색하고 수정하기',subtitle:'검색 → 상세 정보 → 리비전',steps:[
     {section:'search',title:'부품 검색',description:'전역 검색 화면에서 “배터리”를 입력해 검색 결과를 확인하세요.',hint:'상단 검색창에 배터리 입력'},
     {section:'search',title:'검색 결과 선택',description:'검색 결과에서 배터리 팩 어셈블리를 선택하세요.',hint:'DEMO-1100 선택'},
