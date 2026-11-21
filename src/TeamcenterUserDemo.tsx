@@ -3,7 +3,7 @@ import {
   ArrowLeft, ArrowRight, BookOpen, Box, Check, CheckCircle2, ChevronDown,
   ChevronRight, CircleHelp, ClipboardCheck, ExternalLink, FileCheck2, FileText, Filter,
   Folder, FolderOpen, GitBranch, Home, Layers3, ListTree, Maximize2, Menu, Minus,
-  Package, Plus, RotateCcw, RotateCw, Save, Search, Settings2, ShieldCheck, Workflow, X,
+  Package, Plus, RotateCcw, RotateCw, Save, Search, ShieldCheck, Workflow, X,
   Bell, Grid3X3, MessageSquare, Pencil, LayoutDashboard, Maximize, Minimize
 } from 'lucide-react'
 import {
@@ -131,6 +131,15 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
     if(s==='home')advance('open-home')
     if(s==='changes'&&selectedChange?.status==='검토 중')advance('show-change')
   }
+  const openSelected=()=>{
+    if(!selected)return
+    if(selected.kind==='Document'){setSelectedDocId(selected.id);go('documents')}
+    else {
+      const occ=data.bom.find(x=>x.recordId===selected.id)
+      if(occ){setSelectedOccurrence(occ.key);setOpenRows(old=>[...new Set([...old,'occ-0',...(occ.parent?[occ.parent]:[])])]);go('structure')}
+      else{setSelectedFolder(selected.folder);go('explorer')}
+    }
+  }
   const startTour=(id:string)=>{
     const tour=tours.find(t=>t.id===id)
     if(!tour)return
@@ -217,6 +226,15 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   const renderInspector=(record:DemoRecord|undefined)=>{
     if(!record)return <p className="tcg-muted">항목을 선택하면 여기에 상세 정보가 표시됩니다.</p>
     return <div className="tcg-inspector-content">
+      <div className="tcg-inspector-commandbar" role="toolbar" aria-label="선택된 객체 명령">
+        <strong>{record.kind==='Document'?'Document Revision':'Item Revision'}</strong>
+        {editor?<div className="tcg-inspector-commands"><button className="tcg-inspector-command primary" onClick={saveRecord} title="수정한 속성 저장"><Save size={16}/><span>Save Edits</span></button><button className="tcg-inspector-command" onClick={()=>setEditor(false)} title="편집 취소"><X size={16}/><span>Cancel</span></button></div>:
+          <div className="tcg-inspector-commands">
+            <button className="tcg-inspector-command" onClick={()=>{setSelectedId(record.id);setEditor(true)}} title="속성 편집 시작"><Pencil size={16}/><span>Edit</span></button>
+            <button className="tcg-inspector-command" onClick={()=>reviseRecord(record.id)} title="새 리비전 생성"><GitBranch size={16}/><span>Revise</span></button>
+            <button className="tcg-inspector-command" onClick={()=>submitReview(record.id)} title="워크플로 검토 요청"><Workflow size={16}/><span>Workflow</span></button>
+          </div>}
+      </div>
       <div className="tcg-object-head"><TileIcon kind={record.kind}/><div><span>{record.kind==='Document'?'문서 리비전':'아이템 리비전'}</span><h3>{record.name}</h3><code>{record.id} / {record.revision}</code></div></div>
       <Tag status={record.status}/>
       <div className="tcg-property-table">
@@ -230,13 +248,7 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
         <label>이름<input value={editName} onChange={e=>setEditName(e.target.value)} maxLength={110}/></label>
         <label>담당자<input value={editOwner} onChange={e=>setEditOwner(e.target.value)} maxLength={35}/></label>
         <label>설명<textarea value={editDescription} onChange={e=>setEditDescription(e.target.value)} rows={4} maxLength={500}/></label>
-        <div className="tcg-actions"><button className="tcg-primary" onClick={saveRecord}><Save size={15}/> 저장</button><button className="tcg-quiet" onClick={()=>setEditor(false)}>취소</button></div>
       </div>:<div className="tcg-description"><span>설명</span><p>{record.description}</p></div>}
-      {!editor&&<div className="tcg-actions tcg-wrap">
-        <button className="tcg-secondary" onClick={()=>{setSelectedId(record.id);setEditor(true)}}><Settings2 size={15}/> 속성 편집</button>
-        <button className="tcg-secondary" onClick={()=>reviseRecord(record.id)}><GitBranch size={15}/> 새 리비전</button>
-        <button className="tcg-secondary" onClick={()=>submitReview(record.id)}><Workflow size={15}/> 검토 요청</button>
-      </div>}
       <div className="tcg-explain"><CircleHelp size={16}/><span><strong>Item / Revision</strong>은 관리 대상과 그 개정판을 구분합니다. 이 데모는 개정판을 단순히 문자로 나타내며 실제 사이트별 규칙과 다를 수 있습니다.</span></div>
     </div>
   }
@@ -286,7 +298,7 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
         <div className="tcg-search-line"><Search size={16}/><input aria-label="제품 데이터 검색" placeholder="Search in results (예: 배터리, DEMO-1100)" value={query} onChange={e=>{setQuery(e.target.value);if(e.target.value.trim())advance('search')}}/><button onClick={()=>setQuery('')} aria-label="검색어 지우기"><X size={15}/></button></div>
         <RecordTable rows={filtered} selectedId={selectedId} onSelect={id=>selectRecord(id,'search')}/>
       </section>
-      <aside className="tcg-aw-preview"><div className="tcg-aw-preview-tabs"><button className="active">Overview</button><button onClick={()=>go('explorer')}>Open</button><button onClick={()=>go('guide')} title="도움말"><CircleHelp size={14}/></button></div><div className="tcg-aw-preview-scroll">{renderInspector(selected)}</div></aside>
+      <aside className="tcg-aw-preview"><div className="tcg-aw-preview-tabs"><button className="active">Overview</button><button onClick={openSelected}>Open</button><button onClick={()=>go('guide')} title="도움말"><CircleHelp size={14}/></button></div><div className="tcg-aw-preview-scroll">{renderInspector(selected)}</div></aside>
     </div>
   </div>
   const renderExplorer=()=> <><PageHeading eyebrow="EXPLORER" title="폴더와 아이템 탐색기" desc="폴더를 열어 관련 데이터를 확인하고 새 아이템 또는 문서를 생성하는 연습을 해보세요."/>
@@ -314,9 +326,8 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   const renderDocuments=()=> <><PageHeading eyebrow="DOCUMENT MANAGEMENT" title="문서와 첨부 데이터셋" desc="문서 리비전을 열고 연결된 파일 목록을 확인하거나 가상 파일을 추가하고 검토를 요청해 보세요."/>
     <div className="tcg-content-columns"><div className="tcg-panel tcg-doc-list"><PanelHead title="제품 문서" subtitle={filteredDocs.length+'개의 관리 문서'}/>
       {filteredDocs.map(r=><button key={r.id} className={'tcg-doc-row '+(selectedDocId===r.id?'selected':'')} onClick={()=>{setSelectedDocId(r.id);setSelectedId(r.id);setEditor(false);advance('select-document')}}><TileIcon kind="Document"/><span><strong>{r.name}</strong><small>{r.id} · Revision {r.revision}</small></span><Tag status={r.status}/><ChevronRight size={17}/></button>)}
-    </div><aside className="tcg-panel tcg-side-panel tcg-doc-detail"><PanelHead title="문서 상세" subtitle="Document Revision"/>{selectedDoc&&<><div className="tcg-object-head"><TileIcon kind="Document"/><div><h3>{selectedDoc.name}</h3><code>{selectedDoc.id} · Rev {selectedDoc.revision}</code></div></div><Tag status={selectedDoc.status}/><p>{selectedDoc.description}</p><div className="tcg-divider"/><strong className="tcg-files-head"><FileCheck2 size={16}/> 첨부 데이터셋 · 파일명</strong>{(data.files[selectedDoc.id]||[]).map((file,i)=><div className="tcg-file" key={i}><FileText size={16}/><span>{file}</span><button title="파일명 제거" aria-label={file+' 연결 해제'} onClick={()=>{setData(old=>({...old,files:{...old.files,[selectedDoc.id]:(old.files[selectedDoc.id]||[]).filter((_,n)=>n!==i)}}));notify('데모 파일명 연결을 제거했습니다.')}}><X size={15}/></button></div>)}
+    </div><aside className="tcg-panel tcg-side-panel tcg-doc-detail"><div className="tcg-document-commandbar"><strong>Document Revision</strong>{selectedDoc&&<button onClick={()=>submitReview(selectedDoc.id)}><Workflow size={16}/> Submit to Workflow</button>}</div>{selectedDoc&&<><div className="tcg-object-head"><TileIcon kind="Document"/><div><h3>{selectedDoc.name}</h3><code>{selectedDoc.id} · Rev {selectedDoc.revision}</code></div></div><Tag status={selectedDoc.status}/><p>{selectedDoc.description}</p><div className="tcg-divider"/><strong className="tcg-files-head"><FileCheck2 size={16}/> 첨부 데이터셋 · 파일명</strong>{(data.files[selectedDoc.id]||[]).map((file,i)=><div className="tcg-file" key={i}><FileText size={16}/><span>{file}</span><button title="파일명 제거" aria-label={file+' 연결 해제'} onClick={()=>{setData(old=>({...old,files:{...old.files,[selectedDoc.id]:(old.files[selectedDoc.id]||[]).filter((_,n)=>n!==i)}}));notify('데모 파일명 연결을 제거했습니다.')}}><X size={15}/></button></div>)}
       <div className="tcg-file-form"><label>새 데이터셋 파일명 (실제 업로드 없음)</label><div><input value={fileName} onChange={e=>setFileName(e.target.value)} placeholder="예: drawing_rev_b.pdf" onKeyDown={e=>{if(e.key==='Enter')addFile()}}/><button className="tcg-secondary" onClick={addFile} disabled={!fileName.trim()}><Plus size={15}/> 연결</button></div></div>
-      <button className="tcg-primary tcg-full" onClick={()=>submitReview(selectedDoc.id)}><Workflow size={16}/> 검토 워크플로 시작</button>
       <div className="tcg-explain"><CircleHelp size={15}/><span><strong>Dataset</strong>은 파일 콘텐츠를 문서 리비전에 연결하는 데이터 객체입니다. 이 연습에서는 업로드 대신 파일명만 저장합니다.</span></div>
     </>}</aside></div>
   </>

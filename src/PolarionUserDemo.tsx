@@ -1,0 +1,366 @@
+import {useEffect,useMemo,useState} from 'react'
+import {
+  ArrowLeft,ArrowRight,Bell,BookOpen,CalendarDays,Check,CheckCircle2,ChevronDown,ChevronLeft,ChevronRight,
+  CircleHelp,ClipboardCheck,FileText,Folder,GitBranch,Grid2X2,
+  Home,Link2,List,Menu,MessageSquare,Network,Pencil,Plus,RefreshCw,Save,Search,
+  Settings,ShieldCheck,SquareCheck,TestTube2,X
+} from 'lucide-react'
+import {
+  polarionScenarios,polarionSource,polarionTerms,sampleDate,seedPolarion,
+  type PolarionSection,type PolarionState,type WorkItem,type WorkType,type WorkStatus,
+  type TestResult,type PolarionDoc
+} from './polarion-demo-data'
+import './polarion-demo.css'
+
+const NAV=[
+  {id:'home',title:'Home',detail:'프로젝트 홈',icon:Home},
+  {id:'work-items',title:'Work Items',detail:'요구사항·결함·테스트',icon:SquareCheck},
+  {id:'documents',title:'Documents & Pages',detail:'LiveDocs',icon:FileText},
+  {id:'plans',title:'Plans',detail:'릴리스·이터레이션',icon:CalendarDays},
+  {id:'test-runs',title:'Test Runs',detail:'시험 실행',icon:TestTube2},
+  {id:'traceability',title:'Traceability',detail:'연결 및 영향 관계',icon:Network},
+  {id:'guide',title:'User Guide',detail:'용어 및 문서',icon:BookOpen}
+] as const
+const TYPES:WorkType[]=['Requirement','Test Case','Defect','Task','Change Request']
+const STATUSES:WorkStatus[]=['Open','In Progress','In Review','Approved','Done']
+const RESULTS:TestResult[]=['Not Run','Passed','Failed','Blocked']
+const storage='whatis:polarion-demo-v1'
+const load=():PolarionState=>{
+  try{
+    const data=JSON.parse(localStorage.getItem(storage)||'null') as PolarionState|null
+    if(data&&Array.isArray(data.workItems)&&Array.isArray(data.documents)&&Array.isArray(data.testRuns)&&Array.isArray(data.links)&&Array.isArray(data.plans))return data
+  }catch{/* localStorage may be disabled */}
+  return seedPolarion()
+}
+const kind=(type:WorkType)=>type.toLowerCase().replace(' ','-')
+const labelStatus=(status:string)=> <span className={'pl-status '+status.toLowerCase().replaceAll(' ','-')}>{status}</span>
+function ItemIcon({type}:{type:WorkType}){
+  return <span className={'pl-item-icon '+kind(type)}>{type==='Test Case'?<TestTube2 size={17}/>:type==='Requirement'?<ClipboardCheck size={17}/>:type==='Defect'?<CircleHelp size={17}/>:type==='Change Request'?<GitBranch size={17}/>:<SquareCheck size={17}/>}</span>
+}
+const IconAction=({title,onClick,children}:{title:string;onClick:()=>void;children:React.ReactNode})=><button className="pl-icon-action" title={title} aria-label={title} onClick={onClick}>{children}</button>
+
+export default function PolarionUserDemo({onBack}:{onBack:()=>void}){
+  const [data,setData]=useState<PolarionState>(load)
+  const [section,setSection]=useState<PolarionSection>('home')
+  const [sidebar,setSidebar]=useState(true)
+  const [tools,setTools]=useState(false)
+  const [menuOpen,setMenuOpen]=useState(false)
+  const [profile,setProfile]=useState(false)
+  const [search,setSearch]=useState('')
+  const [typeFilter,setTypeFilter]=useState<'All'|WorkType>('All')
+  const [statusFilter,setStatusFilter]=useState('All')
+  const [selected,setSelected]=useState('DP-101')
+  const [selectedDoc,setSelectedDoc]=useState('DOC-001')
+  const [selectedSection,setSelectedSection]=useState('sec-1')
+  const [selectedPlan,setSelectedPlan]=useState('PLAN-01')
+  const [selectedRun,setSelectedRun]=useState('TR-001')
+  const [createOpen,setCreateOpen]=useState(false)
+  const [createType,setCreateType]=useState<WorkType>('Requirement')
+  const [createTitle,setCreateTitle]=useState('')
+  const [createDescription,setCreateDescription]=useState('')
+  const [itemEditing,setItemEditing]=useState(false)
+  const [editTitle,setEditTitle]=useState('')
+  const [editDescription,setEditDescription]=useState('')
+  const [editAssignee,setEditAssignee]=useState('')
+  const [editStatus,setEditStatus]=useState<WorkStatus>('Open')
+  const [editPriority,setEditPriority]=useState<'High'|'Medium'|'Low'>('Medium')
+  const [comment,setComment]=useState('')
+  const [linkTarget,setLinkTarget]=useState('DP-201')
+  const [linkRole,setLinkRole]=useState<'verifies'|'relates to'|'depends on'|'implements'>('verifies')
+  const [showLink,setShowLink]=useState(false)
+  const [docEditing,setDocEditing]=useState(false)
+  const [docBody,setDocBody]=useState('')
+  const [docTitle,setDocTitle]=useState('')
+  const [newDocOpen,setNewDocOpen]=useState(false)
+  const [docName,setDocName]=useState('')
+  const [docAttach,setDocAttach]=useState('DP-201')
+  const [newPlanName,setNewPlanName]=useState('')
+  const [newPlanOpen,setNewPlanOpen]=useState(false)
+  const [planAttach,setPlanAttach]=useState('DP-103')
+  const [newRunOpen,setNewRunOpen]=useState(false)
+  const [newRunName,setNewRunName]=useState('')
+  const [runAttach,setRunAttach]=useState('DP-203')
+  const [message,setMessage]=useState('')
+  const [scenario,setScenario]=useState<string|null>(null)
+  const [tourStep,setTourStep]=useState(0)
+  const [tourDone,setTourDone]=useState(false)
+  const [guideSearch,setGuideSearch]=useState('')
+  const [navSearch,setNavSearch]=useState('')
+  const [view,setView]=useState<'Table'|'Tree'>('Table')
+  const [treeOpen,setTreeOpen]=useState<string[]>(seedPolarion().workItems.map(i=>i.id))
+
+  useEffect(()=>{document.title='Polarion ALM 2606 · 사용자 체험 | whatis.'},[])
+  useEffect(()=>{try{localStorage.setItem(storage,JSON.stringify(data))}catch{/* private browser */}},[data])
+  const byId=(id:string)=>data.workItems.find(i=>i.id===id)
+  const item=byId(selected)
+  const doc=data.documents.find(d=>d.id===selectedDoc)
+  const docSection=doc?.sections.find(s=>s.id===selectedSection)
+  const plan=data.plans.find(p=>p.id===selectedPlan)
+  const run=data.testRuns.find(r=>r.id===selectedRun)
+  const scenarioInfo=polarionScenarios.find(s=>s.id===scenario)
+  const tourCurrent=scenarioInfo?.steps[tourStep]
+  const requirements=data.workItems.filter(i=>i.type==='Requirement')
+  const testCases=data.workItems.filter(i=>i.type==='Test Case')
+  const finished=(id:string)=>byId(id)?.status==='Done'||byId(id)?.status==='Approved'
+  const filtered=useMemo(()=>data.workItems.filter(i=>(!search.trim()||[i.id,i.title,i.type,i.description,i.assignee].join(' ').toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()))&&(typeFilter==='All'||i.type===typeFilter)&&(statusFilter==='All'||i.status===statusFilter)),[data.workItems,search,typeFilter,statusFilter])
+  const visibleRows=useMemo(()=>{
+    if(view==='Table')return filtered.map(i=>({item:i,level:0,hasChildren:false}))
+    const byKey=new Map(filtered.map(i=>[i.id,i]))
+    const parentFor=new Map<string,string>()
+    data.links.forEach(l=>{if(byKey.has(l.source)&&byKey.has(l.target)&&!parentFor.has(l.source))parentFor.set(l.source,l.target)})
+    const result:Array<{item:WorkItem;level:number;hasChildren:boolean}>=[]
+    const visited=new Set<string>()
+    const walk=(item:WorkItem,level:number)=>{
+      if(visited.has(item.id))return
+      visited.add(item.id)
+      const children=filtered.filter(child=>parentFor.get(child.id)===item.id)
+      result.push({item,level,hasChildren:children.length>0})
+      if(treeOpen.includes(item.id))children.forEach(child=>walk(child,level+1))
+    }
+    filtered.filter(i=>!parentFor.has(i.id)).forEach(i=>walk(i,0))
+    // Hidden descendants of collapsed parents must not reappear as root rows.
+    return result
+  },[filtered,view,treeOpen,data.links])
+  const announce=(msg:string)=>{setMessage(msg);window.setTimeout(()=>setMessage(x=>x===msg?'':x),3900)}
+  const advance=(event:string)=>{
+    if(!scenario||tourDone||tourCurrent?.event!==event)return
+    if(tourStep===scenarioInfo!.steps.length-1){setTourDone(true);announce('실습 과정을 완료했습니다.')}
+    else setTourStep(i=>i+1)
+  }
+  const go=(s:PolarionSection)=>{
+    setSection(s);setMenuOpen(false);setProfile(false);setDocEditing(false);setItemEditing(false)
+    if(s==='traceability')advance('show-trace')
+  }
+  const selectItem=(id:string)=>{
+    setSelected(id);setItemEditing(false);advance('select-item')
+  }
+  const startScenario=(id:string)=>{
+    const sc=polarionScenarios.find(s=>s.id===id)
+    if(!sc)return
+    setScenario(id);setTourStep(0);setTourDone(false);setSection(sc.steps[0].section)
+    setSearch('');setTypeFilter('All');setStatusFilter('All')
+    window.requestAnimationFrame(()=>document.querySelector('.pl-workspace')?.scrollIntoView({behavior:'smooth',block:'start'}))
+  }
+  useEffect(()=>{
+    if(!item)return
+    setEditTitle(item.title);setEditDescription(item.description);setEditAssignee(item.assignee);setEditPriority(item.priority);setEditStatus(item.status)
+  },[item?.id,item?.title,item?.description,item?.assignee,item?.priority,item?.status])
+  useEffect(()=>{
+    setDocBody(docSection?.body||'')
+  },[doc?.id,docSection?.id,docSection?.body])
+  const createItem=()=>{
+    if(!createTitle.trim())return
+    const suffix=Math.max(600,...data.workItems.map(x=>Number(x.id.split('-')[1])||0))+1
+    const id='DP-'+suffix
+    const newItem:WorkItem={id,title:createTitle.trim(),type:createType,description:createDescription.trim(),status:'Open',priority:'Medium',assignee:'Demo User',comments:[],updated:sampleDate}
+    setData(prev=>({...prev,workItems:[newItem,...prev.workItems],history:['Work Item 생성: '+id,...prev.history]}))
+    setSelected(id);setCreateOpen(false);setCreateTitle('');setCreateDescription('');setSearch('');setTypeFilter('All');setStatusFilter('All')
+    setSection('work-items');announce('새 Work Item '+id+' 생성 완료 (데모)');advance('create-item')
+  }
+  const saveItem=()=>{
+    if(!item||!editTitle.trim())return
+    setData(prev=>({...prev,workItems:prev.workItems.map(x=>x.id===item.id?{...x,title:editTitle.trim(),description:editDescription,assignee:editAssignee.trim()||'Demo User',status:editStatus,priority:editPriority,updated:sampleDate}:x),history:['Work Item 편집: '+item.id,...prev.history]}))
+    setItemEditing(false);announce('변경 사항이 저장되었습니다.')
+  }
+  const setItemStatus=(status:WorkStatus)=>{
+    if(!item)return
+    setData(prev=>({...prev,workItems:prev.workItems.map(x=>x.id===item.id?{...x,status,updated:sampleDate}:x),history:['상태 변경: '+item.id+' / '+status,...prev.history]}))
+    announce('상태: '+status)
+  }
+  const addComment=()=>{
+    if(!item||!comment.trim())return
+    setData(prev=>({...prev,workItems:prev.workItems.map(x=>x.id===item.id?{...x,comments:[...x.comments,comment.trim()]}:x),history:['댓글: '+item.id,...prev.history]}))
+    setComment('');announce('댓글을 추가했습니다.')
+  }
+  const addLink=()=>{
+    if(!item||!linkTarget||linkTarget===item.id)return
+    // In Polarion a Test Case "verifies" a Requirement; store that relationship direction.
+    const reverse=linkRole==='verifies'&&item.type==='Requirement'&&byId(linkTarget)?.type==='Test Case'
+    const source=reverse?linkTarget:item.id
+    const target=reverse?item.id:linkTarget
+    if(data.links.some(l=>l.source===source&&l.target===target&&l.role===linkRole)){announce('이미 존재하는 링크입니다.');return}
+    setData(prev=>({...prev,links:[...prev.links,{source,target,role:linkRole}],history:[source+' → '+target+' 링크 연결',...prev.history]}))
+    setShowLink(false);announce('Work Item 링크를 생성했습니다.');advance('create-link')
+  }
+  const selectDoc=(id:string)=>{
+    const d=data.documents.find(x=>x.id===id);setSelectedDoc(id);setSelectedSection(d?.sections[0]?.id||'');setDocEditing(false);advance('select-doc')
+  }
+  const createDoc=()=>{
+    if(!docName.trim())return
+    const id='DOC-'+String(Math.max(0,...data.documents.map(d=>Number(d.id.split('-')[1])||0))+1).padStart(3,'0')
+    const d:PolarionDoc={id,title:docName.trim(),space:'Default Space',status:'Draft',sections:[{id:'sec-1',heading:'1. 시작',body:'새로 만든 학습용 문서입니다.'}]}
+    setData(prev=>({...prev,documents:[...prev.documents,d],history:['LiveDoc 생성: '+id,...prev.history]}))
+    setSelectedDoc(id);setSelectedSection('sec-1');setDocName('');setNewDocOpen(false);announce('LiveDoc 생성 완료')
+  }
+  const saveDoc=()=>{
+    if(!doc||!docSection)return
+    setData(prev=>({...prev,documents:prev.documents.map(d=>d.id===doc.id?{...d,sections:d.sections.map(s=>s.id===docSection.id?{...s,heading:docTitle||s.heading,body:docBody}:s)}:d),history:['LiveDoc 내용 수정: '+doc.id,...prev.history]}))
+    setDocEditing(false);announce('문서 내용을 저장했습니다.');advance('edit-doc')
+  }
+  const addDocWorkItem=()=>{
+    if(!doc||!docAttach)return
+    const id='sec-'+String(Date.now())
+    setData(prev=>({...prev,documents:prev.documents.map(d=>d.id===doc.id?{...d,sections:[...d.sections,{id,heading:'연결된 Work Item · '+docAttach,body:'Work Item을 참조하는 문서 섹션입니다.',workItemId:docAttach}]}:d),history:['LiveDoc에 Work Item 삽입: '+docAttach,...prev.history]}))
+    setSelectedSection(id);announce('Work Item을 문서에 연결했습니다.');advance('add-doc-item')
+  }
+  const addPlan=()=>{
+    if(!newPlanName.trim())return
+    const id='PLAN-'+String(data.plans.length+1).padStart(2,'0')
+    setData(prev=>({...prev,plans:[...prev.plans,{id,title:newPlanName.trim(),start:sampleDate,end:'2026-12-31',status:'Not Started',workItemIds:[]}],history:['Plan 생성: '+id,...prev.history]}))
+    setSelectedPlan(id);setNewPlanName('');setNewPlanOpen(false);announce('새 Plan을 만들었습니다.')
+  }
+  const attachPlan=()=>{
+    if(!plan||plan.workItemIds.includes(planAttach))return
+    setData(prev=>({...prev,plans:prev.plans.map(p=>p.id===plan.id?{...p,workItemIds:[...p.workItemIds,planAttach]}:p),history:['Plan에 Work Item 추가: '+planAttach,...prev.history]}))
+    announce('Plan 범위에 추가했습니다.')
+  }
+  const updatePlanStatus=()=>{
+    if(!plan)return
+    const status=plan.status==='Not Started'?'In Progress':plan.status==='In Progress'?'Finished':'Not Started'
+    setData(prev=>({...prev,plans:prev.plans.map(p=>p.id===plan.id?{...p,status}:p),history:['Plan 상태 변경: '+status,...prev.history]}))
+    announce('Plan 상태: '+status)
+  }
+  const addRun=()=>{
+    if(!newRunName.trim())return
+    const id='TR-'+String(data.testRuns.length+1).padStart(3,'0')
+    setData(prev=>({...prev,testRuns:[...prev.testRuns,{id,title:newRunName.trim(),template:'Manual Test',date:sampleDate,cases:{'DP-203':'Not Run'}}],history:['Test Run 생성: '+id,...prev.history]}))
+    setSelectedRun(id);setNewRunName('');setNewRunOpen(false);announce('Test Run을 생성했습니다.')
+  }
+  const recordTest=(id:string,status:TestResult)=>{
+    if(!run)return
+    setData(prev=>({...prev,testRuns:prev.testRuns.map(r=>r.id===run.id?{...r,cases:{...r.cases,[id]:status}}:r),history:[run.id+' / '+id+' 시험 결과: '+status,...prev.history]}))
+    announce('시험 결과: '+status);if(status!=='Not Run')advance('record-test')
+  }
+  const attachCase=()=>{
+    if(!run||!runAttach||run.cases[runAttach])return
+    setData(prev=>({...prev,testRuns:prev.testRuns.map(r=>r.id===run.id?{...r,cases:{...r.cases,[runAttach]:'Not Run'}}:r),history:['Test Run에 Test Case 추가: '+runAttach,...prev.history]}))
+    announce('Test Case를 추가했습니다.')
+  }
+  const reset=()=>{
+    if(!window.confirm('Polarion 데모 데이터와 학습 진행을 초기 상태로 되돌릴까요?'))return
+    setData(seedPolarion());setSection('home');setSelected('DP-101');setSelectedDoc('DOC-001');setSelectedRun('TR-001')
+    setScenario(null);setTourDone(false);setTourStep(0);setSearch('');setTypeFilter('All');announce('데모 데이터 초기화 완료')
+  }
+  const openCreate=(type:WorkType='Requirement')=>{
+    setCreateType(type);setCreateOpen(true);setCreateTitle('');setCreateDescription('')
+  }
+  const renderHome=()=> <div className="pl-home">
+    <div className="pl-page-heading"><div><span>PROJECT HOME · DRIVE PILOT</span><h2>Drive Pilot Project</h2><p>요구사항부터 검증 결과까지 연결하는 제품 개발 ALM 학습 프로젝트</p></div><span className="pl-demo-tag">Sample Project / Training</span></div>
+    <div className="pl-home-overview"><div><span>WORK ITEMS</span><strong>{data.workItems.length}</strong><small>Requirements · Tests · Defects</small></div><div><span>REQUIREMENTS</span><strong>{requirements.length}</strong><small>요구사항</small></div><div><span>TEST RUNS</span><strong>{data.testRuns.length}</strong><small>검증 실행 단위</small></div><div><span>TRACE LINKS</span><strong>{data.links.length}</strong><small>연결된 관계</small></div></div>
+    <div className="pl-home-columns">
+      <section className="pl-card pl-home-welcome"><header><h3><Home size={17}/> Project Overview</h3><IconAction title="학습 안내" onClick={()=>go('guide')}><CircleHelp size={16}/></IconAction></header><div className="pl-home-body">
+        <h3>Welcome to Drive Pilot</h3><p>Polarion에서 요구사항을 Work Item으로 작성하고, LiveDoc에서 공유하고, Test Case로 검증하는 전체 업무 흐름을 직접 체험하세요.</p>
+        <div className="pl-home-shortcuts">{[{id:'work-items',title:'Browse Work Items',icon:SquareCheck},{id:'documents',title:'Open Documents',icon:FileText},{id:'test-runs',title:'Execute Test Run',icon:TestTube2},{id:'traceability',title:'Traceability',icon:Network}].map(n=><button key={n.id} onClick={()=>go(n.id as PolarionSection)}><n.icon size={19}/>{n.title}<ArrowRight size={14}/></button>)}</div>
+      </div></section>
+      <section className="pl-card pl-home-work"><header><h3><SquareCheck size={17}/> My Work Items</h3><button onClick={()=>go('work-items')}>Open <ArrowRight size={14}/></button></header><div>{data.workItems.filter(i=>i.status!=='Done').slice(0,5).map(i=><button key={i.id} className="pl-home-work-row" onClick={()=>{setSelected(i.id);go('work-items')}}><ItemIcon type={i.type}/><span><strong>{i.title}</strong><small>{i.id} · {i.type}</small></span>{labelStatus(i.status)}</button>)}</div></section>
+      <section className="pl-card pl-home-docs"><header><h3><FileText size={17}/> Documents & Pages</h3><button onClick={()=>go('documents')}>Browse <ArrowRight size={14}/></button></header>{data.documents.map(d=><button key={d.id} onClick={()=>{selectDoc(d.id);go('documents')}}><FileText size={21}/><span><strong>{d.title}</strong><small>Space: {d.space} · {d.status}</small></span><ChevronRight size={14}/></button>)}</section>
+      <section className="pl-card pl-home-progress"><header><h3><TestTube2 size={17}/> Test Progress</h3><button onClick={()=>go('test-runs')}>Test Runs <ArrowRight size={14}/></button></header>{data.testRuns.map(r=>{const stats=Object.values(r.cases),done=stats.filter(x=>x!=='Not Run').length;return <button className="pl-progress-row" key={r.id} onClick={()=>{setSelectedRun(r.id);go('test-runs')}}><span><strong>{r.title}</strong><small>{done} / {stats.length} executed</small></span><span className="pl-bar"><i style={{width:(done/Math.max(1,stats.length)*100)+'%'}}/></span></button>})}</section>
+    </div>
+    <div className="pl-home-guide"><BookOpen size={21}/><span><strong>Learn by doing</strong><small>원문 가이드에서 확인한 사용 흐름을 3개 실습으로 연습하세요.</small></span><button onClick={()=>startScenario('req')}>시작하기 <ArrowRight size={15}/></button></div>
+  </div>
+  const renderItemDetails=()=>{
+    if(!item)return <div className="pl-empty">Work Item을 선택하세요.</div>
+    const related=data.links.filter(l=>l.source===item.id||l.target===item.id)
+    return <div className="pl-item-details">
+      <div className="pl-item-title"><ItemIcon type={item.type}/><div><small>{item.type} · {item.id}</small><h3>{item.title}</h3></div>{labelStatus(item.status)}</div>
+      <div className="pl-commandbar"><strong>Work Item Editor</strong><div>{itemEditing?<><button onClick={saveItem}><Save size={15}/> Save</button><button onClick={()=>setItemEditing(false)}><X size={15}/> Cancel</button></>:<><button onClick={()=>setItemEditing(true)}><Pencil size={15}/> Edit</button><button onClick={()=>setShowLink(x=>!x)}><Link2 size={15}/> Link</button></>}</div></div>
+      {itemEditing?<div className="pl-edit-fields"><label>Title<input value={editTitle} onChange={e=>setEditTitle(e.target.value)}/></label><label>Assignee<input value={editAssignee} onChange={e=>setEditAssignee(e.target.value)}/></label><div className="pl-two-fields"><label>Status<select value={editStatus} onChange={e=>setEditStatus(e.target.value as WorkStatus)}>{STATUSES.map(s=><option key={s}>{s}</option>)}</select></label><label>Priority<select value={editPriority} onChange={e=>setEditPriority(e.target.value as typeof editPriority)}>{['High','Medium','Low'].map(s=><option key={s}>{s}</option>)}</select></label></div><label>Description<textarea rows={4} value={editDescription} onChange={e=>setEditDescription(e.target.value)}/></label></div>:<><div className="pl-property-grid">{[['Type',item.type],['Status',item.status],['Priority',item.priority],['Assignee',item.assignee],['Updated',item.updated]].map(([k,v])=><div key={k}><span>{k}</span><strong>{v}</strong></div>)}</div><h4 className="pl-section-title">Description</h4><p className="pl-description">{item.description}</p><div className="pl-status-quick"><label>Quick status change</label><select aria-label="빠른 상태 전환" value={item.status} onChange={e=>setItemStatus(e.target.value as WorkStatus)}>{STATUSES.map(s=><option key={s}>{s}</option>)}</select></div></>}
+      <div className="pl-section-heading"><h4><Link2 size={15}/> Linked Work Items</h4><button onClick={()=>setShowLink(v=>!v)}><Plus size={14}/> Add Link</button></div>
+      {related.length?related.map((l,i)=><div key={i} className="pl-linked-row"><Link2 size={14}/><span><small>{l.role}</small><strong>{l.source===item.id?l.target:l.source} · {byId(l.source===item.id?l.target:l.source)?.title}</strong></span><button title="연결 삭제" aria-label="연결 삭제" onClick={()=>{setData(prev=>({...prev,links:prev.links.filter(x=>x!==l)}));announce('연결을 해제했습니다.')}}><X size={14}/></button></div>):<p className="pl-muted">연결된 Work Item이 없습니다.</p>}
+      {showLink&&<div className="pl-inline-form"><label>Relation<select value={linkRole} onChange={e=>setLinkRole(e.target.value as typeof linkRole)}>{['verifies','relates to','depends on','implements'].map(x=><option key={x}>{x}</option>)}</select></label><label>Target<select value={linkTarget} onChange={e=>setLinkTarget(e.target.value)}>{data.workItems.filter(x=>x.id!==item.id).map(x=><option value={x.id} key={x.id}>{x.id} · {x.title}</option>)}</select></label><button className="pl-primary" onClick={addLink}><Plus size={14}/> Add Link</button></div>}
+      <div className="pl-section-heading"><h4><MessageSquare size={15}/> Comments ({item.comments.length})</h4></div>{item.comments.map((c,i)=><div className="pl-comment" key={i}><strong>Demo User</strong><p>{c}</p></div>)}
+      <div className="pl-comment-input"><input value={comment} onChange={e=>setComment(e.target.value)} placeholder="Add a comment" onKeyDown={e=>{if(e.key==='Enter')addComment()}}/><button onClick={addComment} disabled={!comment.trim()}>Add</button></div>
+    </div>
+  }
+  const renderWorkItems=()=> <div className="pl-view">
+    <div className="pl-page-heading"><div><span>DRIVE PILOT / TRACKER</span><h2>Work Items</h2><p>Requirement · Test Case · Defect · Task · Change Request</p></div><button className="pl-primary" onClick={()=>openCreate('Requirement')}><Plus size={15}/> Create Work Item</button></div>
+    <div className="pl-work-grid"><section className="pl-card pl-work-list">
+      <div className="pl-list-topbar"><div className="pl-view-select"><button className={view==='Table'?'selected':''} onClick={()=>setView('Table')}><List size={16}/> Table</button><button className={view==='Tree'?'selected':''} onClick={()=>setView('Tree')}><GitBranch size={15}/> Tree</button></div><div className="pl-spacer"/><strong>{filtered.length} Items</strong><IconAction title="필터 초기화" onClick={()=>{setSearch('');setTypeFilter('All');setStatusFilter('All')}}><RefreshCw size={15}/></IconAction></div>
+      <div className="pl-list-search"><Search size={17}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search Work Items by title or ID"/><select aria-label="종류 필터" value={typeFilter} onChange={e=>setTypeFilter(e.target.value as typeof typeFilter)}><option>All</option>{TYPES.map(t=><option key={t}>{t}</option>)}</select><select aria-label="상태 필터" value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}><option>All</option>{STATUSES.map(s=><option key={s}>{s}</option>)}</select></div>
+      <div className="pl-table-scroll"><table className="pl-table"><thead><tr><th>Key / ID</th><th>Title</th><th>Type</th><th>Status</th><th>Assignee</th></tr></thead><tbody>{visibleRows.map(({item:i,level,hasChildren})=><tr key={i.id} tabIndex={0} className={selected===i.id?'active':''} onKeyDown={e=>{if(e.key==='Enter')selectItem(i.id)}} onClick={()=>selectItem(i.id)}><td>{i.id}</td><td><span className="pl-table-title" style={{paddingLeft:view==='Tree'?level*21:0}}>{view==='Tree'&&(hasChildren?<button className="pl-tree-toggle" aria-expanded={treeOpen.includes(i.id)} aria-label={treeOpen.includes(i.id)?'하위 항목 접기':'하위 항목 펼치기'} onClick={e=>{e.stopPropagation();setTreeOpen(rows=>rows.includes(i.id)?rows.filter(x=>x!==i.id):[...rows,i.id])}}>{treeOpen.includes(i.id)?<ChevronDown size={14}/>:<ChevronRight size={14}/>}</button>:<span className="pl-tree-spacer"/>)}<ItemIcon type={i.type}/><strong>{i.title}</strong></span></td><td>{i.type}</td><td>{labelStatus(i.status)}</td><td>{i.assignee}</td></tr>)}</tbody></table>{filtered.length===0&&<div className="pl-empty">검색 조건에 맞는 Work Item이 없습니다.</div>}</div>
+      {view==='Tree'&&<div className="pl-table-hint"><GitBranch size={14}/> Tree View: 링크 방향에 따라 하위 항목을 배치했습니다. 화살표로 펼치고 접을 수 있습니다.</div>}
+    </section><aside className="pl-card pl-work-detail">{renderItemDetails()}</aside></div>
+  </div>
+  const renderDocuments=()=> <div className="pl-view"><div className="pl-page-heading"><div><span>DRIVE PILOT / DOCUMENTS</span><h2>Documents & Pages</h2><p>LiveDocs · Spaces · Work Items in Documents</p></div><button className="pl-primary" onClick={()=>setNewDocOpen(v=>!v)}><Plus size={15}/> Create Document</button></div>
+    {newDocOpen&&<div className="pl-creation-bar"><input placeholder="새 문서 이름" value={docName} onChange={e=>setDocName(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')createDoc()}}/><button className="pl-primary" onClick={createDoc} disabled={!docName.trim()}>Create</button><button onClick={()=>setNewDocOpen(false)}>Cancel</button></div>}
+    <div className="pl-doc-layout"><aside className="pl-card pl-doc-tree"><div className="pl-panel-title"><strong>Spaces</strong><span>DRIVE PILOT</span></div><div className="pl-tree-folder"><Folder size={17}/> Project Spaces</div>{[...new Set(data.documents.map(d=>d.space))].map(space=><div key={space}><div className="pl-tree-space"><ChevronDown size={14}/><Folder size={16}/> {space}</div>{data.documents.filter(d=>d.space===space).map(d=><button key={d.id} className={selectedDoc===d.id?'selected':''} onClick={()=>selectDoc(d.id)}><FileText size={16}/>{d.title}</button>)}</div>)}</aside>
+      <section className="pl-card pl-doc-editor"><div className="pl-document-nav"><span><Folder size={15}/> {doc?.space||'Default Space'} <ChevronRight size={13}/></span><strong>{doc?.title}</strong><span className="pl-spacer"/><span className="pl-demo-tag">{doc?.status}</span></div>
+        <div className="pl-document-toolbar"><strong><FileText size={18}/> {doc?.title}</strong><div><button onClick={()=>{if(!docSection)return;setDocEditing(true);setDocTitle(docSection.heading)}}><Pencil size={15}/> Edit Section</button><button onClick={addDocWorkItem}><Plus size={15}/> Add Work Item</button></div></div>
+        <div className="pl-document-body">{doc?.sections.map(s=><section className={'pl-doc-section '+(selectedSection===s.id?'selected':'')} key={s.id} onClick={()=>{setSelectedSection(s.id);setDocEditing(false)}}>
+          <h3>{s.heading}</h3><p>{s.body}</p>{s.workItemId&&<button className="pl-embedded-item" onClick={e=>{e.stopPropagation();setSelected(s.workItemId!);go('work-items')}}><ItemIcon type={byId(s.workItemId)?.type||'Requirement'}/><span><strong>{byId(s.workItemId)?.id}</strong> {byId(s.workItemId)?.title}</span><ChevronRight size={15}/></button>}
+        </section>)}</div>
+      </section>
+      <aside className="pl-card pl-doc-properties"><div className="pl-panel-title"><strong>Document Editor</strong><span>PROPERTIES</span></div><p className="pl-muted">문서 섹션을 선택하면 이 영역에서 편집할 수 있습니다.</p>
+        {docSection&&<div className="pl-property-box"><strong>{docSection.heading}</strong><p>{docSection.workItemId?'Linked: '+docSection.workItemId:'Text Section'}</p></div>}
+        {docEditing&&docSection&&<div className="pl-edit-fields"><label>Heading<input value={docTitle} onChange={e=>setDocTitle(e.target.value)}/></label><label>Body<textarea rows={7} value={docBody} onChange={e=>setDocBody(e.target.value)}/></label><div className="pl-command-actions"><button className="pl-primary" onClick={saveDoc}><Save size={14}/> Save</button><button onClick={()=>setDocEditing(false)}>Cancel</button></div></div>}
+        {!docEditing&&<button className="pl-secondary pl-full" onClick={()=>{if(!docSection)return;setDocTitle(docSection.heading);setDocEditing(true)}}><Pencil size={14}/> Edit selected section</button>}
+        <div className="pl-doc-attach"><strong><Link2 size={14}/> Insert Work Item</strong><select value={docAttach} onChange={e=>setDocAttach(e.target.value)}>{data.workItems.map(i=><option key={i.id} value={i.id}>{i.id} · {i.title}</option>)}</select><button className="pl-secondary" onClick={addDocWorkItem}><Plus size={14}/> Add to Document</button></div>
+        <div className="pl-inline-note"><CircleHelp size={15}/> 실제 Polarion LiveDoc은 문서 편집과 Work Item의 구조적 통합을 지원합니다. 여기서는 그 흐름만 학습합니다.</div>
+      </aside></div>
+  </div>
+  const renderPlans=()=> <div className="pl-view"><div className="pl-page-heading"><div><span>DRIVE PILOT / PLANNING</span><h2>Plans</h2><p>Release · Iteration · Work Items</p></div><button className="pl-primary" onClick={()=>setNewPlanOpen(v=>!v)}><Plus size={15}/> Create Plan</button></div>
+    {newPlanOpen&&<div className="pl-creation-bar"><input placeholder="예: Sprint 3" value={newPlanName} onChange={e=>setNewPlanName(e.target.value)}/><button className="pl-primary" disabled={!newPlanName.trim()} onClick={addPlan}>Create</button><button onClick={()=>setNewPlanOpen(false)}>Cancel</button></div>}
+    <div className="pl-data-layout"><section className="pl-card pl-entity-list"><div className="pl-panel-title"><strong>Plans ({data.plans.length})</strong><CalendarDays size={16}/></div>{data.plans.map(p=><button className={selectedPlan===p.id?'active':''} key={p.id} onClick={()=>setSelectedPlan(p.id)}><CalendarDays size={20}/><span><strong>{p.title}</strong><small>{p.start} — {p.end}</small></span>{labelStatus(p.status)}</button>)}</section>
+      <section className="pl-card pl-entity-body">{plan&&<><div className="pl-entity-title"><div><small>{plan.id} · Project Plan</small><h3>{plan.title}</h3></div>{labelStatus(plan.status)}</div><div className="pl-plan-properties"><div><span>Start Date</span><strong>{plan.start}</strong></div><div><span>End Date</span><strong>{plan.end}</strong></div><div><span>Planned Work Items</span><strong>{plan.workItemIds.length}</strong></div></div>
+        <div className="pl-section-heading"><h4>Plan Progress</h4><button onClick={updatePlanStatus}><RefreshCw size={14}/> Change Status</button></div><div className="pl-plan-progress"><div style={{width:plan.workItemIds.filter(finished).length/Math.max(plan.workItemIds.length,1)*100+'%'}}/><span>{plan.workItemIds.filter(finished).length} / {plan.workItemIds.length} completed</span></div>
+        <div className="pl-section-heading"><h4>Planned Work Items</h4></div>{plan.workItemIds.map(id=><div className="pl-plan-item" key={id}><ItemIcon type={byId(id)?.type||'Task'}/><span><strong>{id} · {byId(id)?.title}</strong><small>{byId(id)?.type}</small></span>{labelStatus(byId(id)?.status||'Open')}<button aria-label={id+' Plan에서 제거'} onClick={()=>setData(prev=>({...prev,plans:prev.plans.map(p=>p.id===plan.id?{...p,workItemIds:p.workItemIds.filter(x=>x!==id)}:p)}))}><X size={14}/></button></div>)}
+        <div className="pl-inline-form"><label>Add Work Item<select value={planAttach} onChange={e=>setPlanAttach(e.target.value)}>{data.workItems.map(i=><option key={i.id} value={i.id}>{i.id} · {i.title}</option>)}</select></label><button onClick={attachPlan} className="pl-primary" disabled={plan.workItemIds.includes(planAttach)}><Plus size={15}/> {plan.workItemIds.includes(planAttach)?'Already added':'Add to Plan'}</button></div>
+      </>}</section></div>
+  </div>
+  const renderRuns=()=> <div className="pl-view"><div className="pl-page-heading"><div><span>DRIVE PILOT / TEST MANAGEMENT</span><h2>Test Runs</h2><p>테스트 케이스 실행과 결과 기록</p></div><button className="pl-primary" onClick={()=>setNewRunOpen(v=>!v)}><Plus size={15}/> Create Test Run</button></div>
+    {newRunOpen&&<div className="pl-creation-bar"><input placeholder="새 Test Run 이름" value={newRunName} onChange={e=>setNewRunName(e.target.value)}/><button className="pl-primary" onClick={addRun} disabled={!newRunName.trim()}>Create</button><button onClick={()=>setNewRunOpen(false)}>Cancel</button></div>}
+    <div className="pl-data-layout"><section className="pl-card pl-entity-list"><div className="pl-panel-title"><strong>Test Runs ({data.testRuns.length})</strong><TestTube2 size={17}/></div>{data.testRuns.map(r=><button key={r.id} className={selectedRun===r.id?'active':''} onClick={()=>{setSelectedRun(r.id);advance('select-run')}}><TestTube2 size={20}/><span><strong>{r.title}</strong><small>{r.id} · {r.template}</small></span><ChevronRight size={15}/></button>)}</section>
+      <section className="pl-card pl-entity-body">{run&&<><div className="pl-entity-title"><div><small>{run.id} · {run.template}</small><h3>{run.title}</h3></div><span className="pl-demo-tag">Manual Test</span></div>
+        <div className="pl-run-stats">{RESULTS.map(result=><div key={result} className={'result-'+result.toLowerCase().replace(' ','-')}><strong>{Object.values(run.cases).filter(v=>v===result).length}</strong><small>{result}</small></div>)}</div>
+        <div className="pl-section-heading"><h4>Test Records</h4><span>{Object.values(run.cases).filter(v=>v!=='Not Run').length} / {Object.keys(run.cases).length} executed</span></div>
+        <div className="pl-table-scroll"><table className="pl-table pl-test-table"><thead><tr><th>Test Case</th><th>Result</th><th>Action</th></tr></thead><tbody>{Object.entries(run.cases).map(([id,result])=><tr key={id}><td><span className="pl-test-id">{id}</span><strong>{byId(id)?.title||id}</strong></td><td>{labelStatus(result)}</td><td><select aria-label={id+' 실행 결과'} value={result} onChange={e=>recordTest(id,e.target.value as TestResult)}>{RESULTS.map(x=><option key={x}>{x}</option>)}</select></td></tr>)}</tbody></table></div>
+        <div className="pl-inline-form"><label>Add Test Case<select value={runAttach} onChange={e=>setRunAttach(e.target.value)}>{testCases.map(i=><option value={i.id} key={i.id}>{i.id} · {i.title}</option>)}</select></label><button className="pl-secondary" onClick={attachCase} disabled={Boolean(run.cases[runAttach])}><Plus size={14}/> Add</button></div>
+        <div className="pl-run-summary"><CheckCircle2 size={18}/><span>현재 실행률: <strong>{Math.round(Object.values(run.cases).filter(v=>v!=='Not Run').length/Math.max(Object.keys(run.cases).length,1)*100)}%</strong></span><button onClick={()=>{advance('view-test');announce('Test Run 실행 결과를 확인했습니다.')}}>Review Summary <ArrowRight size={14}/></button></div>
+      </>}</section></div>
+  </div>
+  const renderTrace=()=> <div className="pl-view"><div className="pl-page-heading"><div><span>DRIVE PILOT / RELATIONS</span><h2>Traceability</h2><p>요구사항이 어떤 Test Case로 검증되는지 연결 관계를 탐색하세요.</p></div><button className="pl-secondary" onClick={()=>go('work-items')}><Link2 size={15}/> Manage Links</button></div>
+    <div className="pl-card pl-trace-graph"><div className="pl-panel-title"><strong>Requirements → Verification</strong><span>{data.links.length} trace links</span></div><div className="pl-trace-columns"><div className="pl-trace-column"><h3>Requirements</h3>{requirements.map(i=><button key={i.id} className={selected===i.id?'active':''} onClick={()=>{setSelected(i.id);go('work-items')}}><ItemIcon type="Requirement"/><span><strong>{i.id}</strong><small>{i.title}</small></span><ChevronRight size={15}/></button>)}</div><div className="pl-trace-middle"><Network size={38}/><span>linked to / verified by</span><svg viewBox="0 0 120 160" preserveAspectRatio="none" aria-hidden="true"><path d="M1 22 C50 22 70 24 119 22 M1 78 C50 78 70 81 119 78 M1 136 C50 136 70 136 119 136" stroke="#6cacc1" strokeWidth="2" fill="none" strokeDasharray="6 4"/><path d="M114 16l5 6-5 6m0 44l5 6-5 6m0 44l5 6-5 6" stroke="#3687a2" strokeWidth="2" fill="none"/></svg></div><div className="pl-trace-column"><h3>Test Cases</h3>{testCases.map(i=><button key={i.id} className={selected===i.id?'active':''} onClick={()=>{setSelected(i.id);go('work-items')}}><ItemIcon type="Test Case"/><span><strong>{i.id}</strong><small>{i.title}</small></span><ChevronRight size={15}/></button>)}</div></div>
+    <div className="pl-trace-links"><h3><Link2 size={16}/> 실제 연결된 Work Item 관계 (Demo)</h3><div>{data.links.map((l,i)=><button key={i} onClick={()=>{setSelected(l.source);go('work-items')}}><span>{l.source} <small>{byId(l.source)?.title}</small></span><strong>{l.role}</strong><ArrowRight size={15}/><span>{l.target} <small>{byId(l.target)?.title}</small></span></button>)}</div></div></div>
+    <div className="pl-inline-note"><CircleHelp size={15}/> 도해의 좌우 배치는 개념 설명용이며, 실제 연결은 아래 관계 목록에서 확인하세요. 링크 유형과 방향은 프로젝트 설정에 따라 달라집니다.</div>
+  </div>
+  const renderGuide=()=> <div className="pl-view"><div className="pl-page-heading"><div><span>POLARION 2606 / USER GUIDE</span><h2>Getting Started & Help</h2><p>제공하신 Siemens Polarion 2606 원문을 참고한 입문 가이드입니다.</p></div></div>
+    <div className="pl-guide-intro"><BookOpen size={28}/><div><h3>Learn Polarion by doing</h3><p>Work Items · LiveDocs · Plans · Test Runs · Traceability를 실제 화면처럼 조작하며 배웁니다.</p></div><button className="pl-primary" onClick={()=>startScenario('req')}>첫 실습 <ArrowRight size={15}/></button></div>
+    <div className="pl-guide-heading"><h3>Guided Tutorials</h3><small>실습 단계는 왼쪽 메뉴와 업무 화면에 연결됩니다.</small></div><div className="pl-scenario-grid">{polarionScenarios.map((s,i)=><button key={s.id} onClick={()=>startScenario(s.id)}><span>0{i+1}</span><strong>{s.title}</strong><small>{s.steps.length} Steps</small><ArrowRight size={17}/></button>)}</div>
+    <div className="pl-guide-heading"><h3>Terminology</h3><label><Search size={16}/><input value={guideSearch} onChange={e=>setGuideSearch(e.target.value)} placeholder="Search terms"/></label></div><div className="pl-terms">{polarionTerms.filter(t=>t.join(' ').toLowerCase().includes(guideSearch.toLowerCase())).map(([term,desc])=><div key={term}><strong>{term}</strong><p>{desc}</p></div>)}</div>
+    <div className="pl-guide-heading"><h3>Reference Source</h3></div><a className="pl-source" target="_blank" rel="noreferrer" href={polarionSource.url}><FileText size={23}/><span><strong>{polarionSource.title}</strong><small>Google Drive 원문 문서 · 접근 권한이 필요할 수 있습니다.</small></span><ArrowRight size={17}/></a>
+    <p className="pl-legal">본 페이지는 Siemens의 공식 제품 또는 실제 Polarion 서버가 아닌 독자 제작 학습용 시뮬레이터입니다. 원문 문서의 스크린샷을 공개적으로 재배포하지 않았습니다. 실제 화면·유형·상태·권한·워크플로는 프로젝트 구성에 따라 달라질 수 있습니다.</p>
+  </div>
+  const content=()=>{
+    switch(section){case 'home':return renderHome();case 'work-items':return renderWorkItems();case 'documents':return renderDocuments();case 'plans':return renderPlans();case 'test-runs':return renderRuns();case 'traceability':return renderTrace();case 'guide':return renderGuide()}
+  }
+  return <div className="pl-demo-root">
+    <div className="pl-backbar"><button onClick={onBack}><ArrowLeft size={15}/> Siemens 아키텍처</button><ChevronRight size={14}/><span>Polarion 2606 사용자 체험</span><span className="pl-spacer"/><span className="pl-training-badge"><ShieldCheck size={13}/> LEARNING SANDBOX</span></div>
+    <div className="pl-introduction"><div><span>POLARION ALM 2606 · INTERACTIVE EXPERIENCE</span><h1>Polarion 사용자 가이드</h1><p>원문에 설명된 Navigation·Work Items·LiveDocs·Plans·Test Runs를 독자적인 체험 UI로 구성했습니다.</p></div><button onClick={()=>go('guide')}><BookOpen size={15}/> 사용자 가이드</button><button onClick={reset}><RefreshCw size={15}/> 초기화</button></div>
+    <div className="pl-workspace">
+      <header className="pl-header"><button className="pl-brand" onClick={()=>go('home')} title="Home"><span className="pl-brand-glyph">P</span><span>POLARION</span></button>
+        <button className="pl-context" onClick={()=>{setSidebar(true);go('home')}}><span className="pl-project-icon"><GitBranch size={20}/></span><strong>Drive Pilot <ChevronDown size={13}/></strong></button>
+        <div className="pl-header-path"><ChevronRight size={15}/><span>{NAV.find(n=>n.id===section)?.title}</span></div><span className="pl-spacer"/>
+        <div className="pl-header-actions"><button className="pl-quick-create" onClick={()=>openCreate()}><Plus size={15}/> CREATE...</button><IconAction title="사용자 도움말" onClick={()=>go('guide')}><CircleHelp size={18}/></IconAction><IconAction title="알림" onClick={()=>announce('이 데모에는 서버 알림이 없습니다.')}><Bell size={18}/></IconAction><IconAction title="세션 도구" onClick={()=>setProfile(v=>!v)}><Settings size={18}/></IconAction></div>
+        {profile&&<div className="pl-profile-menu"><strong>Demo User</strong><small>Demo project / local simulation</small><button onClick={()=>{setTools(true);setProfile(false)}}>Tools / Settings</button><button onClick={()=>{setProfile(false);go('guide')}}>Help</button></div>}
+      </header>
+      <div className="pl-main">
+        <aside className={'pl-sidebar '+(!sidebar?'collapsed':'')+(menuOpen?' mobile-open':'')}>
+          <div className="pl-sidebar-top"><button title="Topics/Tools 변경" aria-label="Topics 또는 Tools 변경" onClick={()=>setTools(v=>!v)}><Settings size={18}/></button><button title="즐겨찾기" onClick={()=>go('home')}><Grid2X2 size={18}/></button><button className="pl-collapse" title={sidebar?'탐색 축소':'탐색 확장'} aria-label="탐색 영역 접기/펼치기" onClick={()=>setSidebar(v=>!v)}>{sidebar?<ChevronLeft size={18}/>:<ChevronRight size={18}/>}</button></div>
+          {sidebar&&<><label className="pl-sidebar-search"><Search size={15}/><input placeholder="Search Topics" value={navSearch} onChange={e=>setNavSearch(e.target.value)}/></label>
+            <div className="pl-side-profile"><span className="pl-avatar">D</span><div><small>Demo User</small><strong>{tools?'Tools':'Drive Pilot'}</strong></div></div>
+          </>}
+          <nav className="pl-topics" aria-label="Polarion 데모 탐색">{tools?<>{[{title:'My Account',icon:Settings,action:()=>setProfile(true)},{title:'Manage Shortcuts',icon:Grid2X2,action:()=>announce('학습용 환경에서는 바로가기가 고정되어 있습니다.')},{title:'Help',icon:CircleHelp,action:()=>go('guide')},{title:'Topics',icon:List,action:()=>setTools(false)}].map(n=><button key={n.title} title={n.title} onClick={n.action}><n.icon size={17}/>{sidebar&&<span>{n.title}</span>}</button>)}</>:NAV.filter(n=>n.title.toLowerCase().includes(navSearch.toLowerCase())||!navSearch).map(n=><button key={n.id} className={section===n.id?'active':''} title={n.detail} onClick={()=>go(n.id)}><n.icon size={18}/>{sidebar&&<span>{n.title}</span>}</button>)}</nav>
+          {sidebar&&<div className="pl-sidebar-footer"><small>Polarion 2606 concepts</small><span>Demo only · No server access</span></div>}
+        </aside>
+        <main className="pl-main-panel"><div className="pl-location"><button className="pl-mobile-menu" onClick={()=>setMenuOpen(v=>!v)} aria-label="프로젝트 메뉴 열기"><Menu size={17}/></button><span>Drive Pilot</span><ChevronRight size={13}/><strong>{NAV.find(n=>n.id===section)?.title}</strong><span className="pl-spacer"/><span>DEMO PROJECT</span></div>
+          {scenarioInfo&&<div className={'pl-tour '+(tourDone?'complete':'')}><div className="pl-tour-step"><span>GUIDED PRACTICE · {scenarioInfo.title}</span><strong>{tourDone?'실습 완료':tourCurrent?.title}</strong><p>{tourDone?'실습 단계를 모두 완료했습니다.':tourCurrent?.description}</p></div><div className="pl-tour-progress"><span>STEP {tourStep+1}/{scenarioInfo.steps.length}</span><div>{scenarioInfo.steps.map((s,i)=><i key={s.title} className={tourDone||i<=tourStep?'active':''}/>)}</div></div><div className="pl-tour-buttons">{!tourDone&&tourCurrent?.section!==section&&<button onClick={()=>go(tourCurrent!.section)}>화면 열기</button>}{!tourDone&&<button onClick={()=>{if(tourStep===scenarioInfo.steps.length-1)setTourDone(true);else setTourStep(x=>x+1)}}>단계 건너뛰기</button>}<button onClick={()=>setScenario(null)}><X size={16}/></button></div></div>}
+          <div className="pl-content">{content()}</div>
+        </main>
+      </div>
+      <footer className="pl-statusbar"><span><span className="pl-connection-dot"/> WORKSPACE: TRAINING DEMO</span><span>Sample data · Saved in browser</span><button onClick={()=>go('guide')}><CircleHelp size={14}/> Help</button></footer>
+    </div>
+    <div className="pl-after-demo"><ShieldCheck size={19}/><span>이 페이지는 학습용 가상 데이터로만 동작합니다. Polarion 서버에 연결되거나 실제 프로젝트를 변경하지 않습니다.</span></div>
+    {createOpen&&<div className="pl-modal-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setCreateOpen(false)}}><div className="pl-modal" role="dialog" aria-modal="true" aria-label="Create Work Item"><header><strong><Plus size={18}/> Create Work Item</strong><IconAction title="닫기" onClick={()=>setCreateOpen(false)}><X size={19}/></IconAction></header><div className="pl-edit-fields"><label>Project<input readOnly value="Drive Pilot"/></label><label>Work Item Type<select value={createType} onChange={e=>setCreateType(e.target.value as WorkType)}>{TYPES.map(t=><option key={t}>{t}</option>)}</select></label><label>Title *<input value={createTitle} autoFocus placeholder="Enter Work Item title" onChange={e=>setCreateTitle(e.target.value)} maxLength={120}/></label><label>Description<textarea rows={5} value={createDescription} onChange={e=>setCreateDescription(e.target.value)} maxLength={2000}/></label></div><footer><button onClick={()=>setCreateOpen(false)}>Cancel</button><button className="pl-primary" onClick={createItem} disabled={!createTitle.trim()}><Check size={15}/> Create</button></footer></div></div>}
+    {message&&<div role="status" className="pl-toast"><CheckCircle2 size={17}/>{message}<button onClick={()=>setMessage('')} aria-label="알림 닫기"><X size={14}/></button></div>}
+  </div>
+}

@@ -65,7 +65,7 @@ const relationNodes=[
   {title:'요구사항·검증',subtitle:'Polarion',details:'요구사항, 테스트, 추적 가능한 업무 항목'},
   {title:'연결 관계',subtitle:'Integration',details:'양쪽의 변경 영향·참조·책임 범위'}
 ]
-export default function SiemensArchitect({onHome,onTeamcenterDemo}:{onHome:()=>void;onTeamcenterDemo:()=>void}) {
+export default function SiemensArchitect({onHome,onTeamcenterDemo,onPolarionDemo}:{onHome:()=>void;onTeamcenterDemo:()=>void;onPolarionDemo:()=>void}) {
   const [product,setProduct]=useState<Product>('teamcenter')
   const [view,setView]=useState<View>('infra')
   const [selected,setSelected]=useState('experience')
@@ -87,7 +87,10 @@ export default function SiemensArchitect({onHome,onTeamcenterDemo}:{onHome:()=>v
         <span className="sa-product-name"><strong>{products[v].label}</strong><small>{products[v].subtitle}</small></span><span className="sa-product-version">2606</span><ArrowRight size={20}/>
       </button>)}
     </div>
-    <div className="sa-user-guide-entry"><div><span>NEW · INTERACTIVE USER GUIDE</span><h3>Teamcenter, 실제 화면처럼 직접 체험해 보세요.</h3><p>검색 · Item/Revision · BOM · 문서 · 워크플로 · 변경 관리 · 3D 개념 보기</p></div><button type="button" onClick={onTeamcenterDemo}>Teamcenter 사용자 가이드 열기 <ArrowRight size={17}/></button></div>
+    <div className="sa-learning-entries">
+      <div className="sa-user-guide-entry"><div><span>INTERACTIVE USER GUIDE · TEAMCENTER 2606</span><h3>Teamcenter 화면을 직접 체험하세요.</h3><p>Active Workspace · Item/Revision · BOM · 문서 · 승인 · 변경 관리</p></div><button type="button" onClick={onTeamcenterDemo}>Teamcenter 데모 열기 <ArrowRight size={17}/></button></div>
+      <div className="sa-user-guide-entry sa-polarion-guide-entry"><div><span>INTERACTIVE USER GUIDE · POLARION 2606</span><h3>Polarion ALM을 직접 체험하세요.</h3><p>Work Items · Requirements · LiveDocs · Plans · Test Runs · Traceability</p></div><button type="button" onClick={onPolarionDemo}>Polarion 데모 열기 <ArrowRight size={17}/></button></div>
+    </div>
     <div className="sa-workspace">
       <div className="sa-workspace-header">
         <div><span className="sa-section-no">01 / EXPLORE</span><h2>{config.full} <span>설계 가이드</span></h2></div>

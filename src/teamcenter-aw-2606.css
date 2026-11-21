@@ -335,3 +335,46 @@
 .tcg-folder-tree-caption{display:flex;align-items:center;gap:6px;color:#547b8c;font-size:11px;font-weight:750;border-top:1px solid #dce7eb;border-bottom:1px solid #e4ecef;padding:10px 7px;margin:4px 0 3px}
 .tcg-folders>button{justify-content:flex-start}
 @media(max-width:760px){.tcg-page{padding-top:8px}.tcg-folder-tree-caption{width:100%}}
+
+/* Teamcenter 2606 contextual work-area command strips */
+.tcg-inspector-commandbar,.tcg-document-commandbar{
+  display:flex;align-items:center;justify-content:space-between;gap:9px;min-height:39px;
+  border-bottom:1px solid #cbdbe2;background:#f5f8fa;padding:4px 8px;
+  margin:-13px -13px 16px;color:#426778
+}
+.tcg-inspector-commandbar>strong,.tcg-document-commandbar>strong{
+  min-width:0;flex:0 1 auto;font:700 10px Arial,sans-serif;color:#567f91;white-space:nowrap
+}
+.tcg-inspector-commands{display:flex;align-items:center;justify-content:flex-end;gap:2px;flex:1;min-width:0}
+.tcg-inspector-command,.tcg-document-commandbar>button{
+  background:transparent;border:1px solid transparent;display:flex;align-items:center;
+  justify-content:center;gap:5px;padding:6px 7px;color:#276e88;font:600 10px Arial,sans-serif;
+  border-radius:1px;white-space:nowrap
+}
+.tcg-inspector-command:hover,.tcg-document-commandbar>button:hover{
+  color:#155f7b;border-color:#adcfdc;background:#e4f2f7
+}
+.tcg-inspector-command.primary{color:#fff;background:#1a85a9;border-color:#1a85a9}
+.tcg-inspector-command.primary:hover{background:#0b678b}
+.tcg-aw-preview .tcg-inspector-commandbar{margin:-13px -13px 15px}
+.tcg-aw-preview .tcg-inspector-commandbar>strong{display:none}
+.tcg-aw-preview .tcg-inspector-commands{justify-content:flex-start}
+.tcg-aw-preview .tcg-inspector-command{padding:7px 10px}
+.tcg-aw-preview .tcg-object-head{margin-top:9px}
+.tcg-aw-preview .tcg-property-table{margin-top:16px}
+.tcg-aw-preview .tcg-description{margin:15px 0}
+.tcg-aw-preview .tcg-explain{margin-top:15px}
+.tcg-document-commandbar{margin:-13px -13px 16px;min-height:45px}
+.tcg-document-commandbar>strong{font-size:12px}
+.tcg-document-commandbar>button{font-size:10px}
+.tcg-inspector-content .tcg-form{margin:12px 0}
+.tcg-inspector-command:focus-visible,.tcg-document-commandbar>button:focus-visible{
+  outline:2px solid #268cb2;outline-offset:2px
+}
+@media(max-width:540px){
+ .tcg-inspector-commands{flex-wrap:wrap}
+ .tcg-inspector-commandbar{align-items:flex-start}
+ .tcg-inspector-command{padding:6px}
+ .tcg-inspector-command span{font-size:9px}
+ .tcg-aw-preview .tcg-inspector-commandbar>strong{display:none}
+}

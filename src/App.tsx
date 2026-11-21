@@ -7,6 +7,7 @@ import SystemsFlowGallery, { SystemsFlowFocus, stageFlow } from './SystemsFlowAt
 import { topicBeginners, topicStepBasics } from './systemsTopicBeginner'
 const SiemensArchitect=lazy(()=>import('./SiemensArchitect'))
 const TeamcenterUserDemo=lazy(()=>import('./TeamcenterUserDemo'))
+const PolarionUserDemo=lazy(()=>import('./PolarionUserDemo'))
 const ComputerAtlas=lazy(()=>import('./ComputerAtlas'))
 import { categories, categoryById, generalTopics, topicById } from './data'
 import type { Topic, Area, Category } from './data'
@@ -17,7 +18,7 @@ import './service-examples.css'
 import './home-polish.css'
 import './mobile-clarity.css'
 
-type Route = {area: Area|'computer'; page:'home'|'category'|'topic'|'saved'|'tc-demo';id?:string}
+type Route = {area: Area|'computer'; page:'home'|'category'|'topic'|'saved'|'tc-demo'|'polarion-demo';id?:string}
 const routeFromHash = ():Route => {
   const paths=decodeURIComponent(window.location.hash.slice(1)).split('/').filter(Boolean)
   if(paths[0]==='computer'){
@@ -26,6 +27,7 @@ const routeFromHash = ():Route => {
     return {area:'computer',page:'home'}
   }
   if(paths[0]==='siemens'&&paths[1]==='teamcenter-demo')return {area:'siemens',page:'tc-demo'}
+  if(paths[0]==='siemens'&&paths[1]==='polarion-demo')return {area:'siemens',page:'polarion-demo'}
   const area:Area=paths[0]==='siemens'?'siemens':'general'
   const category=paths[1]==='category'?categoryById(paths[2]||''):undefined
   if(category?.area===area)return {area,page:'category',id:category.id}
@@ -34,7 +36,7 @@ const routeFromHash = ():Route => {
   if(t?.area===area)return {area,page:'topic',id:t.id}
   return {area,page:'home'}
 }
-const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/'+(r.area==='computer'?'chapter':'category')+'/'+r.id:r.page==='saved'?'/saved':r.page==='tc-demo'?'/teamcenter-demo':'')
+const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/'+(r.area==='computer'?'chapter':'category')+'/'+r.id:r.page==='saved'?'/saved':r.page==='tc-demo'?'/teamcenter-demo':r.page==='polarion-demo'?'/polarion-demo':'')
 const technicalName = (t:Topic) => ({
   ai:'AI', 'machine-learning':'Machine Learning', 'deep-learning':'Deep Learning',
   'neural-networks':'Neural Network', 'supervised-learning':'Supervised Learning',
@@ -123,8 +125,9 @@ function App(){
     </header>
     <main className="site-main">
       {route.page==='home'&&route.area==='general'&&<HomePage onTopic={openTopic} onCategory={openCategory} onSearch={()=>setSearchOpen(true)}/>}
-      {route.page==='home'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Siemens 아키텍처 화면을 준비하고 있습니다.</div>}><SiemensArchitect onHome={home} onTeamcenterDemo={()=>navigate({area:'siemens',page:'tc-demo'})}/></Suspense>}
+      {route.page==='home'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Siemens 아키텍처 화면을 준비하고 있습니다.</div>}><SiemensArchitect onHome={home} onTeamcenterDemo={()=>navigate({area:'siemens',page:'tc-demo'})} onPolarionDemo={()=>navigate({area:'siemens',page:'polarion-demo'})}/></Suspense>}
       {route.page==='tc-demo'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Teamcenter 학습 화면을 준비하고 있습니다.</div>}><TeamcenterUserDemo onBack={()=>navigate({area:'siemens',page:'home'})}/></Suspense>}
+      {route.page==='polarion-demo'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Polarion 학습 화면을 준비하고 있습니다.</div>}><PolarionUserDemo onBack={()=>navigate({area:'siemens',page:'home'})}/></Suspense>}
       {route.area==='computer'&&<Suspense fallback={<div className="computer-page-loading" role="status">컴퓨터 구조 학습 화면을 준비하고 있습니다.</div>}><ComputerAtlas view={route.page==='category'?'chapter':route.page==='topic'?'topic':'home'} id={route.id} onTopic={computerTopic} onChapter={computerChapter} onHome={computerHome}/></Suspense>}
       {route.page==='category'&&category&&<TopicCollection key={category.id} category={category} onTopic={openTopic} onHome={home}/>}
       {route.page==='saved'&&<SavedCollection ids={saved} onTopic={openTopic} onHome={home}/>}
