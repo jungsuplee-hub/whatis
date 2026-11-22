@@ -1,9 +1,9 @@
-import {useEffect, useMemo, useState} from 'react'
+import {useEffect, useMemo, useRef, useState} from 'react'
 import {
   ArrowLeft, ArrowRight, BookOpen, Box, Check, CheckCircle2, ChevronDown,
   ChevronRight, CircleHelp, ClipboardCheck, ExternalLink, FileCheck2, FileText, Filter,
   Folder, FolderOpen, GitBranch, Home, Layers3, ListTree, Maximize2, Menu, Minus,
-  Package, Plus, RotateCcw, RotateCw, Save, Search, ShieldCheck, Workflow, X,
+  Package, Pin, PinOff, Plus, RotateCcw, RotateCw, Save, Search, ShieldCheck, Workflow, X,
   Bell, Grid3X3, MessageSquare, Pencil, LayoutDashboard, Maximize, Minimize
 } from 'lucide-react'
 import {
@@ -76,9 +76,15 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   const [whereUsed,setWhereUsed]=useState(false)
   const [selectedFolder,setSelectedFolder]=useState(()=>pickSaved('folder','제품 개발'))
   const [showCreate,setShowCreate]=useState(false)
+  const [showCreateMenu,setShowCreateMenu]=useState(false)
+  const [pinCreate,setPinCreate]=useState(false)
+  const [typeSearch,setTypeSearch]=useState('')
   const [createKind,setCreateKind]=useState<NewItemType>('Item')
   const [newName,setNewName]=useState('')
+  const [newId,setNewId]=useState('')
+  const [newRevision,setNewRevision]=useState('A')
   const [newDescription,setNewDescription]=useState('')
+  const createNameRef=useRef<HTMLInputElement>(null)
   const [fileName,setFileName]=useState('')
   const [comment,setComment]=useState('')
   const [affectedId,setAffectedId]=useState('DEMO-1300')
@@ -139,10 +145,25 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   }),[records,query,kindFilter,statusFilter])
   const filteredDocs=records.filter(r=>r.kind==='Document')
   const folders=['제품 개발','전장 설계','기구 설계','제품 문서']
+  const makeAutoObjectId=()=>{
+    let serial=200+records.length
+    let candidate='DEMO-'+(createKind==='Document'?'D':'')+serial
+    while(records.some(r=>r.id===candidate)){
+      serial+=1;candidate='DEMO-'+(createKind==='Document'?'D':'')+serial
+    }
+    return candidate
+  }
+  const proposedId=newId.trim()||makeAutoObjectId()
+  const duplicateId=records.some(record=>record.id===proposedId)
+  const canAddObject=Boolean(newName.trim()&&newRevision.trim()&&!duplicateId)
+  const openAddPanel=()=>{
+    setShowCreate(true);setShowCreateMenu(false);setEditor(false)
+    setLauncherOpen(false);setProfileOpen(false);setNotificationsOpen(false)
+  }
   const advance=(event:string)=>course.mark(event)
   const notify=(message:string)=>{setToast(message);window.setTimeout(()=>setToast(s=>s===message?'':s),4500)}
   const go=(s:Section)=>{
-    setSection(s);setMobileNav(false);setLauncherOpen(false);setProfileOpen(false);setNotificationsOpen(false);setWorkMode('Content')
+    setSection(s);setMobileNav(false);setLauncherOpen(false);setProfileOpen(false);setNotificationsOpen(false);setWorkMode('Content');setShowCreateMenu(false);if(s!=='explorer')setShowCreate(false);if(s!=='changes')setShowCreateChange(false)
     if(s==='inbox')advance('open-inbox')
     else if(s==='home')advance('open-home')
     else if(s==='guide')advance('open-guide')
@@ -178,14 +199,20 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
     notify('리비전 '+record.revision+' → '+next+' (시뮬레이션)');advance('new-revision')
   }
   const addRecord=()=>{
-    if(!newName.trim())return
-    const id='DEMO-'+(createKind==='Document'?'D':'')+(200+data.records.length)
-    const r:DemoRecord={id,name:newName.trim(),kind:createKind,revision:'A',status:'작업 중',owner:'데모 사용자',description:newDescription||'학습용으로 추가한 항목',folder:selectedFolder,modified:demoDate()}
-    setData(old=>({...old,records:[...old.records,r],history:['새 객체 생성: '+r.id,...old.history]}))
+    if(!canAddObject)return
+    const id=proposedId
+    const r:DemoRecord={id,name:newName.trim(),kind:createKind,revision:newRevision.trim(),status:'작업 중',owner:'데모 사용자',description:newDescription||'학습용으로 추가한 항목',folder:selectedFolder,modified:demoDate()}
+    setData(old=>({...old,records:[...old.records,r],history:['새 객체 생성: '+r.id+' / '+r.revision+' · '+r.folder,...old.history]}))
     setSelectedId(id);if(createKind==='Document')setSelectedDocId(id)
-    setNewName('');setNewDescription('');setShowCreate(false)
+    setNewId('')
+    if(!pinCreate){
+      setNewName('');setNewDescription('');setNewRevision('A');setShowCreate(false)
+    }else{
+      window.requestAnimationFrame(()=>createNameRef.current?.focus())
+    }
     if(createKind==='Item')setNewBomId(id)
-    notify('새 '+(createKind==='Document'?'문서':'아이템')+'을 생성했습니다.');advance(createKind==='Document'?'create-document':'create-record')
+    notify('새 '+(createKind==='Document'?'문서':'아이템')+'을 '+selectedFolder+'에 추가했습니다.')
+    advance(createKind==='Document'?'create-document':'create-record')
   }
   const submitReview=(id:string)=>{
     if(!byId(id))return
@@ -239,7 +266,7 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   }
   const reset=(ask=true)=>{
     if(ask&&!window.confirm('학습용 부품, 문서, 작업, BOM, 실습 진행을 처음 상태로 되돌릴까요?'))return
-    course.reset();setShowCreateChange(false);setData(createDemoData());setSection('home')
+    course.reset();setShowCreateChange(false);setShowCreate(false);setShowCreateMenu(false);setPinCreate(false);setNewName('');setNewId('');setNewRevision('A');setNewDescription('');setTypeSearch('');setData(createDemoData());setSection('home')
     setSelectedId('DEMO-1100');setSelectedTaskId('TASK-001');setSelectedDocId('DEMO-D202');setSelectedOccurrence('occ-1');setSelectedChangeId('CN-2026-014');setSelectedFolder('제품 개발')
     setOpenRows(['occ-0']);setEditor(false);setWorkflowTarget(null);notify('데모 데이터가 초기화되었습니다.')
   }
@@ -250,6 +277,20 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
     setSelectedChangeId(newId);setShowCreateChange(false);setChangeName('');setChangeReason('')
     notify('변경 통지 '+newId+' 생성 완료');advance('create-change')
   }
+  const renderCreateChangePanel=()=> <aside className="tcg-change-new tcg-add-panel" role="dialog" aria-modal="false" aria-label="Create Change 패널">
+    <header className="tcg-add-head"><div><span>CHANGE MANAGEMENT / NEW</span><h3>Create Change</h3><small>New · Change Notice</small></div><div className="tcg-add-head-actions"><IconBtn title="Create Change 패널 닫기" onClick={()=>setShowCreateChange(false)}><X size={18}/></IconBtn></div></header>
+    <div className="tcg-add-scroll">
+      <div className="tcg-add-context"><GitBranch size={16}/><span>CHANGE TYPE <strong>Change Notice</strong></span></div>
+      <div className="tcg-add-section"><span>01 / CREATE</span><h4>Change properties <b>*</b></h4>
+        <div className="tcg-add-summary"><div><span>ID</span><strong>{'CN-2026-'+String(15+data.changes.length).padStart(3,'0')}</strong></div><div><span>Revision</span><strong>A (학습용)</strong></div></div>
+        <label className="tcg-add-field">Synopsis <b>*</b><input aria-label="새 Change Notice 제목" autoFocus value={changeName} onChange={e=>setChangeName(e.target.value)} placeholder="변경 제목 입력"/></label>
+        <label className="tcg-add-field">Description <b>*</b><textarea aria-label="새 Change Notice 사유" value={changeReason} onChange={e=>setChangeReason(e.target.value)} rows={5} placeholder="변경이 필요한 이유와 범위"/></label>
+      </div>
+      <div className="tcg-add-section"><span>02 / AFTER CREATION</span><h4>다음 단계</h4><p className="tcg-add-quiet">Create로 생성한 변경 통지는 초안으로 등록됩니다. 이후 Affected Items를 추가하고 검토를 요청하는 연습으로 이어집니다.</p></div>
+      <p className="tcg-add-help"><CircleHelp size={15}/> 이 패널은 Change Management on Active Workspace 2606의 Create Change 흐름을 참고한 간소화된 데모입니다. 실제 참가자 지정과 워크플로 구성은 구현하지 않았습니다.</p>
+    </div>
+    <footer className="tcg-add-footer"><span>필수 필드: Synopsis, Description</span><div><button className="tcg-secondary" onClick={()=>setShowCreateChange(false)}>Cancel</button><button className="tcg-primary" disabled={!changeName.trim()||!changeReason.trim()} onClick={createChange}><Plus size={15}/> Create</button></div></footer>
+  </aside>
   const renderInspector=(record:DemoRecord|undefined)=>{
     if(!record)return <p className="tcg-muted">항목을 선택하면 여기에 상세 정보가 표시됩니다.</p>
     return <div className="tcg-inspector-content">
@@ -329,11 +370,42 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
       <aside className="tcg-aw-preview"><div className="tcg-aw-preview-tabs"><button className="active">Overview</button><button onClick={openSelected}>Open</button><button onClick={()=>go('guide')} title="도움말"><CircleHelp size={14}/></button></div><div className="tcg-aw-preview-scroll">{renderInspector(selected)}</div></aside>
     </div>
   </div>
-  const renderExplorer=()=> <><PageHeading eyebrow="EXPLORER" title="폴더와 아이템 탐색기" desc="폴더를 열어 관련 데이터를 확인하고 새 아이템 또는 문서를 생성하는 연습을 해보세요."/>
-    <div className="tcg-toolbar"><button className="tcg-primary" onClick={()=>setShowCreate(x=>!x)}><Plus size={16}/> 새 객체 생성</button><span className="tcg-spacer"/><span className="tcg-muted">예제 프로젝트 / 전동 스쿠터 개발</span></div>
-    {showCreate&&<section className="tcg-panel tcg-create-panel"><div className="tcg-panel-head"><h3>새 객체 생성</h3><IconBtn title="닫기" onClick={()=>setShowCreate(false)}><X size={17}/></IconBtn></div><div className="tcg-form-grid"><label>객체 종류<select value={createKind} onChange={e=>setCreateKind(e.target.value as NewItemType)}><option value="Item">Item (부품·제품)</option><option value="Document">Document (문서)</option></select></label><label>이름<input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="이름 입력"/></label><label className="tcg-span-all">설명<input value={newDescription} onChange={e=>setNewDescription(e.target.value)} placeholder="선택 입력"/></label></div><button className="tcg-primary" onClick={addRecord} disabled={!newName.trim()}><Plus size={15}/> 생성하기</button></section>}
+  const renderExplorer=()=> <><PageHeading eyebrow="EXPLORER" title="폴더와 아이템 탐색기" desc="폴더를 열고 More Commands → New → Add를 선택하면 오른쪽 Add 패널에서 객체를 생성할 수 있습니다."/>
+    <div className="tcg-toolbar tcg-explorer-commandbar">
+      <div className="tcg-more-command-wrap"><button className="tcg-secondary tcg-more-command" aria-haspopup="menu" aria-expanded={showCreateMenu} onClick={()=>setShowCreateMenu(v=>!v)}>More Commands <ChevronDown size={15}/></button>
+        {showCreateMenu&&<div className="tcg-more-menu" role="menu"><span>New</span><button role="menuitem" onClick={openAddPanel}><Plus size={16}/> Add <span>객체 생성</span></button></div>}
+      </div>
+      <button className="tcg-primary" onClick={openAddPanel}><Plus size={16}/> New / Add</button>
+      <span className="tcg-spacer"/><span className="tcg-muted">현재 폴더 / {selectedFolder}</span>
+    </div>
     <div className="tcg-explorer-grid"><div className="tcg-panel tcg-folders"><PanelHead title="Explorer" subtitle="Folders"/><button onClick={()=>setSelectedFolder('제품 개발')}><BookOpen size={16}/> Favorites</button><button onClick={()=>setSelectedFolder('전장 설계')}><Search size={16}/> Active Folders</button><button onClick={()=>setSelectedFolder('제품 개발')}><Home size={16}/> Home</button><div className="tcg-folder-tree-caption"><ChevronDown size={14}/> Projects</div>{folders.map(f=><button key={f} className={selectedFolder===f?'active':''} onClick={()=>{setSelectedFolder(f);advance('select-folder')}}><Folder size={18}/>{f}<span>{records.filter(r=>r.folder===f).length}</span></button>)}</div><div className="tcg-panel"><PanelHead title={selectedFolder} subtitle="Contents"/><RecordTable rows={records.filter(r=>r.folder===selectedFolder)} selectedId={selectedId} onSelect={id=>selectRecord(id,'explorer')}/></div><aside className="tcg-panel tcg-side-panel"><PanelHead title="속성" subtitle="선택한 아이템"/>{renderInspector(selected)}</aside></div>
   </>
+  const renderAddPanel=()=> <aside className="tcg-create-panel tcg-add-panel" role="dialog" aria-modal="false" aria-label="새 객체 Add 패널">
+    <header className="tcg-add-head"><div><span>NEW / ADD</span><h3>Add</h3><small>선택한 폴더에 새로운 객체를 추가합니다</small></div><div className="tcg-add-head-actions">
+      <IconBtn title={pinCreate?'Unpin Panel':'Pin Panel'} onClick={()=>setPinCreate(v=>!v)}>{pinCreate?<PinOff size={16}/>:<Pin size={16}/>}</IconBtn>
+      <IconBtn title="Add 패널 닫기" onClick={()=>setShowCreate(false)}><X size={19}/></IconBtn>
+    </div></header>
+    <div className="tcg-add-scroll">
+      <div className="tcg-add-context"><FolderOpen size={16}/><span>ADD TO <strong>{selectedFolder}</strong></span></div>
+      <div className="tcg-add-section"><span>01 / TYPE</span><h4>객체 유형 선택 <b>*</b></h4>
+        <div className="tcg-add-type-search"><Search size={15}/><input aria-label="객체 유형 검색" placeholder="Search for type" value={typeSearch} onChange={e=>setTypeSearch(e.target.value)}/></div>
+        <label className="tcg-add-field">Type<select aria-label="객체 종류" value={createKind} onChange={e=>{setCreateKind(e.target.value as NewItemType);setNewId('')}}><option value="Item">Item (부품·제품)</option><option value="Document">Document (문서)</option></select></label>
+        {typeSearch.trim()&&<div className="tcg-add-type-results" aria-label="유형 검색 결과">{([{id:'Item',label:'Item (부품·제품)'},{id:'Document',label:'Document (문서)'}] as const).filter(t=>t.label.toLowerCase().includes(typeSearch.trim().toLowerCase())).map(t=><button key={t.id} onClick={()=>{setCreateKind(t.id);setNewId('');setTypeSearch('')}}><TileIcon kind={t.id}/>{t.label}{t.id===createKind&&<Check size={14}/>}</button>)}{![{label:'Item (부품·제품)'},{label:'Document (문서)'}].some(t=>t.label.toLowerCase().includes(typeSearch.trim().toLowerCase()))&&<p className="tcg-add-quiet">일치하는 유형이 없습니다. 이 데모는 Item과 Document를 지원합니다.</p>}</div>}
+      </div>
+      <div className="tcg-add-section"><span>02 / PROPERTIES</span><h4>객체 속성 <b>*</b></h4>
+        <label className="tcg-add-field">ID <small>비워 두면 자동 생성</small><input aria-label="객체 ID" placeholder="자동 생성" value={newId} onChange={e=>setNewId(e.target.value)} /><em>생성 예정: {proposedId}</em></label>
+        {duplicateId&&<p className="tcg-add-error" role="alert">이미 존재하는 ID입니다. 다른 ID를 입력하세요.</p>}
+        <label className="tcg-add-field">Revision <b>*</b><input aria-label="Revision" value={newRevision} onChange={e=>setNewRevision(e.target.value)} placeholder="A"/></label>
+        <label className="tcg-add-field">Name <b>*</b><input ref={createNameRef} value={newName} onChange={e=>setNewName(e.target.value)} placeholder="이름 입력" aria-label="새 객체 이름"/></label>
+        <label className="tcg-add-field">Description<textarea value={newDescription} onChange={e=>setNewDescription(e.target.value)} placeholder="선택 입력" rows={3}/></label>
+      </div>
+      <div className="tcg-add-section tcg-add-summary"><span>03 / REVIEW</span><h4>생성할 객체</h4>
+        <div><span>Type</span><strong>{createKind}</strong></div><div><span>ID / Revision</span><strong>{proposedId} / {newRevision||'—'}</strong></div><div><span>Folder</span><strong>{selectedFolder}</strong></div>
+      </div>
+      <p className="tcg-add-help"><CircleHelp size={15}/> Siemens 2606 가이드를 참고한 학습용 패널입니다. 실제 표시되는 유형과 필드는 관리자 설정에 따라 달라집니다.</p>
+    </div>
+    <footer className="tcg-add-footer"><span>{pinCreate?'고정됨 · 생성 후 패널 유지':'Pin Panel을 누르면 연속 생성 가능'}</span><div><button className="tcg-secondary" onClick={()=>setShowCreate(false)}>Cancel</button><button className="tcg-primary" onClick={addRecord} disabled={!canAddObject}><Plus size={15}/> Add</button></div></footer>
+  </aside>
   const visibleBom=():Array<BomRow & {level:number}>=>
     {const result:Array<BomRow & {level:number}>=[];const walk=(parent:string|null,level:number)=>{data.bom.filter(r=>r.parent===parent).forEach(r=>{result.push({...r,level});if(openRows.includes(r.key))walk(r.key,level+1)})};walk(null,0);return result}
   const renderStructure=()=> <><PageHeading eyebrow="STRUCTURE MANAGER" title="제품 구조 · BOM 관리" desc="상위 어셈블리와 하위 부품의 관계를 확인하고, 수량을 조정하며 사용 위치를 탐색해 보세요."/>
@@ -370,7 +442,6 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
   </>
   const renderChanges=()=> <><PageHeading eyebrow="CHANGE MANAGEMENT" title="변경 관리 · Change Notice" desc="변경 사유와 영향 부품을 한곳에서 관리하고 검토 상태가 어떻게 바뀌는지 확인하세요."/>
     <div className="tcg-change-create-bar"><button className="tcg-primary" onClick={()=>setShowCreateChange(v=>!v)}><Plus size={15}/> Create Change Notice</button><span>변경 사유와 영향 부품을 연결하는 학습용 통지입니다.</span></div>
-    {showCreateChange&&<div className="tcg-change-new tcg-panel"><strong>New Change Notice</strong><label>제목<input aria-label="새 Change Notice 제목" value={changeName} onChange={e=>setChangeName(e.target.value)} placeholder="변경 통지 제목"/></label><label>변경 사유<textarea aria-label="새 Change Notice 사유" rows={3} value={changeReason} onChange={e=>setChangeReason(e.target.value)} placeholder="변경이 필요한 이유"/></label><div><button className="tcg-primary" disabled={!changeName.trim()||!changeReason.trim()} onClick={createChange}>생성하기</button><button className="tcg-secondary" onClick={()=>setShowCreateChange(false)}>취소</button></div></div>}
 
     <div className="tcg-content-columns"><div className="tcg-panel"><PanelHead title="변경 통지" subtitle="Change notices"/>{data.changes.map(c=><button key={c.id} className={'tcg-change-row '+(selectedChangeId===c.id?'selected':'')} onClick={()=>{setSelectedChangeId(c.id);advance('select-change')}}><GitBranch size={20}/><span><strong>{c.title}</strong><small>{c.id} · {c.owner}</small></span><Tag status={c.status}/></button>)}</div>
     <aside className="tcg-panel tcg-side-panel"><PanelHead title="변경 상세" subtitle="Change Summary"/>{selectedChange&&<><h3 className="tcg-detail-title">{selectedChange.title}</h3><Tag status={selectedChange.status}/><p className="tcg-change-reason">{selectedChange.reason}</p><strong className="tcg-files-head">영향받는 항목 · Affected Items</strong>
@@ -459,7 +530,7 @@ export default function TeamcenterUserDemo({onBack}:{onBack:()=>void}){
         {launcherOpen&&<div className="tcg-launcher-overlay"><div className="tcg-launcher-header"><strong>Launcher</strong><button onClick={()=>setLauncherOpen(false)} aria-label="Launcher 닫기"><X size={18}/></button></div><div className="tcg-launcher-search"><Search size={16}/> Pinned Tools</div><div className="tcg-launcher-grid">{nav.filter(n=>n.id!=='home').map(n=><button key={n.id} onClick={()=>go(n.id)}><n.icon size={22}/><span>{n.title}</span></button>)}</div><div className="tcg-launcher-bottom"><span>PINNED DATA</span><p>고정된 데이터가 없습니다.</p></div></div>}
         {['structure','documents'].includes(section)&&<div className="tcg-workmode-bar"><div className="tcg-workmode-tabs">{(['Content','Details','Relations','Activity'] as const).map(mode=><button key={mode} className={workMode===mode?'active':''} onClick={()=>{setWorkMode(mode);advance('workmode-'+mode.toLowerCase())}}>{mode}</button>)}</div><div className="tcg-workmode-command"><span>{section==='structure'?'DEMO-1000 · Rev B':'Document Management'}</span><IconBtn title="전체 컨텐츠 보기" onClick={()=>setWorkMode('Content')}><LayoutDashboard size={16}/></IconBtn></div></div>}
         <TrainingCurriculum title="TEAMCENTER · 연속 실습" lessons={teamcenterCourse} course={course} brand="teamcenter" onResetData={()=>reset(false)}/>
-        <div className="tcg-work-content">{workMode==='Activity'&&['structure','documents'].includes(section)?<div className="tcg-panel tcg-workmode-detail tcg-activity-view"><PanelHead title="Activity / 작업 이력" subtitle="Local training session"/>{data.history.map((h,i)=><div key={i}><RotateCcw size={14}/><span>{h}</span></div>)}</div>:workMode==='Details'&&section==='structure'?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Details / 속성" subtitle="Selected Object"/>{renderInspector(byId(data.bom.find(r=>r.key===selectedOccurrence)?.recordId||''))}</div>:workMode==='Details'&&section==='documents'?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Document Details" subtitle="Selected Object"/>{renderInspector(selectedDoc)}</div>:workMode==='Relations'&&['structure','documents'].includes(section)?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Relations / 연결 관계" subtitle="Related Objects"/>{(section==='structure'?data.bom:filteredDocs.map((r,i)=>({key:r.id,recordId:r.id,parent:null,qty:i+1}))).map(rel=><button className="tcg-relation-row" key={rel.key} onClick={()=>{setSelectedId(rel.recordId);setWorkMode('Details')}}><Package size={17}/>{byId(rel.recordId)?.name}<small>{rel.recordId}</small><ChevronRight size={15}/></button>)}</div>:renderContent()}</div>
+        <div className="tcg-work-content">{workMode==='Activity'&&['structure','documents'].includes(section)?<div className="tcg-panel tcg-workmode-detail tcg-activity-view"><PanelHead title="Activity / 작업 이력" subtitle="Local training session"/>{data.history.map((h,i)=><div key={i}><RotateCcw size={14}/><span>{h}</span></div>)}</div>:workMode==='Details'&&section==='structure'?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Details / 속성" subtitle="Selected Object"/>{renderInspector(byId(data.bom.find(r=>r.key===selectedOccurrence)?.recordId||''))}</div>:workMode==='Details'&&section==='documents'?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Document Details" subtitle="Selected Object"/>{renderInspector(selectedDoc)}</div>:workMode==='Relations'&&['structure','documents'].includes(section)?<div className="tcg-panel tcg-workmode-detail"><PanelHead title="Relations / 연결 관계" subtitle="Related Objects"/>{(section==='structure'?data.bom:filteredDocs.map((r,i)=>({key:r.id,recordId:r.id,parent:null,qty:i+1}))).map(rel=><button className="tcg-relation-row" key={rel.key} onClick={()=>{setSelectedId(rel.recordId);setWorkMode('Details')}}><Package size={17}/>{byId(rel.recordId)?.name}<small>{rel.recordId}</small><ChevronRight size={15}/></button>)}</div>:renderContent()}{section==='explorer'&&showCreate&&renderAddPanel()}{section==='changes'&&showCreateChange&&renderCreateChangePanel()}</div>
       </div></div>
       <div className="tcg-app-status"><button onClick={()=>{setLauncherOpen(v=>!v);advance('open-launcher')}}><Grid3X3 size={14}/> Launcher</button><span><i/> LOCAL SIMULATION</span><span>Active Workspace 2606 UI-inspired · no Teamcenter connection</span><button onClick={()=>go('guide')}><CircleHelp size={13}/> Help</button></div>
     </div>

@@ -80,10 +80,10 @@ const tc:Record<number,string[]> = {
   12:['.tcg-aw-results .tcg-record-table tbody tr:first-child'],
   13:['.tcg-aw-preview-tabs button:nth-child(2)'],
   14:['.tcg-folders button:nth-last-child(2)','.tcg-folders button'],
-  15:['.tcg-create-panel > .tcg-primary:not(:disabled)','.tcg-create-panel input[placeholder="이름 입력"]','.tcg-toolbar .tcg-primary'],
+  15:['.tcg-add-footer .tcg-primary:not(:disabled)','.tcg-create-panel input[placeholder="이름 입력"]','.tcg-toolbar .tcg-primary'],
   16:['.tcg-explorer-grid .tcg-inspector-command.primary','.tcg-explorer-grid .tcg-form input','.tcg-explorer-grid .tcg-inspector-command[title="속성 편집 시작"]'],
   17:['.tcg-explorer-grid .tcg-inspector-command[title="새 리비전 생성"]'],
-  18:['.tcg-create-panel > .tcg-primary:not(:disabled)','.tcg-create-panel input[placeholder="이름 입력"]','.tcg-create-panel select','.tcg-toolbar .tcg-primary'],
+  18:['.tcg-add-footer .tcg-primary:not(:disabled)','.tcg-create-panel input[placeholder="이름 입력"]','.tcg-create-panel select','.tcg-toolbar .tcg-primary'],
   19:['.tcg-explorer-grid .tcg-object-history summary'],
   20:['.tcg-bom .tcg-bom-object button:first-child'],
   21:['.tcg-bom .tcg-bom-row:nth-of-type(3)','.tcg-bom .tcg-bom-row:nth-of-type(2)'],
@@ -146,7 +146,7 @@ function guidedFormTarget(step:TrainingLesson<string>,container:Element,brand:'p
       if(kind&&kind.value!==expected)return kind
       const title=typed('.tcg-create-panel input[placeholder="이름 입력"]')
       if(title&&!title.value.trim())return title
-      return actionable('.tcg-create-panel > .tcg-primary:not(:disabled)')||title
+      return actionable('.tcg-add-footer .tcg-primary:not(:disabled)')||title
     }
   }
   if(step.id==='tc-41' && q('.tcg-change-new')){

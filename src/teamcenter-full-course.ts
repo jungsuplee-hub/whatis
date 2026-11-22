@@ -19,10 +19,10 @@ export const teamcenterCourse:Step[]=[
  row('tc-12','검색 · 탐색 · 속성','검색 결과 선택','search','select-record','선택한 객체의 ID·Revision·Owner를 확인합니다.','검색 결과에서 부품 행 선택'),
  row('tc-13','검색 · 탐색 · 속성','선택 객체 열기','search','open-record','검색 결과의 해당 객체를 Explorer/BOM/Document로 엽니다.','오른쪽 패널의 Open 클릭'),
  row('tc-14','검색 · 탐색 · 속성','Explorer 폴더 탐색','explorer','select-folder','폴더를 바꿔 Item과 Document를 탐색합니다.','Explorer 폴더 트리에서 다른 폴더 클릭'),
- row('tc-15','검색 · 탐색 · 속성','새 Item 생성','explorer','create-record','Item 객체를 만들고 탐색기에 저장합니다.','생성하기 → Item → 이름 → 생성하기'),
+ row('tc-15','검색 · 탐색 · 속성','새 Item 생성','explorer','create-record','Item 객체를 만들고 탐색기에 저장합니다.','Explorer 폴더 선택 → More Commands → New → Add → Type: Item → Name → Add'),
  row('tc-16','검색 · 탐색 · 속성','객체 속성 저장','explorer','save-record','이름·소유자·설명을 편집합니다.','선택 Item 오른쪽 Edit → 필드 수정 → Save Edits'),
  row('tc-17','검색 · 탐색 · 속성','Item Revision 생성','explorer','new-revision','새 개정판으로 변경 이력을 추적합니다.','오른쪽 Revise 버튼 클릭'),
- row('tc-18','검색 · 탐색 · 속성','Document 객체 생성','explorer','create-document','제품 문서를 객체로 등록합니다.','생성하기 → Document 선택 → 이름 → 생성'),
+ row('tc-18','검색 · 탐색 · 속성','Document 객체 생성','explorer','create-document','제품 문서를 객체로 등록합니다.','Explorer → New / Add → Type: Document → Name → Add (오른쪽 패널)'),
  row('tc-19','검색 · 탐색 · 속성','객체 변경 이력 확인','explorer','open-object-history','속성 변경과 개정 기록을 확인합니다.','객체 속성 패널의 객체 처리 이력 펼치기'),
 
  row('tc-20','BOM · 구조 관리','상위 어셈블리 펼치기','structure','expand','제품 조립 구조의 상하 관계를 확인합니다.','BOM 화살표 클릭해 하위 부품 펼치기'),
@@ -49,7 +49,7 @@ export const teamcenterCourse:Step[]=[
  row('tc-39','My Tasks · 승인','승인 처리','inbox','approve-task','검토 결과를 승인으로 기록하고 문서 상태를 전환합니다.','승인 버튼 클릭'),
  row('tc-40','My Tasks · 승인','다른 작업 반려','inbox','reject-task','반려 처리 시 객체 상태를 작업 중으로 되돌립니다.','대기 중인 다른 작업 선택 → 반려 클릭'),
 
- row('tc-41','Change Management · 변경통지','새 Change Notice 생성','changes','create-change','변경 사유를 가진 Change Notice를 만듭니다.','Create Change → 제목/사유 → 생성'),
+ row('tc-41','Change Management · 변경통지','새 Change Notice 생성','changes','create-change','변경 사유를 가진 Change Notice를 만듭니다.','Create Change → 오른쪽 패널의 Synopsis/Description 입력 → Create'),
  row('tc-42','Change Management · 변경통지','변경 통지 선택','changes','select-change','Change Notice의 상태와 영향 객체 목록을 확인합니다.','왼쪽 Change Notice 선택'),
  row('tc-43','Change Management · 변경통지','영향 부품 추가','changes','add-affected','변경에 영향을 받는 Item을 연결합니다.','Affected Items에서 항목 선택 → 추가'),
  row('tc-44','Change Management · 변경통지','영향 부품 제거','changes','remove-affected','잘못 연결된 영향 객체를 제거합니다.','영향 항목의 X 클릭'),

@@ -427,3 +427,68 @@
 .tcg-guide-verify>button{white-space:normal}
 @media(max-width:780px){.tcg-main-area>.training-course{margin:6px;width:calc(100% - 12px)}.tcg-practice-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:550px){.tcg-practice-grid{grid-template-columns:1fr}.tcg-guide-verify{display:block}.tcg-guide-verify>p{margin:8px 0}}
+
+/* Active Workspace Fundamentals 2606, chapter 7: Add opens in a right-side
+   work panel, with Pin Panel for repeated creation. */
+.tcg-work-content{position:relative}
+.tcg-explorer-commandbar{position:relative;z-index:2}
+.tcg-more-command-wrap{position:relative;display:flex;align-items:center}
+.tcg-more-command{gap:8px}
+.tcg-more-menu{position:absolute;left:0;top:calc(100% + 2px);z-index:32;min-width:206px;padding:7px;border:1px solid #b8d0da;background:#fff;box-shadow:0 8px 20px #163a4c36}
+.tcg-more-menu>span{display:block;border-bottom:1px solid #e4edef;color:#738f9a;font-size:10px;font-weight:700;padding:6px 10px}
+.tcg-more-menu>button{display:flex;align-items:center;gap:8px;border:0;background:#fff;color:#356b82;padding:11px 10px;width:100%;text-align:left;font-size:11px}
+.tcg-more-menu>button:hover{background:#e8f4f8}
+.tcg-more-menu>button>span{margin-left:auto;font-size:10px;color:#8ca4ad}
+.tcg-work-content>.tcg-add-panel{position:absolute;top:0;right:0;z-index:26;width:min(402px,calc(100% - 12px));height:min(775px,calc(100dvh - 120px));max-height:100%;min-height:0;background:#fff;border:1px solid #a9c5d0;border-top:3px solid #2787aa;box-shadow:-13px 10px 30px #123f5852;display:flex;flex-direction:column;overflow:hidden;margin:0}
+.tcg-add-panel .tcg-add-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:#f3f8fa;padding:15px 15px 13px;border-bottom:1px solid #d1e0e6}
+.tcg-add-head>div:first-child{min-width:0}
+.tcg-add-head>div:first-child>span{display:block;font:700 9px/1.2 Arial,sans-serif;letter-spacing:1.25px;color:#5c9bb2}
+.tcg-add-head h3{margin:5px 0 3px;color:#274c5e;font-size:19px;font-weight:700}
+.tcg-add-head small{font-size:10px;color:#79909c}
+.tcg-add-head-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.tcg-add-head-actions .tcg-icon-button{color:#5b879b;background:#fff;border:1px solid #c9dce4;height:30px;width:30px;display:grid;place-items:center}
+.tcg-add-head-actions .tcg-icon-button:hover{background:#e5f3f7;border-color:#7fb7ca}
+.tcg-add-scroll{padding:15px 16px;flex:1;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.tcg-add-context{display:flex;align-items:center;gap:9px;background:#eaf4f8;padding:11px 12px;color:#377a93;border:1px solid #ccdee6;font-size:10px}
+.tcg-add-context span{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tcg-add-context strong{color:#224f65}
+.tcg-add-section{padding:16px 2px 15px;border-bottom:1px solid #e2ebef}
+.tcg-add-section>span{display:block;color:#6397a9;font:700 9px/1.1 Arial,sans-serif;letter-spacing:1.15px}
+.tcg-add-section h4{font-size:12px;color:#2d5669;margin:7px 0 13px}
+.tcg-add-section b,.tcg-add-field b{color:#df824d}
+.tcg-add-type-search{display:flex;gap:8px;align-items:center;border:1px solid #cbdae2;background:#fff;color:#7ba2b1;padding:0 9px;height:36px;margin-bottom:12px}
+.tcg-add-type-search input{border:0;outline:0;min-width:0;flex:1;font-size:11px;color:#345b6f}
+.tcg-add-field{display:flex;flex-direction:column;gap:6px;color:#557687;font-size:11px;font-weight:600;margin:11px 0}
+.tcg-add-field>small{color:#9baeb8;font-size:9px;font-weight:400}
+.tcg-add-field input,.tcg-add-field select,.tcg-add-field textarea{display:block;width:100%;min-width:0;border:1px solid #c7dbe3;background:#fff;border-radius:0;padding:9px 11px;color:#2b5569;font-size:11px;outline-color:#6aacbe;font-family:inherit}
+.tcg-add-field textarea{resize:vertical;line-height:1.5}
+.tcg-add-field em{font-style:normal;color:#85a0ab;font-size:9px;font-weight:400}
+.tcg-add-quiet{font-size:10px;color:#7598a6;line-height:1.6;margin:5px 0}
+.tcg-add-error{font-size:10px;line-height:1.5;color:#b64f49;padding:9px;background:#fff2f1;border:1px solid #f0ccca}
+.tcg-add-summary>div{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #eff3f5;padding:9px 0;color:#859aa5;font-size:10px}
+.tcg-add-summary>div strong{font-size:10px;text-align:right;color:#376d82;overflow-wrap:anywhere}
+.tcg-add-help{font-size:10px;line-height:1.65;display:flex;gap:8px;align-items:flex-start;color:#7993a0;margin:13px 0}
+.tcg-add-help svg{flex-shrink:0}
+.tcg-add-footer{border-top:1px solid #cbdce3;background:#f5f8fa;padding:12px 15px;display:flex;flex-direction:column;gap:9px}
+.tcg-add-footer>span{font-size:10px;color:#5c8292}
+.tcg-add-footer>div{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.tcg-add-footer button{display:flex;align-items:center;justify-content:center;gap:6px;min-width:92px;height:36px;font-size:11px;border-radius:1px}
+.tcg-add-footer button.tcg-primary:disabled{background:#a9c8d4;border-color:#a9c8d4;cursor:not-allowed}
+@media(max-width:720px){
+ .tcg-work-content>.tcg-add-panel{right:0;top:0;width:min(355px,100%);height:min(680px,calc(100dvh - 100px));max-height:100%;min-height:0}
+ .tcg-add-head{padding:12px!important}
+ .tcg-add-scroll{padding:11px 13px}
+ .tcg-add-footer{padding:10px}
+ .tcg-explorer-commandbar{gap:5px;flex-wrap:wrap}
+ .tcg-explorer-commandbar .tcg-muted{width:100%}
+}
+@media(max-width:430px){
+ .tcg-work-content>.tcg-add-panel{width:100%;max-width:100%;min-height:0}
+ .tcg-add-footer button{min-width:79px}
+}
+
+.tcg-add-type-results{display:flex;flex-direction:column;gap:4px;border:1px solid #cbdde5;background:#f8fbfc;padding:5px}
+.tcg-add-type-results>button{display:flex;align-items:center;gap:9px;border:0;border-bottom:1px solid #e1ebef;padding:8px 7px;text-align:left;color:#386e86;background:#fff;font-size:11px}
+.tcg-add-type-results>button:hover{background:#edf7fa}
+.tcg-add-type-results .tcg-type-icon{width:27px;height:27px}
+.tcg-add-type-results>button>svg:last-child{margin-left:auto;color:#268b9f}
