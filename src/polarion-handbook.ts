@@ -2709,6 +2709,137 @@ export const handbook:Record<string,Handbook>={
       }
     ],
     "verify": "기존 프로젝트 ID·경로·이력을 보존한 상태에서 관리자 및 권한 있는 사용자에게 목록·검색·저장이 정상인지 확인한다."
+  },
+  "server-config": {
+    "ref": "Deployment and Maintenance Guide 2-70~2-113, 3-2~3-6, 6-10~6-34, 8-25~8-52",
+    "sections": [
+      [
+        "관리 원칙",
+        "동일 이름의 polarion.properties라도 Node 로컬 구성과 공유 설정의 역할이 다를 수 있다. 각 호스트의 실제 설치 경로, mount, 서비스 unit 및 적용 범위를 먼저 확인한다. 고객별 설정 파일과 비밀값은 공개 매뉴얼에 넣지 않는다."
+      ],
+      [
+        "변경 작업",
+        "변경 전 실제 읽는 설정 파일과 포함 관계를 확인한다. 백업, 변경 비교, 구문 검사, 재시작 필요 여부, 사후 검증을 서버별로 기록한다. Cluster는 공유 설정과 로컬 설정을 혼동하지 않는다."
+      ]
+    ],
+    "tables": [
+      {
+        "title": "서버별 점검 대상 (Linux 경로 예시)",
+        "head": [
+          "서버 역할",
+          "설정/파일",
+          "점검 목적"
+        ],
+        "rows": [
+          [
+            "Application Node",
+            "/opt/polarion/etc/polarion.properties · config.sh",
+            "노드 설정 및 JVM"
+          ],
+          [
+            "Application Node",
+            "postgresql.conf · pg_hba.conf",
+            "로컬 DB 및 연결 정책"
+          ],
+          [
+            "Coordinator",
+            "polarion.properties · config.sh · cluster-data",
+            "클러스터 제어, 인증 및 라이선스"
+          ],
+          [
+            "Shared Services / LB",
+            "loadbalancer.conf · 공유 etc/polarion.properties",
+            "요청 분배 및 공유 구성"
+          ],
+          [
+            "SVN 서버",
+            "polarionSVN.conf · svnserve.service · MPM 설정",
+            "HTTP/SVN 접근 및 worker"
+          ],
+          [
+            "공통 Apache (RHEL)",
+            "/etc/httpd/conf/httpd.conf · conf.d/*.conf",
+            "모듈·포트·프록시·설정 포함"
+          ]
+        ]
+      }
+    ],
+    "code": "systemctl cat polarion\nhttpd -t\nhttpd -t -D DUMP_RUN_CFG\nfindmnt -T /opt/polarion/data\n# 공유 설정의 실제 위치 확인 (해당 환경만)\nfindmnt -T /opt/polarion/shared",
+    "verify": "파일 위치와 실행 서비스, 설정 반영 범위 및 변경 전후 대표 기능을 비교한다."
+  },
+  "extension-management": {
+    "ref": "Deployment and Maintenance Guide 8-6, 8-28; Administrator and User Help 5-1~5-89",
+    "sections": [
+      [
+        "확장 유형",
+        "Polarion 추가 기능은 플러그인, feature, 스크립트, 외부 연동 등 실행 방식이 다르다. 제품 버전, Java 호환성, 배포자의 지원 범위, 필요한 라이선스와 서버별 설치 위치를 관리한다."
+      ],
+      [
+        "설치 전",
+        "공급자의 설치 안내 및 호환 버전을 확인하고 테스트 환경에서 기능·권한·부하·로그를 검증한다. 제품 자체 바이너리와 사용자 확장 파일을 분리하여 백업한다."
+      ],
+      [
+        "제품 업데이트",
+        "기존 plugins/features에 수동 설치한 사용자 확장은 업데이트 전에 백업한다. 2606 업데이트 가이드는 업데이트 스크립트 이후 extensions 폴더를 사용하도록 안내하며 해당 설치의 extensions/README.txt를 확인한다."
+      ],
+      [
+        "사후 검증",
+        "클러스터의 모든 관련 Node에 동일한 지원 버전이 적용됐는지 확인한다. 시작 오류, 클래스 로딩, API 호환성, 라이선스 및 사용자 기능을 검사하고 확장 원복 절차를 확보한다."
+      ]
+    ],
+    "verify": "확장 이름/버전, 배포 위치, 공급자 문서, 테스트 결과와 원복 파일을 기록한다."
+  },
+  "ajp": {
+    "ref": "Deployment and Maintenance Guide 1-4~1-9, 2-113~2-115",
+    "sections": [
+      [
+        "AJP의 역할",
+        "Apache HTTPD는 mod_proxy_ajp 모듈로 Tomcat의 AJP connector에 요청을 전달할 수 있다. Polarion 배포에서 8889 TCP가 기본 연결 예시다. 브라우저가 사용하는 HTTP(S) 포트와 AJP 포트는 구분한다."
+      ],
+      [
+        "운영 점검",
+        "Apache 모듈, 실제 ProxyPass 대상 및 Tomcat listener를 확인한다. AJP 연결 실패는 Apache 오류와 Node startup 로그를 같은 시간으로 비교한다. AJP를 외부 사용자 네트워크에 공개하지 않고 필요한 서버 간에만 연결한다."
+      ]
+    ],
+    "code": "httpd -M | grep proxy_ajp\nss -lnt | grep ':8889'\n# RHEL 예시: 실제 설정 파일 범위에서 확인\ngrep -RInE 'ProxyPass|ajp://' /etc/httpd --include='*.conf'",
+    "verify": "브라우저 접속과 Apache→Node 연결의 상태를 각각 검증한다."
+  },
+  "resource-traceability": {
+    "ref": "Deployment and Maintenance Guide 2-101~2-102, 5-70~5-75, 8-86~8-88",
+    "sections": [
+      [
+        "구성의 구분",
+        "Resource Traceability 기능의 서버와 기본 Polarion 애플리케이션 서버를 구분한다. Resource Traceability DB 연결 pool은 일반 HEAD/History pool과 별도로 고려한다."
+      ],
+      [
+        "신규 Cluster 설치",
+        "2606 가이드는 신규 Cluster 구성 과정에서 공유 설정에 com.siemens.polarion.rt.startRtServer=false를 두도록 안내한다. 독립 Resource Traceability Server 구성에 들어가기 전 해당 임시 설정을 제거하는 단계가 있다. 이미 운영 중인 구성에 무조건 적용하는 기본값은 아니다."
+      ],
+      [
+        "운영 진단",
+        "사용 중인지, 실제 서비스 배치 및 연결 경로가 무엇인지 확인한다. Resource Traceability 오류 발생 시 서비스 로그, 연결, DB 상태 및 권한을 구분한다."
+      ]
+    ],
+    "verify": "기능을 사용하는 환경에서만 실제 추적성 요청과 관련 연결 상태를 검증한다."
+  },
+  "linux-common": {
+    "ref": "Deployment and Maintenance Guide 2-101~2-105, 3-5~3-6; 일반 Linux 진단 예시",
+    "sections": [
+      [
+        "공유 저장소",
+        "Linux Cluster 공유 데이터의 NFSv4.2 권고와 실제 mount 경로를 확인한다. SSHFS/NFSv3는 가이드에서 권장하지 않는다. 저장소 연결 장애가 의심되면 실행 중인 mount 정보를 우선 확인하고 강제 해제하지 않는다."
+      ],
+      [
+        "시간 동기화",
+        "모든 Node가 같은 시간 기준을 사용하도록 OS 수준의 동기화를 확인한다. 시간 차이는 Monitor의 Job 정렬 및 기록 비교에 영향을 준다."
+      ],
+      [
+        "서비스 설정",
+        "systemctl cat/status로 실제 unit 및 override를 확인하고 서비스별 제한값, 실행 사용자, 상태 및 로그를 기록한다. 설정 변경과 재시작은 승인된 작업 창에서 수행한다."
+      ]
+    ],
+    "code": "findmnt -t nfs,nfs4\nsystemctl status polarion --no-pager\ntimedatectl status\n# 서비스 unit의 파일 디스크립터 한도 확인\nsystemctl show polarion -p LimitNOFILE",
+    "verify": "Node 간 시간, 공유 mount, 서비스 상태, 접근 권한과 운영 기능이 정상인지 확인한다."
   }
 }
 export const extraGuides=[
@@ -2963,5 +3094,50 @@ export const extraGuides=[
     "summary": "프로젝트 등록·접근·표시 및 색인을 분리해 확인한다.",
     "checks": [],
     "reference": "Administrator and User Help 4-44~4-59, 4-1080; Deployment and Maintenance Guide 8-83~8-89; 자체 운영 절차"
+  },
+  {
+    "id": "server-config",
+    "group": "설정",
+    "title": "서버별 Configuration 파일 및 적용 범위",
+    "keywords": "node coordinator shared svn httpd postgresql config.sh polarion.properties mpm conf",
+    "summary": "서버 역할마다 관리하는 설정 파일과 실제 적용 위치를 구분한다.",
+    "checks": [],
+    "reference": "Deployment and Maintenance Guide 2-70~2-113, 3-2~3-6, 6-10~6-34, 8-25~8-52"
+  },
+  {
+    "id": "extension-management",
+    "group": "설정",
+    "title": "Extension 설치 및 업데이트 관리",
+    "keywords": "extension plugin feature jar update compatibility SDK",
+    "summary": "추가 기능 설치 경로, 버전 호환 및 변경 관리를 구분한다.",
+    "checks": [],
+    "reference": "Deployment and Maintenance Guide 8-6, 8-28; Administrator and User Help 5-1~5-89"
+  },
+  {
+    "id": "ajp",
+    "group": "서버",
+    "title": "Apache JServ Protocol (AJP)",
+    "keywords": "ajp apache mod_proxy_ajp tomcat port 8889 proxy",
+    "summary": "Apache에서 Polarion의 Tomcat으로 연결하는 프로토콜을 이해한다.",
+    "checks": [],
+    "reference": "Deployment and Maintenance Guide 1-4~1-9, 2-113~2-115"
+  },
+  {
+    "id": "resource-traceability",
+    "group": "서버",
+    "title": "Resource Traceability Server",
+    "keywords": "resource traceability rt startRtServer database pool",
+    "summary": "Resource Traceability 구성과 일반 Polarion DB 연결을 구분한다.",
+    "checks": [],
+    "reference": "Deployment and Maintenance Guide 2-101~2-102, 5-70~5-75, 8-86~8-88"
+  },
+  {
+    "id": "linux-common",
+    "group": "서버",
+    "title": "Linux 공통 운영: NFS·서비스·시간 동기화",
+    "keywords": "nfs mount systemctl chrony time sync ulimit linux",
+    "summary": "Polarion의 기반 OS 설정을 읽기 중심으로 확인한다.",
+    "checks": [],
+    "reference": "Deployment and Maintenance Guide 2-101~2-105, 3-5~3-6; 일반 Linux 진단 예시"
   }
 ]

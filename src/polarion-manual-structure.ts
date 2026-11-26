@@ -1,141 +1,388 @@
-export type Chapter={id:string;title:string;en:string;intro:string;ids:string[]}
+export type Chapter={id:string;title:string;en:string;intro:string;ids:string[];groups:{title:string;ids:string[]}[]}
 export type Runbook={type:string;scope:string;impact:string;pre:string[];steps:string[][];rollback:string;related:string[]}
 export const chapters:Chapter[]=[
   {
-    "id": "start",
-    "title": "인수인계 및 운영 기준",
-    "en": "Handover",
-    "intro": "새 운영 담당자가 가장 먼저 확인할 환경 대장, 일상 점검 및 구성의 기본 원칙.",
-    "ids": [
-      "handover",
-      "architecture",
-      "paths"
-    ]
-  },
-  {
     "id": "infra",
-    "title": "인프라 설계 및 설치",
-    "en": "Infrastructure",
-    "intro": "지원 환경, 사이징, 네트워크 연결 및 설치·초기 구성을 확인합니다.",
+    "title": "01.Architecture",
+    "en": "Architecture",
+    "intro": "구성도, 서버 사이징, 폴더 구조, 포트 및 라이선스.",
     "ids": [
-      "sizing",
+      "architecture",
+      "cluster",
+      "paths",
       "ports",
-      "install",
-      "cluster"
-    ]
-  },
-  {
-    "id": "service",
-    "title": "서비스 운영 및 시스템 설정",
-    "en": "System administration",
-    "intro": "정상 기동·종료, 구성 파일 및 라이선스 관리.",
-    "ids": [
-      "service",
-      "properties",
+      "sizing",
+      "hardware",
       "license"
-    ]
-  },
-  {
-    "id": "storage",
-    "title": "저장소 및 데이터베이스",
-    "en": "Data services",
-    "intro": "Apache, SVN, PostgreSQL 및 첨부파일의 실제 저장·접근 구조.",
-    "ids": [
-      "apache",
-      "svn",
-      "postgres",
-      "attachments"
-    ]
-  },
-  {
-    "id": "security",
-    "title": "인증·권한 및 보안",
-    "en": "Identity & security",
-    "intro": "인증 제공자, 사용자 역할, SVN access 동기화와 보안 구성.",
-    "ids": [
-      "auth",
-      "authdb",
-      "roles",
-      "access",
-      "headers",
-      "permissions"
-    ]
-  },
-  {
-    "id": "portal",
-    "title": "프로젝트 및 화면 관리",
-    "en": "Portal administration",
-    "intro": "프로젝트 및 업무 객체의 생성·구성·권한·사용자 화면을 관리합니다.",
-    "ids": [
-      "admin",
-      "project",
-      "project-life",
-      "templates",
-      "workitem",
-      "workflow",
-      "custom-fields",
-      "live-loading",
-      "baseline",
-      "preview",
-      "notifications"
-    ]
-  },
-  {
-    "id": "integration",
-    "title": "API·확장 및 예약 작업",
-    "en": "Integration & automation",
-    "intro": "REST API, 외부 연동, 스크립트, Scheduler와 Job 운영.",
-    "ids": [
-      "api",
-      "integration",
-      "script",
-      "scheduler",
-      "jobs"
-    ]
-  },
-  {
-    "id": "performance",
-    "title": "성능 및 인덱스 관리",
-    "en": "Performance & indexing",
-    "intro": "JVM, Ehcache, Location Index, 재색인, 증설과 모니터링.",
-    "ids": [
-      "jvm",
-      "ehcache",
-      "index",
-      "location",
-      "hardware"
+    ],
+    "groups": [
+      {
+        "title": "시스템 아키텍처",
+        "ids": [
+          "architecture",
+          "cluster",
+          "paths",
+          "ports"
+        ]
+      },
+      {
+        "title": "Server Sizing",
+        "ids": [
+          "sizing",
+          "hardware"
+        ]
+      },
+      {
+        "title": "License",
+        "ids": [
+          "license"
+        ]
+      }
     ]
   },
   {
     "id": "maintenance",
-    "title": "패치·업그레이드·복구",
-    "en": "Maintenance & recovery",
-    "intro": "버전 변경, 클러스터 업그레이드, 백업·복원, 프로젝트 이전 및 공간 관리.",
+    "title": "02.설치관련",
+    "en": "Installation & upgrade",
+    "intro": "설치, 패치, 업그레이드와 데이터 이전을 작업 순서대로 정리합니다.",
     "ids": [
+      "install",
       "release",
       "upgrade",
       "updatecluster",
-      "backup",
       "migration",
-      "disk"
+      "preview"
+    ],
+    "groups": [
+      {
+        "title": "설치 및 초기 구성",
+        "ids": [
+          "install"
+        ]
+      },
+      {
+        "title": "Patch / Upgrade",
+        "ids": [
+          "release",
+          "upgrade",
+          "updatecluster"
+        ]
+      },
+      {
+        "title": "데이터 마이그레이션",
+        "ids": [
+          "migration"
+        ]
+      },
+      {
+        "title": "Image Converter",
+        "ids": [
+          "preview"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "service",
+    "title": "03.운영관련",
+    "en": "Operations",
+    "intro": "운영 인수인계, 서비스, SVN·DB·Apache, 성능, 모니터링과 백업.",
+    "ids": [
+      "handover",
+      "service",
+      "svn",
+      "postgres",
+      "apache",
+      "jvm",
+      "ehcache",
+      "index",
+      "location",
+      "logs",
+      "txlogger",
+      "diagtool",
+      "jobs",
+      "scheduler",
+      "backup"
+    ],
+    "groups": [
+      {
+        "title": "운영 인수인계 / 서비스",
+        "ids": [
+          "handover",
+          "service"
+        ]
+      },
+      {
+        "title": "SVN / PostgreSQL / Apache",
+        "ids": [
+          "svn",
+          "postgres",
+          "apache"
+        ]
+      },
+      {
+        "title": "JVM / Cache / Reindex",
+        "ids": [
+          "jvm",
+          "ehcache",
+          "index",
+          "location"
+        ]
+      },
+      {
+        "title": "로그 / 모니터링 / 진단",
+        "ids": [
+          "logs",
+          "txlogger",
+          "diagtool"
+        ]
+      },
+      {
+        "title": "Job / Scheduler",
+        "ids": [
+          "jobs",
+          "scheduler"
+        ]
+      },
+      {
+        "title": "Backup / Restore",
+        "ids": [
+          "backup"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "integration",
+    "title": "04.개발관련",
+    "en": "Development",
+    "intro": "API 개발, 스크립트 및 SDK 개발 관리.",
+    "ids": [
+      "api",
+      "script"
+    ],
+    "groups": [
+      {
+        "title": "REST API",
+        "ids": [
+          "api"
+        ]
+      },
+      {
+        "title": "Script / SDK",
+        "ids": [
+          "script"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "security",
+    "title": "05.Configuration",
+    "en": "Configuration",
+    "intro": "Properties, 서버별 구성, 인증, 권한, 첨부 및 업무 설정.",
+    "ids": [
+      "properties",
+      "server-config",
+      "auth",
+      "authdb",
+      "headers",
+      "roles",
+      "access",
+      "permissions",
+      "attachments",
+      "notifications",
+      "workflow",
+      "custom-fields",
+      "templates"
+    ],
+    "groups": [
+      {
+        "title": "시스템 Properties",
+        "ids": [
+          "properties",
+          "server-config"
+        ]
+      },
+      {
+        "title": "인증 / 보안",
+        "ids": [
+          "auth",
+          "authdb",
+          "headers"
+        ]
+      },
+      {
+        "title": "사용자 / Role / SVN Access",
+        "ids": [
+          "roles",
+          "access",
+          "permissions"
+        ]
+      },
+      {
+        "title": "첨부 / Notification",
+        "ids": [
+          "attachments",
+          "notifications"
+        ]
+      },
+      {
+        "title": "업무 설정",
+        "ids": [
+          "workflow",
+          "custom-fields",
+          "templates"
+        ]
+      }
     ]
   },
   {
     "id": "troubleshoot",
-    "title": "장애 대응 및 기술 진단",
+    "title": "06. Trouble Shooting",
     "en": "Troubleshooting",
-    "intro": "증상별 대응 순서, 로그, 진단 도구와 안전한 확인 명령.",
+    "intro": "증상별 증거 수집, 원인 구분, 복구 검증.",
     "ids": [
       "incident",
       "diag",
       "svn-cpu",
       "httpd-memory",
-      "upload-error",
       "project-missing",
-      "logs",
-      "txlogger",
-      "diagtool",
+      "upload-error"
+    ],
+    "groups": [
+      {
+        "title": "장애 접수 및 진단",
+        "ids": [
+          "incident",
+          "diag"
+        ]
+      },
+      {
+        "title": "SVN / HTTPD",
+        "ids": [
+          "svn-cpu",
+          "httpd-memory"
+        ]
+      },
+      {
+        "title": "화면 / 프로젝트 / 첨부",
+        "ids": [
+          "project-missing",
+          "upload-error"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "extensions",
+    "title": "07.Extensions",
+    "en": "Extensions",
+    "intro": "외부 연동과 확장 기능 설치·호환성 관리.",
+    "ids": [
+      "extension-management",
+      "integration"
+    ],
+    "groups": [
+      {
+        "title": "Extension / Connector",
+        "ids": [
+          "extension-management",
+          "integration"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "portal",
+    "title": "Document",
+    "en": "Document",
+    "intro": "제품 화면 관리 및 사용 가이드.",
+    "ids": [
+      "admin",
+      "project",
+      "project-life",
+      "workitem",
+      "live-loading",
+      "baseline"
+    ],
+    "groups": [
+      {
+        "title": "Administration / Project",
+        "ids": [
+          "admin",
+          "project",
+          "project-life"
+        ]
+      },
+      {
+        "title": "Work Item / LiveDoc",
+        "ids": [
+          "workitem",
+          "live-loading"
+        ]
+      },
+      {
+        "title": "Baseline / Test Management",
+        "ids": [
+          "baseline"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "knowledge",
+    "title": "Polarion 잡지식",
+    "en": "Technical notes",
+    "intro": "자주 혼동되는 기술 개념을 독립적인 참고 문서로 정리합니다.",
+    "ids": [
+      "ajp",
+      "resource-traceability"
+    ],
+    "groups": [
+      {
+        "title": "서버 구성요소",
+        "ids": [
+          "ajp",
+          "resource-traceability"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quick-functions",
+    "title": "자주쓰는기능",
+    "en": "Quick reference",
+    "intro": "현장에서 반복 사용하는 명령어와 점검법.",
+    "ids": [
       "commands"
+    ],
+    "groups": [
+      {
+        "title": "Linux 명령어",
+        "ids": [
+          "commands"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "misc",
+    "title": "기타",
+    "en": "Other",
+    "intro": "공통 인프라 및 운영 환경 관리.",
+    "ids": [
+      "disk",
+      "linux-common"
+    ],
+    "groups": [
+      {
+        "title": "Linux / Storage",
+        "ids": [
+          "disk",
+          "linux-common"
+        ]
+      }
     ]
   }
 ]
