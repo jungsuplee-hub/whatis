@@ -6,7 +6,7 @@ export const handbook:Record<string,Handbook>={
     "sections": [
       [
         "2606 용량 산정 기준",
-        "동시 사용자 수를 1차 기준으로, 프로젝트 수를 2차 기준으로 삼는다. 서로 다른 등급에 해당하면 높은 쪽을 적용한다. 예를 들어 동시 사용자 30명, 프로젝트 250개이면 50명 등급이 아니라 프로젝트 규모에 맞는 200명 이상 등급을 검토한다. 아래는 문서에 제시된 기준치이지 성능 보증이나 절대 설치 한계가 아니다. 모든 클러스터 CPU·RAM·Java 메모리 값은 애플리케이션 노드 1대 기준이다."
+        "동시 사용자 수를 1차 기준으로, 프로젝트 수를 2차 기준으로 삼는다. 서로 다른 등급에 해당하면 높은 쪽을 적용한다. 동시 사용자 수가 낮더라도 프로젝트 수나 저장소 규모가 상위 등급에 해당하면 높은 기준을 검토한다. 아래는 문서에 제시된 기준치이지 성능 보증이나 절대 설치 한계가 아니다. 모든 클러스터 CPU·RAM·Java 메모리 값은 애플리케이션 노드 1대 기준이다."
       ],
       [
         "서버 산정 방법",
@@ -484,6 +484,36 @@ export const handbook:Record<string,Handbook>={
             "com.polarion.platform.sql.populateEnumOptionsTable",
             "false",
             "pre-loading 시 DB enumeration 갱신 Job 시작 여부"
+          ],
+          [
+            "com.siemens.polarion.license.salt.enabled",
+            "true",
+            "SALT 사용 여부; 기존 라이선스는 false"
+          ],
+          [
+            "com.siemens.polarion.license.salt.server",
+            "29000@hostName",
+            "SALT 라이선스 서버 주소 형식"
+          ],
+          [
+            "com.polarion.platform.monitoring.notifications.freeSpacePercent",
+            "5",
+            "디스크 여유 경보 (%)"
+          ],
+          [
+            "com.polarion.platform.monitoring.notifications.disabled",
+            "false",
+            "모니터링 알림 비활성화 여부"
+          ],
+          [
+            "com.siemens.polarion.nodeJsServer.host",
+            "127.0.0.1",
+            "수식 변환 서버 host"
+          ],
+          [
+            "com.siemens.polarion.nodeJsServer.port",
+            "34568",
+            "수식 변환 서버 port"
           ]
         ]
       }
@@ -735,8 +765,16 @@ export const handbook:Record<string,Handbook>={
     "ref": "Deployment and Maintenance Guide, 2-65~2-113, 5-56, 8-25~8-53",
     "sections": [
       [
+        "신규 Cluster 구축 계획",
+        "2606 가이드는 동일 버전의 Coordinator, Node 1, Node 2, Shared Services를 별도 구성하는 4대 예시를 제공한다. 초기에는 동일 버전 Standalone 설치 및 독립 검증을 수행할 수 있다. 운영 SVN은 Shared Services에만 생성하고 Cluster 구성이 끝나기 전 신규 Node를 서비스에 공개하지 않는다. Node에는 Java/Apache/PostgreSQL, Coordinator에는 Java/Apache, Shared Services에는 Apache/SVN이 기본 역할에 필요한 구성요소로 설명된다. 실제 인증 DB 배치도 함께 확정해야 한다."
+      ],
+      [
         "공유 구성",
         "Cluster의 각 Application Node, Coordinator에서 공유 폴더가 동일한 지정 경로로 마운트되어야 한다. Linux 기본 예시는 /opt/polarion/shared이며 Shared Services Folder로 연결된다. Coordinator와 Node의 com.polarion.shared 값이 일치해야 한다."
+      ],
+      [
+        "공유 스토리지와 Load Balancer",
+        "Linux 공유 데이터는 NFSv4.2를 사용하도록 가이드가 안내하며 NFSv3 및 SSHFS는 사용하지 않도록 권고한다. Shared Services에서 loadbalancer.conf.apache24.template을 기반으로 LB 구성을 만들고 Cluster LB의 ProxyTimeout 600초 예시를 검토한다. 실제 export/mount 권한은 승인된 네트워크 정책과 서비스 계정의 일관성을 고려해 제한적으로 구성한다. 신규 구축에만 해당하는 서비스 제거 단계를 기존 운영 서버에 그대로 실행하지 않는다."
       ],
       [
         "버전과 운영 상태",
@@ -892,10 +930,51 @@ export const handbook:Record<string,Handbook>={
       [
         "장애 분석",
         "업로드의 HTTP 상태/요청 크기, Apache 및 Polarion 로그를 확인한다. 외부 저장소 권한과 공간을 확인하고 다운로드·기존 리비전도 검증한다. 백업 정책은 SVN 메타데이터와 바이너리를 함께 보존해야 한다."
+      ],
+      [
+        "업로드 Antivirus와 장애 분류",
+        "com.siemens.polarion.antivirus.scannerCmd에 승인된 검사 실행 파일 또는 wrapper를 지정하면 파일이 임시 저장된 뒤 검사되고 정상 파일만 영구 저장된다. 검사 대상은 첨부뿐 아니라 ReqIF, Page/Project import, Word round-trip 등 전체 업로드다. 표준화된 검사 종료 코드 0은 정상, 1은 감염, 기타는 검사 실패로 처리된다. 감염이나 검사 실패는 업로드 거부와 transaction rollback을 유발한다. 파일별 거부 시 검사 프로그램의 상태 및 exit code를 확인하되 검사를 우회하지 않는다."
       ]
     ],
     "code": "# fileSystem 예시: 사전에 경로 생성 및 권한 검증\ncom.siemens.polarion.attachments.externalStorage.type=fileSystem\ncom.siemens.polarion.attachments.externalStorage.fileSystem.basePath=/storage/polarion-attachments",
-    "verify": "작은 신규 첨부의 업로드·다운로드·버전 변경 후 이전 버전 조회를 테스트한다. 스토리지 전환은 복구 방안 없는 운영 변경으로 진행하지 않는다."
+    "verify": "작은 신규 첨부의 업로드·다운로드·버전 변경 후 이전 버전 조회를 테스트한다. 스토리지 전환은 복구 방안 없는 운영 변경으로 진행하지 않는다.",
+    "tables": [
+      {
+        "title": "업로드 처리 결과와 진단 기준",
+        "head": [
+          "단계",
+          "확인",
+          "실패 시"
+        ],
+        "rows": [
+          [
+            "HTTP 수신",
+            "상태 코드, 요청 크기",
+            "Apache 및 proxy 로그"
+          ],
+          [
+            "Antivirus 검사",
+            "프로그램 실행/종료 코드",
+            "0 정상 / 1 감염 / 기타 검사 오류"
+          ],
+          [
+            "Polarion 저장",
+            "사용자 권한, 앱 로그",
+            "객체·작업 상태 확인"
+          ],
+          [
+            "External Storage",
+            "basePath/공유 경로, 용량",
+            "접근 및 쓰기 권한 확인"
+          ],
+          [
+            "조회 및 Preview",
+            "SVN 메타데이터, 원본 파일",
+            "다운로드와 렌더링 오류 분리"
+          ]
+        ]
+      }
+    ]
   },
   "migration": {
     "ref": "Administrator and User Help, 4-59~4-63; Config Properties Reference",
@@ -1034,7 +1113,54 @@ export const handbook:Record<string,Handbook>={
         "저장소 증가량, 느린 요청 상위 유형, GC 및 cache eviction, DB dead tuple/용량, SVN pack 결과, 복원 연습, 패치 및 지원 버전, 인증서/라이선스 만료 일정을 확인한다."
       ]
     ],
-    "verify": "새 담당자가 관리자 계정 없이도 읽기 가능한 점검 정보를 찾고, 승인된 절차로 실제 조치를 수행할 수 있는지 인수인계 검증한다."
+    "verify": "새 담당자가 관리자 계정 없이도 읽기 가능한 점검 정보를 찾고, 승인된 절차로 실제 조치를 수행할 수 있는지 인수인계 검증한다.",
+    "tables": [
+      {
+        "title": "운영 인수인계 환경 대장 (내부용 작성 항목)",
+        "head": [
+          "분야",
+          "인수인계 시 필수 항목",
+          "검증 증빙"
+        ],
+        "rows": [
+          [
+            "서비스",
+            "구성 유형, URL, 버전/패치, 서버 역할 및 담당자",
+            "구성도 / 설치·상태 확인"
+          ],
+          [
+            "서버",
+            "OS, CPU, RAM, JVM, filesystem mount, disk/IOPS",
+            "서버 자원 기록"
+          ],
+          [
+            "데이터",
+            "SVN 경로/URL, rev, DB 역할/port, external storage",
+            "경로 및 접근 검증"
+          ],
+          [
+            "보안",
+            "인증 유형, Role·Group, 인증서 만료, 비밀정보 보관 위치",
+            "승인 계정 테스트"
+          ],
+          [
+            "유지보수",
+            "백업 범위, 주기, 복구 목표, 패치 창, Job",
+            "최근 백업/복구 결과"
+          ],
+          [
+            "장애",
+            "로그 경로, 모니터링, 에스컬레이션, 미해결 이슈",
+            "최근 장애 및 조치 이력"
+          ],
+          [
+            "연동",
+            "API, connector, plugin, script, 운영 책임자",
+            "연동 목록 및 테스트"
+          ]
+        ]
+      }
+    ]
   },
   "paths": {
     "ref": "Deployment and Maintenance Guide 3-2~3-6, 6-21, 8-89, 8-140",
@@ -1262,7 +1388,7 @@ export const handbook:Record<string,Handbook>={
     "verify": "문서 간 security.cacheSize 20k/30k 차이를 유효 설정으로 확인한다. 기존과 동일 작업량에서 eviction 및 응답시간, GC를 비교한다."
   },
   "location": {
-    "ref": "Polarion 2606 Config Properties Reference; Deployment and Maintenance Guide 8-86~8-89",
+    "ref": "Polarion 2606 Config Properties Reference; Deployment and Maintenance Guide 8-86~8-89; Administrator and User Help 4-1163~4-1164",
     "sections": [
       [
         "Object Maps",
@@ -1275,6 +1401,10 @@ export const handbook:Record<string,Handbook>={
       [
         "적용 판단",
         "동일한 데이터와 버전의 검증 환경에서 start/reindex 시간, 메모리, 변경 작업 속도와 검색 정확도를 비교한다. true가 항상 모든 작업을 빠르게 한다고 가정하지 않는다."
+      ],
+      [
+        "Object Maps 형식 변경",
+        "Administrator and User Help 4-1163~4-1164에 따르면 inMemory 전환 시 전체 Reindex 또는 index backup → property 변경 → restore → 정상 기동으로 새 형식을 적용할 수 있다. 메모리 요구량은 object-maps 폴더 크기의 약 3배로 안내되나 실제 사용량은 달라진다. Location Index의 백업은 Object Maps 방식과 호환되지 않는다는 제한을 별도로 적용한다."
       ]
     ],
     "code": "com.siemens.polarion.platform.locationIndex.enabled=false\ncom.siemens.polarion.persistence.objectMaps.inMemory=false",
@@ -1365,12 +1495,16 @@ export const handbook:Record<string,Handbook>={
         "공유 폴더를 Coordinator/Node에 동일 경로로 마운트하고 com.polarion.shared 설정을 확인한다. 백업·복원 연습, 사용자 영향, 전체 패치 패키지, 인증과 확장 변경을 준비한다."
       ],
       [
-        "작업 계획",
-        "동일 버전 조합의 사용자 접속이 유지되도록 전환 창을 설계한다. 대상 버전의 절차에서 어떤 노드를 먼저 제외할지, 어느 노드가 SVN 업데이트와 reindex를 담당할지, Coordinator 변경 시점 및 각 노드 index 복원 방식을 확정한다. 구버전 절차를 새 버전 운영에 그대로 적용하지 않는다."
+        "2304 이상 3-Node 예시의 전환 순서",
+        "① Node A를 LB에서 제외하고 서비스 중지, 백업 및 2512 인증 DB 사전 준비 후 업데이트한다. ② Shared Services의 해당 변경과 third-party/add-on을 적용하고 A를 시작하여 startup 로그를 확인한다. 이때 A는 사용자 서비스 준비 완료 상태가 아니다. ③ 다운타임 공지 후 A/B/C의 Polarion을 모두 중지하고 Coordinator를 중지한다. ④ Coordinator 업데이트 및 reindex, 라이선스 확인. ⑤ Shared Services의 SVN authz/DBD 및 보안 헤더 변경 검증. ⑥ Node A를 시작하고 색인 완료 후 사용자 접속을 검증한다. LB에 자동 복귀하지 않으면 관리 화면에서 상태를 확인한다. ⑦ Node B/C 업데이트 및 시작, 필요하면 A의 index backup으로 복구한다."
       ],
       [
         "검증",
         "노드별 기동 상태와 Coordinator 버전 일치, SVN 리비전, 라이선스, 공유 경로, LB 요청 분배와 사용자 작업을 확인한다."
+      ],
+      [
+        "운영 변경 경계",
+        "위 순서는 Deployment Guide 8-27~8-52의 흐름을 요약한 것이다. 실제 2512 이전 인증 전환 과정에는 임시 update 구성 및 DB 준비가 포함되며 해당 기존 구성에서만 적용된다. 운영 환경의 직접 실행용 전체 명령은 아니며 검증 환경에서 대상 패키지와 설정별 분기 절차를 확정한다. Shared Services의 Diagtool도 A의 버전으로 맞춘다."
       ]
     ],
     "verify": "구성별 상세 단계가 동일하지 않으므로 검증 환경에서 정확한 전환 순서를 확정한다. 이번 페이지는 전환 통제 기준이다."
@@ -1399,6 +1533,10 @@ export const handbook:Record<string,Handbook>={
       [
         "OLE 및 미리보기",
         "Windows용 preview generator와 Linux에서 원격 Windows 변환을 사용하는 OLE 환경은 설치·SMB·OpenSSH·변환 스크립트 및 Polarion 설정을 함께 검토해야 한다. 이미지가 표시되지 않으면 원본 첨부 접근·preview 생성 결과·브라우저 로딩 상태를 구분한다."
+      ],
+      [
+        "Word OLE Import의 범위",
+        "Word 문서의 OLE 객체 자체를 가져오는 것은 아니며 문서에 포함된 WMF/EMF thumbnail을 JPEG로 변환해 표시한다. Windows 가이드는 ImageMagick을 권장하며 관련 설정 prefix는 com.polarion.oleconverter이다. Linux 환경에서 원격 변환 구성인 경우 converter와 네트워크, 공유 경로, 서비스 계정의 상태를 점검한다."
       ],
       [
         "WMF/EMF",
@@ -1515,6 +1653,731 @@ export const handbook:Record<string,Handbook>={
     ],
     "code": "date -Is\nuptime\nfree -h\nvmstat 1 5\nps -eo pid,ppid,comm,%cpu,rss,nlwp --sort=-%cpu | head -25\n# sysstat 설치 시\niostat -xz 1 5\n# Apache 오류의 시각 및 상태를 실제 LogFormat 기준으로 확인\ngrep -iE 'timeout|error|AH[0-9]+|authz' /path/to/error_log | tail -80",
     "verify": "조치 전후 동일 부하 조건에서 CPU, 응답 시간, 오류율을 비교한다."
+  },
+  "license": {
+    "ref": "Deployment and Maintenance Guide 3-7~3-12, 7-28~7-35; Config Properties Reference",
+    "sections": [
+      [
+        "라이선스 제공 방식",
+        "2606의 기본은 SALT이며 기존 Polarion proprietary 방식은 별도로 사용 가능하지만 제거 예정으로 분류된다. 기존 방식은 com.siemens.polarion.license.salt.enabled=false가 필요하다. Cluster에서 두 방식 사이를 전환할 때 Coordinator reindex가 필요하다. 같은 방식에서 단순 갱신하는 작업과 구분한다."
+      ],
+      [
+        "Named 및 Concurrent",
+        "Named 사용자는 할당한 라이선스를 사용한다. Concurrent 사용자는 할당받은 종류의 사용 가능한 슬롯이 없으면 로그인하지 못한다. 미할당자는 기본 Concurrent 라이선스를 사용한다. 명시 기본값이 없을 경우 슬롯 수가 가장 많은 종류를 선택하며 동수이면 낮은 등급을 선택한다. 기본 할당 변경은 20분마다 한 번만 가능하다."
+      ],
+      [
+        "관리 화면과 재활성화",
+        "Repository 범위 Administration > License에서 License Assignment and Usage를 연다. Default Licenses 및 Group Licenses를 설정하고 Save한다. 개인 할당은 User Management > Users에서 관리한다. 기존 라이선스의 Reactivate Polarion에서는 온라인/오프라인 절차를 진행하며 온라인 활성화 전 동일 키로 실행 중인 인스턴스가 없는지 확인한다."
+      ],
+      [
+        "SALT 연결 및 진단",
+        "SALT 서버 주소는 com.siemens.polarion.license.salt.server (문서 형식 port@hostName, 기본 포트 29000)로 검토한다. 기존 방식은 설치의 license/users 및 license 파일 경로를 보존한다. 현재 사용량은 License Usage를 새로고침하여 확인하며 licensing 로그는 Concurrent 로그인·로그오프 시 통계를 남긴다."
+      ]
+    ],
+    "tables": [
+      {
+        "title": "라이선스 장애 구분",
+        "head": [
+          "증상",
+          "확인",
+          "조치 판단"
+        ],
+        "rows": [
+          [
+            "전체 로그인 실패",
+            "라이선스 서버 연결·만료·활성화 로그",
+            "인증 장애와 구분"
+          ],
+          [
+            "특정 사용자 로그인 불가",
+            "할당 라이선스, 사용 중인 슬롯, 그룹",
+            "부족 여부 확인"
+          ],
+          [
+            "갱신 키 반영 실패",
+            "현재 활성 키 유형, 적용 위치, Coordinator",
+            "로그 확인 후 Reactivate 절차"
+          ],
+          [
+            "SALT 전환",
+            "공유 설정 및 Coordinator",
+            "전환 시 reindex 계획"
+          ]
+        ]
+      }
+    ],
+    "code": "# SALT를 사용하지 않는 승인된 기존 라이선스 구성\ncom.siemens.polarion.license.salt.enabled=false\n# SALT 사용 구성의 서버 주소 형식 예시\n# com.siemens.polarion.license.salt.server=29000@LICENSE_HOST\nls -lt /opt/polarion/data/logs/main/log4j-licensing-*.log",
+    "verify": "실제 라이선스 방식·만료일·할당량과 대표 Named/Concurrent 사용자의 로그인 결과를 기록한다. 키와 사용자 정보는 공개하지 않는다."
+  },
+  "auth": {
+    "ref": "Administrator and User Help 6-1~6-93, 6-118~6-155; Deployment and Maintenance Guide 3-12, 4-70~4-78",
+    "sections": [
+      [
+        "인증 아키텍처",
+        "Polarion은 로컬 비밀번호, LDAP, OAuth 2, SAML, Teamcenter Security Services를 지원하며 다중 제공자 구성이 가능하다. LDAP/SSO의 사용자 인증과 Polarion 내부 Role·그룹 및 라이선스는 각각 확인한다. 로컬 비밀번호 저장 방식은 2512 이후 DB 전환 문서와 함께 해석한다."
+      ],
+      [
+        "설정 위치와 반영",
+        "Global Administration > User Management > Authentication의 XML 편집기를 사용한다. UI에서 저장하면 즉시 반영되며 일반적으로 재시작이 필요하지 않다. 파일 직접 수정은 기본적으로 재시작이 필요하고 UI와 동기화되지 않을 수 있다. Standalone 기본 디렉터리는 /opt/polarion/data/authentication, Cluster는 Coordinator의 data/workspace/cluster-data 아래이다."
+      ],
+      [
+        "사용자·그룹 동기화",
+        "인증 공급자의 로그인 성공과 Polarion 사용자 생성/그룹/Role 매핑을 구분한다. 사용자 ID 매핑, 소속 그룹·역할 및 라이선스 할당 정책을 확인한다. LDAP sync와 SSO group/role sync는 별도 동작이며 동기화 대상과 제외 정책을 사전에 테스트한다."
+      ],
+      [
+        "인증 장애",
+        "리디렉션 및 IdP 오류, 토큰 만료·시스템 시간, 인증서 만료, 사용자 매핑, 라이선스, 프로젝트 권한 순으로 확인한다. 기존 관리자 세션 및 승인된 복구 수단을 확보하고 XML 백업을 유지한다. 인증 설정 오류로 기동이 중단되면 로그와 XML 구문을 확인한다."
+      ]
+    ],
+    "tables": [
+      {
+        "title": "인증 설정 및 검증 기준",
+        "head": [
+          "방식",
+          "핵심 구성",
+          "검증"
+        ],
+        "rows": [
+          [
+            "LDAP",
+            "서버·검색 기준·사용자 매핑",
+            "로그인, 그룹 동기화, 제한된 계정"
+          ],
+          [
+            "SAML",
+            "IdP/SP metadata·인증서·사용자 매핑",
+            "리디렉션, assertion, 만료"
+          ],
+          [
+            "OAuth 2",
+            "provider·client 설정·redirect URI",
+            "토큰, 사용자 ID 매핑"
+          ],
+          [
+            "TcSS",
+            "Teamcenter 인증 서비스 연동",
+            "SSO 및 세션 처리"
+          ],
+          [
+            "로컬",
+            "2512+ DB 인증 구성",
+            "로그인/비밀번호 변경/SVN 연동"
+          ]
+        ]
+      }
+    ],
+    "code": "# Standalone: authentication.xml의 전체 경로 지정 예시\n# com.siemens.polarion.security.auth.file=/secure/config/authentication.xml\n# Cluster Coordinator: 사용자 지정 폴더 (내부 구조는 제품 관리)\n# com.siemens.polarion.security.auth.cluster.folder=/secure/auth\n# 인증서 만료 확인 예시\nopenssl x509 -in /path/to/cert.pem -noout -dates",
+    "verify": "관리자 및 일반 사용자의 로그인, 로그아웃, 잘못된 자격 증명 거부, 프로젝트 접근, 사용자/그룹 동기화를 검증한다. IdP 비밀값을 출력하거나 인증을 우회하지 않는다."
+  },
+  "workitem": {
+    "ref": "Administrator and User Help 3-48~3-302, 3-193~3-194, 3-384~3-393, 3-531~3-532",
+    "sections": [
+      [
+        "Work Item의 구조",
+        "Work Item은 요구사항, 결함, 작업, 테스트 케이스 등 업무 데이터의 개별 객체다. 유형에 따라 필드·workflow·링크가 다르며 프로젝트 ID와 항목 ID를 조합해 식별한다. 표/트리/문서에서 같은 항목을 조회할 수 있으므로 표시 화면과 실제 객체를 구분한다."
+      ],
+      [
+        "LiveDoc과 Space",
+        "Space는 Document와 Page를 구성하는 영역이다. LiveDoc은 본문과 Work Item을 결합한다. 항목 이동, 참조, 원본 문서의 관계를 구분하고 문서 속성 수정과 본문 변경에 별도 권한이 필요할 수 있다."
+      ],
+      [
+        "추적성과 링크",
+        "Direct link는 연결을 생성한 항목에 저장되며 반대 방향에서 보이는 backlink는 derived link이다. Smart Link는 다른 객체로 이동하는 링크 표현이며 Work Item Link Role의 관계와 동일하지 않다. 관계 규칙과 반대 방향 표시를 검증한다."
+      ],
+      [
+        "Page와 보고서",
+        "보고서나 Page가 느릴 때 단일 조회인지, 위젯 여러 개·복잡 SQL·Velocity 처리인지 TXLOGGER에서 구분한다. 보고서 변경은 데이터 범위, 권한, 필터와 계산 시간까지 검증한다."
+      ]
+    ],
+    "tables": [
+      {
+        "title": "화면별 주요 확인",
+        "head": [
+          "문제",
+          "우선 확인",
+          "관련 문서"
+        ],
+        "rows": [
+          [
+            "Work Item 검색 누락",
+            "ID/프로젝트/쿼리/권한/Index",
+            "Index 및 Reindex"
+          ],
+          [
+            "문서 내용 누락",
+            "On-demand loading, 문서 revision, 참조 항목",
+            "LiveDoc 로딩"
+          ],
+          [
+            "저장 불가",
+            "Workflow 조건, 필수값, 객체 권한",
+            "Workflow/Permissions"
+          ],
+          [
+            "보고서 지연",
+            "TXLOGGER, SQL, 위젯 범위",
+            "TXLOGGER/성능"
+          ],
+          [
+            "역사 데이터 미표시",
+            "History Indexing 상태",
+            "Reindex"
+          ]
+        ]
+      }
+    ],
+    "verify": "항목 생성·저장·링크·검색·문서 표시·이력 조회를 서로 다른 권한의 테스트 계정으로 확인한다."
+  },
+  "api": {
+    "ref": "REST API User Guide for Polarion 1-2~1-18, 2-1~2-23, 3-1~3-17; Config Properties Reference",
+    "sections": [
+      [
+        "활성화와 권한",
+        "REST endpoint는 기본 비활성이다. com.siemens.polarion.rest.enabled=true로 설정하고 기동한다. Swagger UI는 별도 swaggerUi.enabled=true가 필요하다. 인증(PAT, JWT, TCSSO 및 활성 Polarion session 방식), endpoint 권한, item-level 권한을 구분한다. 호출별 인증이 기본이다."
+      ],
+      [
+        "GET과 응답 크기",
+        "fields[workitems]=title,status처럼 필요한 필드만 지정한다. @all을 대량 응답에 사용하면 서버/네트워크/클라이언트 부담이 증가한다. page[size]와 page[number], 결과의 links.next를 이용해 순차 조회한다. 실제 상한은 property의 maxPageSize를 따른다."
+      ],
+      [
+        "요청 형식과 수정",
+        "JSON body에는 Content-Type: application/json을 사용한다. 첨부 API는 multipart/form-data 및 파일 content 조회에 application/octet-stream을 사용하는 경우가 있다. PATCH 이후 body가 비어 있을 수 있으므로 상태 코드와 실제 저장 결과를 확인한다. 재시도 전에 중복 생성 여부를 검사한다."
+      ],
+      [
+        "장애 분류",
+        "401은 PAT 누락·무효 등 인증, 403은 endpoint 또는 객체 권한, 406은 Accept, 415는 Content-Type, 503은 REST 비활성 또는 서비스 불가 여부를 먼저 확인한다. Apache 등 다른 응답 주체의 오류는 body와 로그로 분리한다."
+      ]
+    ],
+    "tables": [
+      {
+        "title": "REST 응답 판단표",
+        "head": [
+          "HTTP",
+          "우선 점검"
+        ],
+        "rows": [
+          [
+            "200",
+            "GET 등 성공"
+          ],
+          [
+            "201",
+            "생성 결과/ID 확인"
+          ],
+          [
+            "204",
+            "응답 body 없이 성공한 경우"
+          ],
+          [
+            "401",
+            "토큰·인증"
+          ],
+          [
+            "403",
+            "endpoint·item 권한"
+          ],
+          [
+            "406 / 415",
+            "Accept / Content-Type"
+          ],
+          [
+            "503",
+            "REST enabled, Polarion 서비스 및 프록시"
+          ]
+        ]
+      }
+    ],
+    "code": "# 토큰을 shell history에 직접 남기지 않는 읽기 예시\nread -rs -p 'PAT: ' PAT; echo\nBASE='https://YOUR-SERVER/polarion/rest/v1'\ncurl -sS -G -H \"Authorization: Bearer $PAT\" \\\n  -H 'Accept: application/json' \\\n  --data-urlencode 'fields[workitems]=title,status' \\\n  --data-urlencode 'page[size]=25' \\\n  \"$BASE/projects/PROJECT_ID/workitems\"\nunset PAT",
+    "verify": "비운영 테스트 프로젝트에서 허용/거부 계정, 페이지 처리, 필드 제한, 조회 및 승인된 변경 시나리오를 검증한다. 토큰은 로그·Git에 저장하지 않는다."
+  },
+  "jobs": {
+    "ref": "Administrator and User Help 4-1065~4-1067, 8-9; Deployment and Maintenance Guide 8-88, 8-136~8-138",
+    "sections": [
+      [
+        "Monitor의 표시 조건",
+        "Global MANAGE JOBS 권한이 없는 사용자는 자신이 실행한 진행 중/완료 Job만 볼 수 있다. 경고가 나타나는 경우 실제 모든 작업이 없다는 뜻은 아니다. global 관리자와 일반 사용자 화면을 비교한다."
+      ],
+      [
+        "예약 작업 실행",
+        "Navigation > Monitor의 Scheduled Jobs에서 해당 작업을 선택하고 Execute now로 실행할 수 있다. Scheduler는 Global Administration에서만 정의하며 XML 수정 후 Save하면 재시작 없이 반영된다."
+      ],
+      [
+        "실패 및 오래 걸리는 작업",
+        "Job name, 상태, 실행 서버, 실행 시작/종료, 로그를 기록한다. 이전 실행과 비교하여 현재 진행 중인지 대기인지 구분한다. 중복 실행 전 데이터 수정 범위·자원 영향·재시도 가능성을 확인한다."
+      ],
+      [
+        "여러 작업 연결",
+        "multi.job은 이름으로 다른 Job을 호출할 수 있으며 기본 순차 실행이다. parallel, terminateOnFailure, delegateFailure의 설정에 따라 실행 및 실패 처리 방식이 달라진다. 운영 작업은 검증 환경에서 실패 경로를 테스트한 뒤 사용한다."
+      ]
+    ],
+    "verify": "예정된 작업이 의도한 서버와 시간에 실행되는지, 실패 작업이 후속 작업에 미친 영향을 확인한다."
+  },
+  "incident": {
+    "ref": "Deployment and Maintenance Guide 4-103~4-109, 7-1~7-26, 10-1; 자체 장애 대응 절차",
+    "sections": [
+      [
+        "접수 및 범위 분류",
+        "장애 시작·종료(시간대 포함), 영향 사용자/프로젝트/노드, 실패 작업과 HTTP 상태, 재현 조건, 최근 변경을 기록한다. 전체 로그인 불가, 특정 프로젝트 불가, 저장만 느림, 조회만 느림을 분리한다."
+      ],
+      [
+        "증거 보존",
+        "서비스 재시작 또는 설정 원복 전에 가능한 범위에서 관련 로그, 프로세스 상태, CPU/RAM/I/O, SVN 리비전과 요청량을 확보한다. 운영 상황에서 thread dump/JFR/heap dump는 각 수집 부하 및 민감 데이터 포함 여부를 확인한다."
+      ],
+      [
+        "대응 우선순위",
+        "가용한 다른 노드에서 같은 요청 비교 → 공통 서비스 상태 확인 → 병목 계층 분리 → 승인된 완화 조치 → 서비스 검증 순서로 판단한다. CPU 사용률이 높다는 것만으로 원인 특정은 불가능하다."
+      ],
+      [
+        "사후 분석",
+        "시간축을 정렬하고 지연 요청 유형과 오류, CPU/DB/SVN/캐시 지표의 선후관계를 비교한다. 원인 확정, 재발 방지, 담당자, 검증 결과와 미확인 가설을 나누어 기록한다."
+      ]
+    ],
+    "tables": [
+      {
+        "title": "장애 분류와 첫 진입 문서",
+        "head": [
+          "증상",
+          "우선 확인",
+          "관련 항목"
+        ],
+        "rows": [
+          [
+            "로그인 실패",
+            "인증·라이선스·공통 DB",
+            "인증 / License"
+          ],
+          [
+            "HTTPD CPU·메모리",
+            "PID, 요청량/지연, MPM",
+            "Apache / SVN"
+          ],
+          [
+            "검색 결과 누락",
+            "권한, 리비전, index",
+            "Reindex"
+          ],
+          [
+            "첨부 오류",
+            "파일 크기, HTTP 상태, 저장소",
+            "Attachment"
+          ],
+          [
+            "시작 멈춤",
+            "startup 로그, 단계 및 DB",
+            "기동 / Reindex"
+          ],
+          [
+            "특정 Node 느림",
+            "LB 및 Node별 로그/자원",
+            "Cluster"
+          ]
+        ]
+      }
+    ],
+    "verify": "완화 후 대표 사용자 시나리오와 정상 범위 복귀를 확인하고 재발 모니터링을 시작한다."
+  },
+  "release": {
+    "ref": "Deployment and Maintenance Guide 8-1~8-25, 8-80; 2606 Config Properties Reference; 2606 공개 릴리스 안내",
+    "sections": [
+      [
+        "릴리스·패치 식별",
+        "설치된 major release와 실제 패치 수준을 구분한다. 2606 base release의 변경사항이 현재 패치에 대한 결함 해결 여부를 의미하지는 않는다. 대상 버전 패키지의 수정 목록과 실제 설치 상태를 기준으로 기록한다."
+      ],
+      [
+        "2404 → 2606 검토 포인트",
+        "2506 SVN access 위치 변경, 2512 인증 데이터 DB 전환, 2606 SALT 기본 활성화 여부·Secrets Manager·Tomcat 보안 헤더 및 Java 21 지원 조건을 개별 변경 항목으로 관리한다. Object Maps/Location Index는 명시적 기능 선택으로 별도 검증한다."
+      ],
+      [
+        "확장 기능 검증",
+        "플러그인, custom UI, 스크립트, connector, REST API, 외부 보고서 등을 인벤토리화한다. 제품 업그레이드에 따른 Java 및 Jakarta API 호환성과 권한, 보안 정책을 테스트 환경에서 검증한다."
+      ],
+      [
+        "Resolved Issues 관리",
+        "문제의 증상과 발생 조건·버전·오류 메시지를 기록한다. 동일한 결함 ID 및 수정 버전인지 검증한다. 확인되지 않은 결함 번호·Hotfix 이름은 등록하지 않는다."
+      ]
+    ],
+    "verify": "승인된 대상 빌드, 패치 수정사항, 필수 구성 변경, 지원 종료 기능, 사후 테스트 증거가 변경 기록에 남아 있어야 한다."
+  },
+  "commands": {
+    "ref": "Deployment and Maintenance Guide 3-5~3-6, 8-83~8-89; Linux 시스템 명령 (자체 운영 예시)",
+    "sections": [
+      [
+        "읽기 전용 진단",
+        "시간과 hostname부터 기록한다. CPU 부하, 가용 메모리, 파일시스템 사용률 및 inode, 프로세스별 CPU/RSS, 서비스 상태를 구분해 측정한다."
+      ],
+      [
+        "서비스 운영",
+        "systemctl status 및 journalctl로 현재 상태와 로그를 확인한다. 서비스 unit 이름은 설치 방식에 따라 다를 수 있다. Polarion의 기본 reindex 명령은 /opt/polarion/bin/polarion.init reindex이며 일반 restart와 구별한다."
+      ],
+      [
+        "스크립트 작성 원칙",
+        "모든 명령의 실행 서버 및 대상 경로를 기록한다. 검색은 *.conf 등 필요한 파일 범위로 제한한다. 전체 repo를 재귀적으로 조사하는 명령은 큰 저장소에 I/O 부담을 줄 수 있다. 비밀값 및 내부 정보가 담긴 로그는 승인된 저장 위치에만 보존한다."
+      ]
+    ],
+    "tables": [
+      {
+        "title": "점검 명령어 표",
+        "head": [
+          "목적",
+          "명령",
+          "해석"
+        ],
+        "rows": [
+          [
+            "CPU",
+            "uptime; vmstat 1 5",
+            "load average/CPU wait와 runnable"
+          ],
+          [
+            "Memory",
+            "free -h",
+            "available 중심"
+          ],
+          [
+            "Disk",
+            "df -h; df -i",
+            "사용량 및 inode"
+          ],
+          [
+            "프로세스",
+            "ps -eo pid,comm,%cpu,rss --sort=-%cpu",
+            "PID별 순간/누적 표시 차이 주의"
+          ],
+          [
+            "서비스",
+            "systemctl --failed",
+            "실패 unit 확인"
+          ],
+          [
+            "네트워크",
+            "ss -lnt; ss -s",
+            "listener와 socket 상태"
+          ],
+          [
+            "Apache",
+            "httpd -t; httpd -M",
+            "구문 및 module"
+          ],
+          [
+            "SVN",
+            "svnlook youngest /path/to/repo",
+            "최종 리비전"
+          ]
+        ]
+      }
+    ],
+    "code": "hostname; date -Is; uptime\nfree -h; df -h; df -i\nvmstat 1 5\nps -eo pid,ppid,comm,%cpu,rss --sort=-%cpu | head -20\nsystemctl --failed\nss -s",
+    "verify": "동일 호스트에서 정상 구간과 장애 구간의 데이터를 비교한다. 명령은 일반 Linux 점검 예시이며 제품별 실행 절차와 구분한다."
+  },
+  "integration": {
+    "ref": "REST API User Guide 2606; Administrator and User Help 5-1~5-89; Deployment and Maintenance Guide 5-70~5-75, 8-18",
+    "sections": [
+      [
+        "연동 인벤토리",
+        "Teamcenter/외부 PLM, Connector, REST/SOAP, SDK 플러그인, 스크립트, Resource Traceability 및 ERA를 구분한다. 원본 시스템, 동기화 방향, 인증·권한, 객체 매핑, 재시도, 버전 및 운영 책임자를 기록한다."
+      ],
+      [
+        "스크립트와 확장",
+        "워크플로 Condition과 Function, scheduled script, Page 위젯을 구분한다. Script Monitor에서 실행·오류·시간을 조사하고 커스텀 플러그인은 설치 바이너리 업데이트와 분리해 백업한다."
+      ],
+      [
+        "ERA / Kafka",
+        "ERA 서비스를 사용하면 제품 업데이트 시 ERA 버전 호환 및 Kafka와 서비스 의존성도 확인한다. 실제 연동이 없는 환경에는 이 절차를 적용하지 않는다."
+      ],
+      [
+        "연동 장애 및 데이터 일관성",
+        "실패 요청 ID와 시각·응답을 확인하고 원본과 대상 객체를 비교한다. 네트워크·인증·권한·API 스키마·업무 조건 중 어디에서 실패했는지 구분한다. 중복 처리 또는 일부 데이터 반영에 유의한다."
+      ]
+    ],
+    "verify": "검증 환경에서 정상/실패/재시도/중복 처리·권한 제한·장애 복구와 객체 링크 일관성을 검증한다."
+  },
+  "ports": {
+    "ref": "Deployment and Maintenance Guide 2-113~2-115",
+    "sections": [
+      [
+        "연결 범위",
+        "포트 표는 기본 구성에서 필요한 서비스 간 연결을 뜻한다. 인터넷 또는 모든 호스트로 열어야 한다는 의미가 아니다. 내부 RPC, AJP, SVN, NFS는 필요한 호스트 간 연결만 허용하고 관리용 URL은 관리자 접근으로 제한한다."
+      ],
+      [
+        "운영 환경 검증",
+        "실제 Listener 및 방화벽 정책과 DNS를 대조한다. LB→Node, Node→Coordinator, Node→Shared Services, Node 간 Job/RPC 및 membership 흐름을 각각 점검한다. PostgreSQL 및 별도 인증·연동 포트는 환경 대장에 별도 기록한다."
+      ]
+    ],
+    "tables": [
+      {
+        "title": "기본 연결 기준 (선택 구성은 해당 시만)",
+        "head": [
+          "출발",
+          "목적",
+          "포트 / 프로토콜"
+        ],
+        "rows": [
+          [
+            "Client",
+            "Apache / LB",
+            "80 / 443 HTTP(S)"
+          ],
+          [
+            "Apache / LB",
+            "Polarion Node",
+            "8889 TCP AJP"
+          ],
+          [
+            "Node",
+            "SVN HTTP(S)",
+            "80 / 443"
+          ],
+          [
+            "Node",
+            "svnserve",
+            "3690 TCP"
+          ],
+          [
+            "Node",
+            "Coordinator Zookeeper",
+            "2181 TCP"
+          ],
+          [
+            "Node",
+            "다른 Node Job RPC",
+            "8887 TCP"
+          ],
+          [
+            "Node",
+            "다른 Node membership",
+            "45564 TCP"
+          ],
+          [
+            "Node",
+            "Shared Storage Linux",
+            "2049 TCP NFSv4"
+          ],
+          [
+            "Node",
+            "Shared Storage Windows",
+            "139, 445 TCP SMB"
+          ],
+          [
+            "Node",
+            "Kafka (사용 시)",
+            "9092 TCP"
+          ]
+        ]
+      }
+    ],
+    "code": "ss -lnt\n# 승인된 서버에서 실제 목적 호스트/포트의 연결 테스트\n# 예: nc -vz NODE_HOST 8889",
+    "verify": "연결이 필요한 방향만 허용하고 내부 서비스의 공개 접근 및 불필요한 listener가 없는지 확인한다."
+  },
+  "hardware": {
+    "ref": "Deployment and Maintenance Guide 6-42~6-44, 8-86~8-88; Config Properties Reference",
+    "sections": [
+      [
+        "CPU 변경",
+        "workers와 DB maxPoolSize가 명시 설정된 상태라면 CPU 증설 후 값을 함께 검토한다. maxPoolSize는 미설정 시 10~20 범위 제한이 있으므로 CPU×2라고만 이해하면 안 된다. 가이드의 수동 튜닝은 workers≤CPU, pool≈2×workers, DB max_connections 4배 수준을 제시하되 pool 20 초과 조건에서는 4배 초과 및 여유를 반영한다."
+      ],
+      [
+        "RAM 및 Apache 변경",
+        "JVM Xms/Xmx, PostgreSQL shared_buffers/effective_cache_size, Cache heap/disk 용량과 Apache process/thread 제한, svnserve max threads 및 cache를 함께 검토한다. 증설 전후 동일 부하에서 실제 효과를 검증한다."
+      ],
+      [
+        "예시 계산",
+        "아래는 수동 workers 값에 따른 설정 검토 예시이며 실제 적정값을 보장하지 않는다. DB 다른 접속과 보안 데이터의 안정성, OS 메모리 여유를 함께 고려한다."
+      ]
+    ],
+    "tables": [
+      {
+        "title": "workers에 따른 Pool 계산 예시",
+        "head": [
+          "workers (명시)",
+          "Pool 예시",
+          "DB max_connections"
+        ],
+        "rows": [
+          [
+            "8",
+            "16",
+            "64보다 충분한 여유 (문서 최소 80 검토)"
+          ],
+          [
+            "16",
+            "32",
+            "128 초과"
+          ],
+          [
+            "24",
+            "48",
+            "192 초과"
+          ],
+          [
+            "32",
+            "64",
+            "256 초과"
+          ]
+        ]
+      }
+    ],
+    "verify": "각 서비스의 변경 전/후 설정과 peak CPU, GC, 대기 연결, 응답시간, 실제 reindex 소요 시간을 비교한다."
+  },
+  "disk": {
+    "ref": "Deployment and Maintenance Guide 7-26~7-28, 8-83, 8-94~8-98",
+    "sections": [
+      [
+        "디스크 부족 대응",
+        "df로 파일시스템과 inode를 확인하고 실제 Polarion data mount의 사용률을 확인한다. 로그, 백업, 빌드 산출물, index 및 SVN을 구분한다. 원본 repo 또는 외부 첨부 파일을 임의 삭제하지 않는다."
+      ],
+      [
+        "정기 작업",
+        "SVN revision shard pack은 문서에서 주간 실행을 권장한다. build.clean은 local deployment 또는 오래된 빌드 정리용이고 logs.cleanup은 지정 파일 패턴/보존 기간의 로그 정리용이다. 보존 기간은 감사·장애 분석 정책과 맞춘다."
+      ],
+      [
+        "자원 경보",
+        "디스크 여유 기본 경보는 5%이며 문서에는 1 GB, 100 MB 저수준 경보도 설명한다. heap 여유 경보도 있다. receivers 및 monitoring notifications 설정, 메일 도착을 검증한다."
+      ]
+    ],
+    "code": "df -h /opt/polarion/data\ndf -i /opt/polarion/data\n# 승인된 작업 창, 실제 저장소에 대해 정기 pack\n# svnadmin pack /path/to/repo\n# polarion.properties 예시\ncom.polarion.platform.monitoring.notifications.freeSpacePercent=5\ncom.polarion.platform.monitoring.notifications.disabled=false",
+    "verify": "공간 확보량, 데이터 접근, Job 결과, 보존 대상 누락 여부를 확인한다. 재색인 이전 .saved는 복구 필요성·백업·정상 상태 확인 후 별도로 판단한다."
+  },
+  "txlogger": {
+    "ref": "Deployment and Maintenance Guide 4-107~4-109, 7-21~7-25",
+    "sections": [
+      [
+        "로그 구조",
+        "TXLOGGER는 트랜잭션의 총 실행 시간, CPU user/system, 누적 할당 메모리와 세부 작업 시간을 제공한다. thread annotation에는 u:userId, i:page/object, e:widget, job 식별자 등이 표시될 수 있다. Total은 전체 경과시간이고 CPU는 계산에 사용된 시간이다."
+      ],
+      [
+        "분석 방법",
+        "같은 요청의 Total 대비 CPU를 비교한다. CPU가 Total보다 작다고 바로 DB 병목이라고 판단하지 말고 DB, SVN, permission, renderer, Velocity 등 실제 세부 항목을 확인한다. Allocated memory는 트랜잭션 중 누적 할당량이지 종료 시 살아 있는 Heap 크기나 RSS가 아니다. 계층별 시간이 중첩될 수 있다."
+      ],
+      [
+        "RPC·REST와 연결",
+        "TX 로그의 시간·thread·user·object를 RPC CSV 또는 REST 로그, Apache 요청 및 OS 지표와 비교한다. 느린 호출이 어느 화면/보고서/스크립트인지 확인하고 동일 조건 재현 데이터를 확보한다."
+      ]
+    ],
+    "code": "# 정확한 날짜 파일을 지정\n grep -n 'TXLOGGER' /path/to/log4j-tx-DATE.log | tail -50\n# 결과는 승인된 범위에서 별도로 보관\n# 로그 형식(단위, multiline)을 먼저 확인하고 시간 기준으로 파싱",
+    "verify": "지연 요청의 시각, 객체/사용자(가명 처리), Total, CPU, 상위 세부 작업과 관련 로그를 증거에 포함한다."
+  },
+  "diagtool": {
+    "ref": "diagtool.pdf 1~9장; Deployment and Maintenance Guide 4-107, 8-52",
+    "sections": [
+      [
+        "실행 위치와 옵션",
+        "설치 루트의 diagtool 디렉터리(또는 승인된 배포 ZIP)에서 diagtool.properties를 검토한 뒤 Linux run.sh / Windows run.bat로 실행한다. -polarionHome, -resultsDir, -configuration 옵션을 지원하며 CLI 값이 설정 파일보다 우선한다."
+      ],
+      [
+        "기본 진단 및 부하",
+        "기본 모듈은 EnvironmentCheck와 PolarionCheck다. FieldTest는 별도 성능 테스트를 포함하므로 운영에서 실행 전 부하와 영향 여부를 확인한다. Shared Services 서버의 diagtool은 업데이트된 Node의 도구 버전과 맞춰 관리한다."
+      ],
+      [
+        "결과 수집",
+        "결과 경로의 고유 이름 폴더 및 log4j.txt를 확인한다. UI에서 실행하는 경우 Monitor Job 결과 위치를 확인한다. 자동 전송을 비활성화하고 결과를 검토한 뒤 승인된 Siemens 지원 채널로 전달한다."
+      ]
+    ],
+    "code": "# 설치된 도구의 실제 경로를 확인한 뒤 실행\ncd /opt/polarion/diagtool\n./run.sh -sendResults no -resultsDir /path/to/approved-diagnostics\n# 설정된 모듈 및 결과 확인",
+    "verify": "진단 결과, 도구 버전, 실행 서버, 기간을 기록하고 민감정보 및 고객 데이터 포함 여부를 확인한다."
+  },
+  "custom-fields": {
+    "ref": "Administrator and User Help 4-207~4-245",
+    "sections": [
+      [
+        "Custom Field 구성",
+        "Administration > Work Items > Custom Fields에서 전역/프로젝트 및 전체 type/특정 type 범위를 선택한다. 공통 설정 파일은 custom-fields.xml이고 type 별 파일은 type ID를 접두어로 사용한다. 예를 들어 requirement-custom-fields.xml이다."
+      ],
+      [
+        "필수값의 기존 데이터 영향",
+        "기존 유형에 required custom field를 추가해도 이전 생성 항목에 값이 비어 있는 경우 기존 항목의 변경이 가능할 수 있다. 이미 입력된 값의 제거는 제한될 수 있다. 신규 생성, 기존 편집, 빈값 처리 시나리오를 분리해 테스트한다."
+      ],
+      [
+        "Enumeration 및 의존값",
+        "Enum 필드는 기존 enumeration을 참조한다. 상위 값에 따라 하위 선택값을 필터링하도록 enumeration mapping 및 custom field dependency를 구성할 수 있다. 의존 chain 중 읽기 전용 설정이 다른 필드에 영향을 줄 수 있다."
+      ],
+      [
+        "변경 통제",
+        "기존 ID를 무분별하게 삭제·변경하지 않는다. 데이터 검색, 보고서, REST, 스크립트, workflow 조건 및 기존 이력에 영향을 주는지 확인한다."
+      ]
+    ],
+    "verify": "신규/기존 Work Item, 필드 필수 조건, 의존 선택 및 권한별 검색·편집·API 값을 검증한다."
+  },
+  "project-life": {
+    "ref": "Administrator and User Help 4-44~4-59",
+    "tables": [
+      {
+        "title": "관리 작업의 차이",
+        "head": [
+          "작업",
+          "의미",
+          "주의"
+        ],
+        "rows": [
+          [
+            "Mark",
+            "기존 repository 폴더를 프로젝트로 등록",
+            "재등록 시 ID 유지"
+          ],
+          [
+            "Unmark",
+            "포털에서 프로젝트 표시/관리 중지",
+            "파일은 SVN에 남음"
+          ],
+          [
+            "Delete",
+            "포털 및 repository 파일 제거",
+            "삭제 작업 승인 및 정합 백업 필요"
+          ],
+          [
+            "Move",
+            "프로젝트 경로 이동",
+            "ID 유지, 사용자 중단 및 SVN access 규칙 별도 확인"
+          ]
+        ]
+      }
+    ],
+    "sections": [
+      [
+        "이동 절차",
+        "Global Administration > Projects에서 대상 프로젝트를 선택하고 Move를 실행하여 새 경로를 지정한다. 대상 폴더 충돌을 확인하고 완료 후 프로젝트 목록 및 SVN access 규칙을 검증한다. 문서상 Move는 access 파일의 프로젝트 관련 규칙을 자동 갱신하지 않는다."
+      ],
+      [
+        "Unmark와 Delete",
+        "Projects에서 대상 선택 후 Unmark 또는 Delete를 구분한다. Unmark는 SVN 파일을 유지하지만 Delete는 파일 삭제가 포함된다. 포털 목록에 없는 프로젝트에 대해 중복 Mark를 반복하거나 SVN 폴더를 직접 삭제하는 것을 기본 복구로 사용하지 않는다."
+      ]
+    ],
+    "verify": "프로젝트 ID, 경로, 이력, 권한 및 목록을 확인하고 승인 없이 파괴적 작업을 수행하지 않는다."
+  },
+  "notifications": {
+    "ref": "Deployment and Maintenance Guide 5-26, 5-47~5-50; Administrator and User Help 4-491~4-496",
+    "sections": [
+      [
+        "이벤트와 대상",
+        "Work Item 생성/상태 변경, Document 수정, 댓글, Page watcher 등 이벤트에 수신 대상이 연결된다. 작성자, assignee, watcher 등의 대상 설정에 따라 알림이 발생한다. 같은 사용자가 여러 대상에 속해도 동일 이벤트의 알림이 중복 발송되지 않는 방식이다."
+      ],
+      [
+        "권한과 개인 설정",
+        "대상 artifact의 READ 권한이 없으면 해당 변경 알림을 받지 못한다. 필드 단위 artifact 권한을 이메일 제한 수단으로 사용할 수 없다는 제한을 고려한다. 사용자 개인 알림 설정 및 이메일 주소도 확인한다."
+      ],
+      [
+        "운영 점검",
+        "메일 서버 접속 및 설정, Polarion 알림 이벤트와 대상, 사용자 권한과 수신 여부, 발송 관련 로그를 비교한다. Collaboration Notification과 일반 이메일을 구분한다. Cluster 공통 설정 및 노드별 동작을 검증한다."
+      ]
+    ],
+    "verify": "테스트 이벤트를 생성해 허용 수신자에게 한 번 도착하고 권한 없는 계정에는 알림이 가지 않는지 확인한다."
+  },
+  "script": {
+    "ref": "Administrator and User Help 5-1~5-89; Deployment and Maintenance Guide 8-6",
+    "sections": [
+      [
+        "분류",
+        "Workflow Condition은 실행 조건, Function은 전이 시 동작, Scheduled Script는 예약 Job, Page Script/위젯은 렌더링 중 실행되는 코드로 구분한다. SDK 플러그인은 제품의 Java/API 호환성 및 설치 위치를 관리한다."
+      ],
+      [
+        "변경 절차",
+        "스크립트 ID·버전, 실행 위치, 입력 데이터·권한, 예상 수정 범위 및 예외 처리 방식을 기록한다. Script Monitor 및 log4j-scripts 로그로 실행 시간과 오류를 확인한다. 사용자 플러그인/feature는 제품 업데이트 전 별도로 백업하고 extensions 위치를 확인한다."
+      ],
+      [
+        "운영 장애",
+        "TXLOGGER의 Velocity/스크립트/DB 지표, 실행 시점 및 요청 빈도를 조사한다. 문제가 특정 프로젝트 또는 위젯에 한정되는지 확인한 후 승인된 구성 원복을 검토한다."
+      ]
+    ],
+    "verify": "테스트 환경에서 정상/실패/권한 부족/대량 데이터 조건을 검증하고 이전 버전 복원 경로를 보존한다."
   }
 }
 export const extraGuides=[
@@ -1652,5 +2515,86 @@ export const extraGuides=[
     "summary": "증거를 수집한 뒤 조치한다.",
     "checks": [],
     "reference": "Deployment and Maintenance Guide 4-103~4-109, 7-1~7-26, 10-1; 자체 진단 예시"
+  },
+  {
+    "id": "ports",
+    "group": "서버",
+    "title": "네트워크·방화벽·서비스 연결",
+    "keywords": "port firewall AJP 8889 8887 3690 2181 2049 45564 NFS Zookeeper",
+    "summary": "배포 유형별 연결 관계와 실제 허용 포트를 관리한다.",
+    "checks": [],
+    "reference": "Deployment and Maintenance Guide 2-113~2-115"
+  },
+  {
+    "id": "hardware",
+    "group": "성능",
+    "title": "CPU·RAM 증설 후 연관 설정 조정",
+    "keywords": "hardware scale workers pool max_connections heap ServerLimit upgrade",
+    "summary": "CPU 증설만으로 제품의 설정 한도가 자동으로 모두 증가하지 않는다.",
+    "checks": [],
+    "reference": "Deployment and Maintenance Guide 6-42~6-44, 8-86~8-88; Config Properties Reference"
+  },
+  {
+    "id": "disk",
+    "group": "유지보수",
+    "title": "디스크 공간·로그·Repository 정기 유지보수",
+    "keywords": "disk space full logs.cleanup build.clean pack backup retention inode",
+    "summary": "원본 데이터와 삭제 가능한 산출물을 구분한다.",
+    "checks": [],
+    "reference": "Deployment and Maintenance Guide 7-26~7-28, 8-83, 8-94~8-98"
+  },
+  {
+    "id": "txlogger",
+    "group": "성능",
+    "title": "TXLOGGER·RPC 로그 분석",
+    "keywords": "txlogger transaction total CPU allocated memory RPC GWT slow request",
+    "summary": "지연 요청의 실제 처리 계층을 분석한다.",
+    "checks": [],
+    "reference": "Deployment and Maintenance Guide 4-107~4-109, 7-21~7-25"
+  },
+  {
+    "id": "diagtool",
+    "group": "성능",
+    "title": "Polarion Diagnostic Tool (PDT) 실행 및 결과",
+    "keywords": "diagtool pdt run.sh resultsDir sendResults probe FieldTest",
+    "summary": "지원 분석에 필요한 환경·Polarion 진단 결과를 수집한다.",
+    "checks": [],
+    "reference": "diagtool.pdf 1~9장; Deployment and Maintenance Guide 4-107, 8-52"
+  },
+  {
+    "id": "custom-fields",
+    "group": "화면",
+    "title": "Custom Field·Enumeration 운영",
+    "keywords": "custom field custom-fields.xml enum enumeration field required dependent",
+    "summary": "설정 파일, 상속 범위와 기존 데이터 영향을 구분한다.",
+    "checks": [],
+    "reference": "Administrator and User Help 4-207~4-245"
+  },
+  {
+    "id": "project-life",
+    "group": "화면",
+    "title": "프로젝트 이동·Unmark·Delete의 차이",
+    "keywords": "project move unmark delete history id inactive archive",
+    "summary": "프로젝트 변경 작업은 이력 및 권한에 직접 영향을 준다.",
+    "checks": [],
+    "reference": "Administrator and User Help 4-44~4-59"
+  },
+  {
+    "id": "notifications",
+    "group": "화면",
+    "title": "알림·SMTP·Watcher 운영",
+    "keywords": "notification email SMTP watcher event target read permission",
+    "summary": "알림 누락은 이벤트, 수신자, 권한 및 전송을 각각 확인한다.",
+    "checks": [],
+    "reference": "Deployment and Maintenance Guide 5-26, 5-47~5-50; Administrator and User Help 4-491~4-496"
+  },
+  {
+    "id": "script",
+    "group": "설정",
+    "title": "Script·SDK 확장 관리 및 장애",
+    "keywords": "script monitor scheduled workflow function condition SDK extension",
+    "summary": "스크립트와 플러그인은 업그레이드 및 성능 장애의 점검 대상이다.",
+    "checks": [],
+    "reference": "Administrator and User Help 5-1~5-89; Deployment and Maintenance Guide 8-6"
   }
 ]

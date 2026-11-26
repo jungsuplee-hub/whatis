@@ -20,7 +20,7 @@ import './service-examples.css'
 import './home-polish.css'
 import './mobile-clarity.css'
 
-type Route = {area: Area|'computer'; page:'home'|'category'|'topic'|'saved'|'tc-demo'|'polarion-demo'|'lab'|'siemens-old';id?:string}
+type Route = {area: Area|'computer'; page:'home'|'category'|'topic'|'saved'|'tc-demo'|'polarion-demo'|'lab'|'siemens-old'|'polarion-ops';id?:string}
 const routeFromHash = ():Route => {
   const paths=decodeURIComponent(window.location.hash.slice(1)).split('/').filter(Boolean)
   if(paths[0]==='computer'){
@@ -31,6 +31,7 @@ const routeFromHash = ():Route => {
   }
   if(paths[0]==='general'&&paths[1]==='lab')return {area:'general',page:'lab',id:paths[2]}
   if(paths[0]==='siemens'&&(paths[1]==='old'||paths[1]==='flows'))return {area:'siemens',page:'siemens-old'}
+  if(paths[0]==='siemens'&&paths[1]==='ops'&&paths[2])return {area:'siemens',page:'polarion-ops',id:paths[2]}
   if(paths[0]==='siemens'&&paths[1]==='teamcenter-demo')return {area:'siemens',page:'tc-demo'}
   if(paths[0]==='siemens'&&paths[1]==='polarion-demo')return {area:'siemens',page:'polarion-demo'}
   const area:Area=paths[0]==='siemens'?'siemens':'general'
@@ -41,7 +42,7 @@ const routeFromHash = ():Route => {
   if(t?.area===area)return {area,page:'topic',id:t.id}
   return {area,page:'home'}
 }
-const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/'+(r.area==='computer'?'chapter':'category')+'/'+r.id:r.page==='saved'?'/saved':r.page==='lab'?'/lab'+(r.id?'/'+r.id:''):r.page==='tc-demo'?'/teamcenter-demo':r.page==='polarion-demo'?'/polarion-demo':r.page==='siemens-old'?'/old':'')
+const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/'+(r.area==='computer'?'chapter':'category')+'/'+r.id:r.page==='saved'?'/saved':r.page==='lab'?'/lab'+(r.id?'/'+r.id:''):r.page==='tc-demo'?'/teamcenter-demo':r.page==='polarion-demo'?'/polarion-demo':r.page==='siemens-old'?'/old':r.page==='polarion-ops'?'/ops/'+r.id:'')
 const technicalName = (t:Topic) => ({
   ai:'AI', 'machine-learning':'Machine Learning', 'deep-learning':'Deep Learning',
   'neural-networks':'Neural Network', 'supervised-learning':'Supervised Learning',
@@ -108,7 +109,7 @@ function App(){
       if(e.key==='Escape')setSearchOpen(false)
       const active=e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement
       if(((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k')||(e.key==='/'&&!active)){
-        e.preventDefault();setSearchOpen(true)
+        e.preventDefault();const ops=document.getElementById('polarion-ops-search');if(ops instanceof HTMLInputElement){ops.focus();ops.select()}else setSearchOpen(true)
       }
     }
     document.addEventListener('keydown',handler)
@@ -140,7 +141,7 @@ function App(){
       {route.page==='home'&&route.area==='general'&&<HomePage onTopic={openTopic} onCategory={openCategory} onSearch={()=>setSearchOpen(true)} onLab={()=>aiLab()}/>}
       {route.page==='lab'&&route.area==='general'&&<Suspense fallback={<div className="computer-page-loading" role="status">AI 실습 연구실을 준비하고 있습니다.</div>}><PracticeLab domain="ai" startId={route.id} onBack={home}/></Suspense>}
       {route.page==='lab'&&route.area==='computer'&&<Suspense fallback={<div className="computer-page-loading" role="status">컴퓨터 구조 실습 연구실을 준비하고 있습니다.</div>}><PracticeLab domain="computer" startId={route.id} onBack={computerHome}/></Suspense>}
-      {route.page==='home'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Polarion 운영 가이드를 준비하고 있습니다.</div>}><PolarionOperations onOld={()=>navigate({area:'siemens',page:'siemens-old'})} onDemo={()=>navigate({area:'siemens',page:'polarion-demo'})}/></Suspense>}
+      {(route.page==='home'||route.page==='polarion-ops')&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Polarion 운영 가이드를 준비하고 있습니다.</div>}><PolarionOperations documentId={route.page==='polarion-ops'?route.id:undefined} onNavigate={id=>navigate(id?{area:'siemens',page:'polarion-ops',id}:{area:'siemens',page:'home'})} onOld={()=>navigate({area:'siemens',page:'siemens-old'})} onDemo={()=>navigate({area:'siemens',page:'polarion-demo'})}/></Suspense>}
       {route.page==='siemens-old'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Siemens 아키텍처 화면을 준비하고 있습니다.</div>}><SiemensArchitect onHome={()=>navigate({area:'siemens',page:'home'})} onTeamcenterDemo={()=>navigate({area:'siemens',page:'tc-demo'})} onPolarionDemo={()=>navigate({area:'siemens',page:'polarion-demo'})}/></Suspense>}
       {route.page==='tc-demo'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Teamcenter 학습 화면을 준비하고 있습니다.</div>}><TeamcenterUserDemo onBack={()=>navigate({area:'siemens',page:'siemens-old'})}/></Suspense>}
       {route.page==='polarion-demo'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Polarion 학습 화면을 준비하고 있습니다.</div>}><PolarionUserDemo onBack={()=>navigate({area:'siemens',page:'home'})}/></Suspense>}

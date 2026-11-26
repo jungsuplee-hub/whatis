@@ -1,8 +1,11 @@
-import { useMemo, useState } from 'react'
-import { ArrowLeft, ArrowRight, BookOpen, Search, ExternalLink } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, Search, ExternalLink, ChevronDown, ChevronRight, Copy, Printer, Link2, ListTree, Layers, Menu, X, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import './polarion-operations.css'
 import { opsDetails } from './polarion-ops-details'
 import { handbook, extraGuides } from './polarion-handbook'
+import type { OpsTable } from './polarion-handbook'
+import { chapters, runbooks } from './polarion-manual-structure'
+import type { Runbook } from './polarion-manual-structure'
 
 const baseGuides = [
   {
@@ -383,30 +386,120 @@ const baseGuides = [
     "reference": "Siemens 공개 개발자 문서 / 제품별 연동 가이드"
   }
 ]
-const guides=[...baseGuides,...extraGuides]
-const groups=['전체','서버','설정','화면','성능','유지보수']
-const shortcuts=['SVN CPU 100','HTTPD 메모리','Reindex','Access File','Ehcache','Attachment','Cluster','Hotfix','REST API','Import']
+const allGuides=[...baseGuides,...extraGuides]
+const guideMap=new Map(allGuides.map(g=>[g.id,g]))
+const guideOrder=chapters.flatMap(c=>c.ids)
+const chapterOf=(id:string)=>chapters.find(c=>c.ids.includes(id))
+const numberOf=(id:string)=>{const c=chapterOf(id);return c?String(chapters.indexOf(c)+1).padStart(2,'0')+'.'+String(c.ids.indexOf(id)+1).padStart(2,'0'):''}
+const chapterNumber=(id:string)=>String(chapters.findIndex(c=>c.id===id)+1).padStart(2,'0')
 const official='https://support.sw.siemens.com/'
-const release='https://blogs.sw.siemens.com/polarion/polarion-alm-2606-whats-new-and-noteworthy/'
 const developer='https://developer.siemens.com/polarion/overview.html'
-const auth='https://developer.siemens.com/polarion/authentication.html'
-export default function PolarionOperations({onOld,onDemo}:{onOld:()=>void;onDemo:()=>void}){
+const sources=[
+ {id:'deployment',name:'Deployment and Maintenance Guide',desc:'설치 · 사이징 · 시스템 구성 · 성능 · 업데이트 · 복구'},
+ {id:'help',name:'Administrator and User Help',desc:'Administration · 프로젝트 · 화면 · 사용자 관리 · 인증 · 스크립트'},
+ {id:'properties',name:'Polarion 2606 Config Properties Reference',desc:'시스템 및 고급 구성 속성 · 기본값 · 적용 범위'},
+ {id:'rest',name:'REST API User Guide for Polarion',desc:'인증 · 권한 · REST 리소스 · API 시나리오'},
+ {id:'diag',name:'diagtool.pdf',desc:'진단 도구 실행 · 옵션 · 결과 · 모듈'},
+]
+const quick=[['SVN CPU 100%','diag'],['HTTPD 메모리','apache'],['Reindex','index'],['Access File','access'],['Ehcache','ehcache'],['첨부파일 오류','attachments'],['프로젝트 미표시','project'],['라이선스 갱신','license'],['패치 / 업그레이드','upgrade'],['Cluster 업데이트','updatecluster']]
+type Guide=typeof allGuides[number]
+type ManualSection={id:string;title:string;body?:string;table?:OpsTable;kind?:'runbook'|'code'|'verify'|'checks'|'related'|'source'}
+const normalize=(v:string)=>v.toLocaleLowerCase().replace(/[\u200b-\u200d]/g,'').replace(/[-_./]+/g,' ').replace(/\s+/g,' ').trim()
+function getSections(g:Guide):ManualSection[]{
+ const b=handbook[g.id],r=runbooks[g.id],d=opsDetails[g.id]
+ const result:ManualSection[]=[]
+ if(b?.sections?.length)b.sections.forEach(([title,body],i)=>result.push({id:'s'+i,title,body}))
+ else if(!b&&d)result.push({id:'s0',title:'기술 설명',body:d.body},{id:'s1',title:'운영 절차',body:d.procedure})
+ b?.tables?.forEach((table,i)=>result.push({id:'t'+i,title:table.title,table}))
+ if(r)result.push({id:'runbook',title:'작업 절차 · Runbook',kind:'runbook'})
+ if(b?.code||(!b&&d?.command))result.push({id:'code',title:'명령어 및 설정 예시',kind:'code',body:b?.code||d?.command})
+ if(b?.verify||d?.caution)result.push({id:'verify',title:'완료 및 검증 기준',kind:'verify',body:b?.verify||d?.caution})
+ if(g.checks.length&&!r)result.push({id:'checks',title:'운영 체크리스트',kind:'checks'})
+ if(r?.related.length)result.push({id:'related',title:'관련 문서',kind:'related'})
+ result.push({id:'source',title:'출처 및 적용 범위',kind:'source'})
+ return result
+}
+function BodyText({body}:{body:string}){
+ const numbered=body.split(/(?=\s\d{1,2}\.\s)/).map(v=>v.trim()).filter(Boolean)
+ if(numbered.length>=3&&/^1\.\s/.test(numbered[0])&&numbered.every((v,i)=>v.startsWith(String(i+1)+'. ')))return <ol className="pm-inline-steps">{numbered.map((v,i)=><li key={i}>{v.replace(/^\d+\.\s*/,'')}</li>)}</ol>
+ const parts=body.split(/(?=\s[①②③④⑤⑥⑦⑧⑨⑩]\s)/).map(v=>v.trim()).filter(Boolean)
+ if(parts.length>2){const beginsWithStep=/^[①②③④⑤⑥⑦⑧⑨⑩]/.test(parts[0]);return <>{!beginsWithStep&&<p>{parts[0]}</p>}<ol className="pm-inline-steps">{(beginsWithStep?parts:parts.slice(1)).map((p,i)=><li key={i}>{p.replace(/^[①②③④⑤⑥⑦⑧⑨⑩]\s*/,'')}</li>)}</ol></>}
+ const sent=body.split(/(?<=다\.)\s+(?=[가-힣A-Z0-9])/).filter(Boolean)
+ if(body.length>230&&sent.length>3){const chunks:string[]=[];for(let i=0;i<sent.length;i+=2)chunks.push(sent.slice(i,i+2).join(' '));return <>{chunks.map((s,i)=><p key={i}>{s}</p>)}</>}
+ return <p>{body}</p>
+}
+function CodeBlock({code}:{code:string}){
+ const [status,setStatus]=useState('')
+ const copy=async()=>{try{await navigator.clipboard.writeText(code);setStatus('복사 완료')}catch{setStatus('복사 실패 · 직접 선택하세요')}}
+ return <div className="pm-code-block"><div><span>설정 / 명령 예시 · 실행 대상과 권한 확인</span><button type="button" onClick={copy}><Copy size={15}/>{status||'복사'}</button></div><pre><code>{code}</code></pre></div>
+}
+function DataTable({table,printing=false}:{table:OpsTable;printing?:boolean}){
+ const [q,setQ]=useState('')
+ const [all,setAll]=useState(false)
+ const rows=table.rows.filter(r=>!q.trim()||normalize(r.join(' ')).includes(normalize(q)))
+ const truncated=table.rows.length>24&&!all&&!q.trim()&&!printing
+ return <div className="pm-table-card">{table.rows.length>15&&!printing&&<div className="pm-table-toolbar"><Search size={15}/><input aria-label={table.title+' 표 검색'} placeholder="이 표에서 설정명·값 검색" value={q} onChange={e=>setQ(e.target.value)}/><span>{rows.length}개</span></div>}<div className="pm-table-scroll"><table><thead><tr>{table.head.map((v,i)=><th key={i} scope="col">{v}</th>)}</tr></thead><tbody>{rows.map((r,i)=><tr key={i} className={truncated&&i>=20?'pm-row-collapsed':undefined}>{r.map((v,j)=><td key={j}>{v}</td>)}</tr>)}</tbody></table></div>{!rows.length&&<p className="pm-empty">일치하는 값이 없습니다.</p>}{table.rows.length>24&&!q.trim()&&!printing&&<button className="pm-table-more" onClick={()=>setAll(v=>!v)}>{all?'처음 20개만 보기':'전체 '+rows.length+'개 보기'}<ChevronDown size={15}/></button>}</div>
+}
+function RunbookPanel({id,run}:{id:string;run:Runbook}){
+ const [checked,setChecked]=useState<string[]>(()=>{try{const v=JSON.parse(sessionStorage.getItem('whatis:polarion:runbook:'+id)||'[]');return Array.isArray(v)?v.filter(x=>typeof x==='string'):[]}catch{return []}})
+ useEffect(()=>{try{sessionStorage.setItem('whatis:polarion:runbook:'+id,JSON.stringify(checked))}catch{}},[id,checked])
+ const toggle=(key:string)=>setChecked(v=>v.includes(key)?v.filter(x=>x!==key):[...v,key])
+ const total=run.pre.length+run.steps.length
+ return <div className="pm-runbook"><div className="pm-run-header"><div><span>작업 유형</span><strong>{run.type}</strong></div><div><span>적용 범위</span><strong>{run.scope}</strong></div><div><span>서비스 영향</span><strong>{run.impact}</strong></div></div><div className="pm-run-progress"><span>작업 체크 · {checked.filter(k=>/^p|^s/.test(k)).length}/{total}</span><progress value={checked.length} max={total}/><button onClick={()=>setChecked([])}>초기화</button></div><p className="pm-muted">체크 상태는 현재 브라우저 세션에만 저장됩니다. 실제 서버 작업이 수행되는 것은 아닙니다.</p><h4>사전 조건</h4><div className="pm-pre">{run.pre.map((t,i)=><label key={i}><input type="checkbox" checked={checked.includes('p'+i)} onChange={()=>toggle('p'+i)}/><span>{t}</span></label>)}</div><h4>실행 절차</h4><ol className="pm-steps">{run.steps.map(([title,body],i)=><li key={i}><span className="pm-step-number">{String(i+1).padStart(2,'0')}</span><div><strong>{title}</strong><p>{body}</p></div><input type="checkbox" aria-label={title+' 완료'} checked={checked.includes('s'+i)} onChange={()=>toggle('s'+i)}/></li>)}</ol><div className="pm-warning"><AlertTriangle size={19}/><div><strong>실패 시 대응 / 원복 판단</strong><p>{run.rollback}</p></div></div></div>
+}
+function ArticleBody({g,onNavigate,printing=false}:{g:Guide;onNavigate:(id:string)=>void;printing?:boolean}){
+ const sections=getSections(g),run=runbooks[g.id],book=handbook[g.id]
+ return <div className="pm-body">{sections.map((s,i)=><section key={s.id} className="pm-section" id={g.id+'-'+s.id}><h3><span>{numberOf(g.id)}.{i+1}</span>{s.title}</h3>{s.table?<DataTable table={s.table} printing={printing}/>:s.kind==='runbook'&&run?<RunbookPanel id={g.id} run={run}/>:s.kind==='code'?<CodeBlock code={s.body||''}/>:s.kind==='verify'?<div className="pm-verify"><CheckCircle2 size={20}/><BodyText body={s.body||''}/></div>:s.kind==='checks'?<ul className="pm-checklist">{g.checks.map(c=><li key={c}>{c}</li>)}</ul>:s.kind==='related'?<div className="pm-related">{run?.related.map(id=><button key={id} onClick={()=>onNavigate(id)}>{numberOf(id)} {guideMap.get(id)?.title}<ArrowRight size={15}/></button>)}</div>:s.kind==='source'?<div className="pm-source"><strong>{book?.ref||g.reference}</strong><p>기준 버전: Polarion 2606 · 공식 문서의 기술 정보와 자체 작성한 운영 체크리스트를 구분해 정리했습니다. 운영 서버별 값은 별도 환경 대장과 검증 기록을 기준으로 확정합니다.</p>{!printing&&<div><a href={official} target="_blank" rel="noreferrer">Siemens Support Center <ExternalLink size={13}/></a>{(g.id==='api'||g.id==='integration'||g.id==='script')&&<a href={developer} target="_blank" rel="noreferrer">Polarion Developer Portal <ExternalLink size={13}/></a>}</div>}</div>:s.body?<BodyText body={s.body}/>:null}</section>)}</div>
+}
+function GuideHeader({g}:{g:Guide}){
+ const r=runbooks[g.id],c=chapterOf(g.id)
+ return <><div className="pm-breadcrumb"><span>Polarion 2606</span><ChevronRight size={13}/><span>{c?.title}</span></div><div className="pm-article-kicker"><span>SECTION {numberOf(g.id)}</span><span>{r?.type||'기술 참고'}</span></div><h1>{g.title}</h1><p className="pm-lead">{g.summary}</p><div className="pm-meta"><span><BookOpen size={15}/>2606 기준</span><span><Layers size={15}/>{r?.scope||g.group+' 운영'}</span><span>{getSections(g).length}개 절</span></div></>
+}
+export default function PolarionOperations({onOld,onDemo,documentId,onNavigate}:{onOld:()=>void;onDemo:()=>void;documentId?:string;onNavigate:(id?:string)=>void}){
  const [query,setQuery]=useState('')
- const [group,setGroup]=useState('전체')
- const [selected,setSelected]=useState('')
- const filtered=useMemo(()=>guides.filter(g=>(group==='전체'||g.group===group)&&query.trim().toLowerCase().split(/\s+/).every(q=>[g.title,g.keywords,g.summary,g.checks.join(' '),g.reference,JSON.stringify(opsDetails[g.id]??{}),JSON.stringify(handbook[g.id]??{})].join(' ').toLowerCase().includes(q))),[query,group])
- const current=filtered.find(g=>g.id===selected)??filtered[0]
- const detail=current?opsDetails[current.id]:undefined
- const book=current?handbook[current.id]:undefined
- return <section className="po-page">
-  <nav className="po-nav"><span>SIEMENS ARCHITECT / POLARION 2606</span><button onClick={onOld}>Old · 기존 아키텍처 <ArrowRight size={16}/></button></nav>
-  <header className="po-hero"><div><span>OPERATIONS KNOWLEDGE BASE</span><h1>Polarion 2606<br/>운영 기술 가이드</h1><p>서버·화면·환경설정·장애 대응을 검색하고 점검 순서를 확인하세요.</p></div><div className="po-hero-stat"><strong>{guides.length}</strong><span>운영 주제</span><button onClick={onDemo}>화면 체험 <ArrowRight size={16}/></button></div></header>
-  <div className="po-notice"><BookOpen size={20}/><div><strong>운영 인수인계 핸드북 · 2606</strong><p>2606 제품 문서에서 검증한 기술 정보, 설정값, 실무 절차 및 운영 검증 항목을 수록했습니다. 기본값과 권고값, 공식 예시와 운영 환경별 값은 구분합니다.</p></div></div>
-  <div className="po-search"><Search size={22}/><input id="polarion-ops-search" aria-label="운영 가이드 검색" placeholder="예: SVN, Reindex, 사용자 권한, Hotfix" value={query} onChange={e=>{setQuery(e.target.value);setSelected('')}}/><button onClick={()=>{setQuery('');setGroup('전체');setSelected('')}}>초기화</button></div>
-  <div className="po-chips" aria-label="자주 찾는 주제">{shortcuts.map(s=><button key={s} onClick={()=>{setQuery(s);setGroup('전체');setSelected('')}}>{s}</button>)}</div>
-  <div className="po-tabs" role="group" aria-label="운영 가이드 분류">{groups.map(g=><button key={g} aria-pressed={g===group} className={g===group?'active':''} onClick={()=>{setGroup(g);setSelected('')}}>{g}</button>)}<small>{filtered.length}개 결과</small></div>
-  <div className="po-layout"><aside aria-label="운영 가이드 목록">{filtered.map(g=><button key={g.id} className={current?.id===g.id?'active':''} onClick={()=>setSelected(g.id)}><span>{g.group}</span><strong>{g.title}</strong><ArrowRight size={15}/></button>)}</aside>
-  {current?<article key={current.id}><span className="po-label">POLARION 2606 / {current.group}</span><h2>{current.title}</h2><p>{current.summary}</p>{book&&<div className="po-handbook"><div className="po-handbook-ref"><strong>근거 문서</strong><p>{book.ref}</p></div>{book.sections?.map(([title,body])=><section key={title}><h3>{title}</h3><p>{body}</p></section>)}{book.tables?.map(t=><section key={t.title}><h3>{t.title}</h3><div className="po-table-wrap"><table><thead><tr>{t.head.map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{t.rows.map((r,i)=><tr key={i}>{r.map((v,j)=><td key={j}>{v}</td>)}</tr>)}</tbody></table></div></section>)}{book.code&&<><h3>명령어 및 설정 예시</h3><pre className="po-code"><code>{book.code}</code></pre></>}{book.verify&&<><h3>완료 및 검증 기준</h3><p className="po-caution">{book.verify}</p></>}</div>}{!book&&detail&&<><h3>기술 설명</h3><p>{detail.body}</p><h3>실무 절차</h3><p>{detail.procedure}</p>{detail.command&&<><h3>설정 및 진단 명령 예시</h3><pre className="po-code"><code>{detail.command}</code></pre></>}<h3>주의 사항</h3><p className="po-caution">{detail.caution}</p></>}{current.checks.length>0&&<><h3>운영 점검 순서</h3><ol>{current.checks.map(c=><li key={c}>{c}</li>)}</ol></>}<h3>공식 문서 찾기</h3><p>{current.reference}</p>{detail&&<p className="po-small">2606 문서 참고 위치: {detail.section}</p>}<div className="po-links">{detail&&<a href={detail.url} target="_blank" rel="noreferrer">해당 기술 참고자료 <ExternalLink size={15}/></a>}<a href={official} target="_blank" rel="noreferrer">Siemens Support Center <ExternalLink size={15}/></a>{current.id==='api'||current.id==='integration'?<><a href={developer} target="_blank" rel="noreferrer">2606 개발자 문서 <ExternalLink size={15}/></a><a href={auth} target="_blank" rel="noreferrer">REST 인증 <ExternalLink size={15}/></a></>:null}{current.id==='release'||current.id==='upgrade'?<a href={release} target="_blank" rel="noreferrer">2606 공개 릴리스 안내 <ExternalLink size={15}/></a>:null}</div><p className="po-small">공식 문서의 기술적 사실을 한국어로 재구성했으며, 일부 진단 명령과 인수인계 체크리스트는 자체 작성한 운영 예시입니다. 실제 변경 시 환경 및 적용 범위를 검증하세요.</p></article>:<article><h2>검색 결과가 없습니다.</h2><p>다른 키워드나 전체 분류로 검색하세요.</p><button onClick={()=>{setQuery('');setGroup('전체')}}><ArrowLeft size={16}/> 전체 보기</button></article>}
-  </div><footer className="po-footer"><a href={release} target="_blank" rel="noreferrer">2606 공식 릴리스</a><a href={developer} target="_blank" rel="noreferrer">공식 개발자 문서</a><a href={official} target="_blank" rel="noreferrer">Support Center</a><button onClick={onOld}>Old · 기존 Siemens Architect</button></footer>
+ const [mobileOpen,setMobileOpen]=useState(false)
+ const current=documentId?guideMap.get(documentId):undefined
+ const chapter=chapters.find(c=>documentId==='chapter-'+c.id)
+ const activeChapter=current?chapterOf(current.id):chapter
+ const [expanded,setExpanded]=useState<string[]>(()=>activeChapter?[activeChapter.id]:['start'])
+ const [copyStatus,setCopyStatus]=useState('')
+ const [tocOpen,setTocOpen]=useState(false)
+ const [searchScope,setSearchScope]=useState('all')
+ const inputRef=useRef<HTMLInputElement>(null)
+ useEffect(()=>{if(activeChapter)setExpanded(old=>old.includes(activeChapter.id)?old:[...old,activeChapter.id]);setMobileOpen(false);setTocOpen(false);setCopyStatus('')},[documentId,activeChapter?.id])
+ const go=(id?:string)=>{setQuery('');setSearchScope('all');onNavigate(id);setMobileOpen(false);setTocOpen(false)}
+ const searchable=useMemo(()=>allGuides.map(g=>{
+  const ss=getSections(g);const r=runbooks[g.id];return {g,ss,hay:normalize([g.title,g.keywords,g.summary,g.reference,JSON.stringify(handbook[g.id]||{}),JSON.stringify(r||{}),chapterOf(g.id)?.title].join(' '))}
+ }),[])
+ const results=useMemo(()=>{const tokens=normalize(query).split(' ').filter(Boolean);if(!tokens.length)return [];return searchable.filter(x=>(searchScope==='all'||chapterOf(x.g.id)?.id===searchScope)&&tokens.every(t=>x.hay.includes(t))).map(x=>({...x,rank:tokens.reduce((sum,t)=>sum+(normalize(x.g.title).includes(t)?8:0)+(normalize(x.g.keywords).includes(t)?4:0),0)})).sort((a,b)=>b.rank-a.rank||guideOrder.indexOf(a.g.id)-guideOrder.indexOf(b.g.id))},[query,searchScope,searchable])
+ const toggleChapter=(id:string)=>setExpanded(v=>v.includes(id)?v.filter(x=>x!==id):[...v,id])
+ const jump=(id:string)=>document.getElementById(id)?.scrollIntoView({block:'start',behavior:'smooth'})
+ const copyLink=async()=>{try{await navigator.clipboard.writeText(window.location.href);setCopyStatus('링크 복사됨')}catch{setCopyStatus('주소창에서 링크를 복사하세요')}}
+ const idx=current?guideOrder.indexOf(current.id):-1
+ const allPrint=documentId==='print'
+ const toc=current?getSections(current):[]
+ const searching=query.trim().length>0
+ const isHome=!current&&!chapter&&!allPrint
+ const sourceCount=Object.keys(handbook).length
+ return <section className="pm-page">
+  <nav className="pm-topbar"><button className="pm-brand" onClick={()=>go()}><BookOpen size={21}/><span><strong>POLARION 2606</strong><small>OPERATIONS HANDBOOK</small></span></button><div className="pm-top-links"><button onClick={()=>go('print')}><Printer size={16}/>전체 문서</button><button onClick={onDemo}>화면 체험<ArrowUpRight size={14}/></button><button onClick={onOld}>Old <ArrowUpRight size={14}/></button></div></nav>
+  <div className="pm-search-bar"><Search size={21}/><input ref={inputRef} id="polarion-ops-search" aria-label="전체 운영 문서 검색" placeholder="증상, 설정명, 메뉴, 오류 코드 검색 (예: maxPoolSize, Access File)" value={query} onChange={e=>{setQuery(e.target.value);setSearchScope('all')}} onKeyDown={e=>{if(e.key==='Enter'&&results[0])go(results[0].g.id);if(e.key==='Escape')setQuery('')}}/>{query&&<button onClick={()=>setQuery('')} aria-label="검색 초기화"><X size={17}/></button>}<span className="pm-search-hint">{allGuides.length}개 문서</span></div>
+  <button className="pm-mobile-nav" aria-expanded={mobileOpen} onClick={()=>setMobileOpen(v=>!v)}><Menu size={18}/>매뉴얼 목차<ChevronDown size={17}/></button>
+  <div className={'pm-layout'+(current&&!searching?' pm-has-article':'')+(allPrint&&!searching?' pm-print-layout':'')}>
+  <aside className={'pm-sidebar'+(mobileOpen?' pm-sidebar-open':'')} aria-label="장별 목차">
+    <div className="pm-side-head"><span>목차</span><button onClick={()=>setExpanded(expanded.length===chapters.length?[]:chapters.map(c=>c.id))}>{expanded.length===chapters.length?'모두 접기':'모두 펼치기'}</button></div>
+    <button className={'pm-home-link'+(isHome&&!searching?' active':'')} onClick={()=>go()}><BookOpen size={16}/>핸드북 개요</button>
+    {chapters.map(c=>{const open=expanded.includes(c.id),active=activeChapter?.id===c.id;return <div key={c.id} className={'pm-chapter-nav'+(active?' pm-active-chapter':'')}><div className="pm-chapter-row"><button onClick={()=>go('chapter-'+c.id)} className={'pm-chapter-link'+(chapter?.id===c.id&&!searching?' active':'')}><span>{chapterNumber(c.id)}</span><strong>{c.title}</strong></button><button className="pm-expand" aria-label={c.title+(open?' 접기':' 펼치기')} aria-expanded={open} onClick={()=>toggleChapter(c.id)}><ChevronDown size={16} className={open?'rotated':''}/></button></div>{open&&<div className="pm-chapter-items">{c.ids.map(id=><button key={id} className={current?.id===id&&!searching?'active':''} aria-current={current?.id===id&&!searching?'page':undefined} onClick={()=>go(id)}><span>{numberOf(id)}</span><strong>{guideMap.get(id)?.title}</strong></button>)}</div>}</div>})}
+    <div className="pm-side-foot"><span>문서 기준: 2606</span><span>운영 지식베이스 · {sourceCount}개 상세 문서</span></div>
+  </aside>
+  <div className="pm-content">
+   {searching?<div className="pm-search-results"><div className="pm-article-kicker">DOCUMENT SEARCH</div><h1>검색 결과</h1><p className="pm-lead">“{query}” · {results.length}개 문서</p><label className="pm-scope">검색 범위<select value={searchScope} onChange={e=>setSearchScope(e.target.value)}><option value="all">전체 장</option>{chapters.map(c=><option key={c.id} value={c.id}>{chapterNumber(c.id)}. {c.title}</option>)}</select></label>{results.length?results.map(({g,ss})=>{const tokens=normalize(query).split(' ').filter(Boolean);const match=ss.find(s=>tokens.some(t=>normalize(s.title+' '+(s.body||'')+' '+JSON.stringify(s.table||{})).includes(t)));return <button className="pm-result" key={g.id} onClick={()=>go(g.id)}><div><span>{numberOf(g.id)} · {chapterOf(g.id)?.title}</span><strong>{g.title}</strong><p>{match?(match.title+(match.body?' — '+match.body.slice(0,130)+(match.body.length>130?'…':''):'')):g.summary}</p></div><ArrowRight size={17}/></button>}):<div className="pm-empty"><p>일치하는 문서가 없습니다. 다른 키워드로 검색하거나 검색 범위를 변경하세요.</p><button onClick={()=>setQuery('')}>목차로 돌아가기</button></div>}</div>
+    :allPrint?<div className="pm-full"><div className="pm-article-kicker">COMPLETE MANUAL</div><h1>Polarion 2606 운영 인수인계 핸드북</h1><p className="pm-lead">전체 장 · {allGuides.length}개 문서를 한 페이지에서 읽고 인쇄할 수 있습니다.</p><button className="pm-action" onClick={()=>window.print()}><Printer size={17}/>인쇄 / PDF 저장</button>{chapters.map(c=><section key={c.id} className="pm-print-chapter"><h2>{chapterNumber(c.id)}. {c.title}</h2>{c.ids.map(id=>{const g=guideMap.get(id)!;return <article key={id} className="pm-print-article"><GuideHeader g={g}/><ArticleBody g={g} onNavigate={go} printing/></article>})}</section>)}</div>
+    :current?<article className="pm-document" key={current.id}><GuideHeader g={current}/><div className="pm-document-actions"><button onClick={copyLink}><Link2 size={15}/>{copyStatus||'문서 링크 복사'}</button><button onClick={()=>window.print()}><Printer size={15}/>인쇄 / PDF</button><button onClick={()=>go('chapter-'+activeChapter?.id)}><ListTree size={15}/>장 목차</button></div><div className="pm-inline-toc"><button aria-expanded={tocOpen} onClick={()=>setTocOpen(v=>!v)}><ListTree size={17}/>이 문서의 절<ChevronDown size={15}/></button>{tocOpen&&toc.map((s,i)=><button key={s.id} onClick={()=>jump(current.id+'-'+s.id)}>{i+1}. {s.title}</button>)}</div><ArticleBody g={current} onNavigate={go}/><div className="pm-pager">{idx>0?<button onClick={()=>go(guideOrder[idx-1])}><ArrowLeft size={18}/><div><small>이전 문서</small><strong>{numberOf(guideOrder[idx-1])} {guideMap.get(guideOrder[idx-1])?.title}</strong></div></button>:<span/>}{idx<guideOrder.length-1?<button onClick={()=>go(guideOrder[idx+1])}><div><small>다음 문서</small><strong>{numberOf(guideOrder[idx+1])} {guideMap.get(guideOrder[idx+1])?.title}</strong></div><ArrowRight size={18}/></button>:<span/>}</div></article>
+    :chapter?<div className="pm-chapter-page"><div className="pm-breadcrumb"><button onClick={()=>go()}>핸드북 개요</button><ChevronRight size={14}/>Chapter {chapterNumber(chapter.id)}</div><div className="pm-article-kicker">{chapter.en.toUpperCase()} · CHAPTER {chapterNumber(chapter.id)}</div><h1>{chapter.title}</h1><p className="pm-lead">{chapter.intro}</p><h2>이 장의 목차</h2>{chapter.ids.map(id=>{const g=guideMap.get(id)!;return <button key={id} className="pm-chapter-article" onClick={()=>go(id)}><span>{numberOf(id)}</span><div><strong>{g.title}</strong><p>{g.summary}</p><small>{runbooks[id]?'Runbook 포함 · ':''}{getSections(g).length}개 절</small></div><ArrowRight size={19}/></button>})}<button className="pm-action" onClick={()=>go(chapter.ids[0])}>첫 문서 읽기 <ArrowRight size={17}/></button></div>
+    :<div className="pm-overview"><header className="pm-cover"><div className="pm-cover-eyebrow">TECHNICAL OPERATIONS MANUAL <span>ON-PREMISE / 2606</span></div><h1>Polarion 2606<br/>운영 인수인계 핸드북</h1><p>신규 운영 담당자가 환경을 인수받고, 설정·서비스·유지보수·장애 대응에 필요한 기술 정보를 빠르게 찾아보는 실무 매뉴얼입니다.</p><div className="pm-cover-meta"><div><strong>{chapters.length}</strong><span>장</span></div><div><strong>{allGuides.length}</strong><span>상세 문서</span></div><div><strong>{Object.keys(runbooks).length}</strong><span>작업 Runbook</span></div><div><strong>{handbook.properties.tables?.[0].rows.length}</strong><span>주요 설정</span></div></div><button className="pm-cover-button" onClick={()=>go('handover')}>인수인계 시작 <ArrowRight size={17}/></button></header><div className="pm-read-first"><div><span>01 / FIRST DAY</span><h2>처음 인수받는다면</h2><p>환경 대장, 서비스 구성도, 설정·로그 경로를 확인하고 일상 점검과 복구 절차를 익힙니다.</p><button onClick={()=>go('handover')}>환경 인수인계 기준<ArrowRight size={15}/></button></div><div><span>02 / INCIDENT</span><h2>장애가 발생했다면</h2><p>시간과 영향 범위를 기록하고 실제 요청, 시스템 지표, 로그를 비교하여 병목을 분리합니다.</p><button onClick={()=>go('incident')}>장애 대응 절차<ArrowRight size={15}/></button></div></div><section className="pm-quick-section"><h2>자주 찾는 운영 문제</h2><div className="pm-quick">{quick.map(([label,id])=><button key={id} onClick={()=>go(id)}>{label}<ArrowUpRight size={14}/></button>)}</div></section><section className="pm-contents"><div className="pm-section-header"><h2>전체 장 구성</h2><span>DOCUMENT INDEX</span></div>{chapters.map(c=><button className="pm-chapter-card" key={c.id} onClick={()=>go('chapter-'+c.id)}><span className="pm-chapter-number">{chapterNumber(c.id)}</span><div><span>{c.en}</span><strong>{c.title}</strong><p>{c.intro}</p></div><div className="pm-chapter-count">{c.ids.length}개 문서<ArrowRight size={18}/></div></button>)}</section><section className="pm-sources-home"><h2>기준 문서 및 범위</h2><p>기술 내용은 Google Drive의 2606 공식 문서를 기준으로 검증한 사실을 한국어로 재구성했습니다. 문서별 출처·페이지를 본문에 표시하고 운영 예시와 환경별 설정을 구분합니다. 공식 전체 매뉴얼을 그대로 대체하는 자료는 아닙니다.</p>{sources.map(s=><div key={s.id}><BookOpen size={17}/><span><strong>{s.name}</strong><small>{s.desc}</small></span></div>)}<a href={official} target="_blank" rel="noreferrer">Siemens Support Center <ExternalLink size={13}/></a></section></div>}
+  </div>
+  {current&&!searching&&<aside className="pm-toc" aria-label="본문 목차"><span>이 문서에서</span>{toc.map((s,i)=><button key={s.id} onClick={()=>jump(current.id+'-'+s.id)}><small>{String(i+1).padStart(2,'0')}</small>{s.title}</button>)}<button className="pm-top-jump" onClick={()=>window.scrollTo({top:0,behavior:'smooth'})}>맨 위로 ↑</button></aside>}
+  </div><footer className="pm-footer"><span>Polarion 2606 · Operations Handover</span><a href={official} target="_blank" rel="noreferrer">Siemens Support Center</a><button onClick={()=>go()}>핸드북 개요</button></footer>
  </section>
 }
