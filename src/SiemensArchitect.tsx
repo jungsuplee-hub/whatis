@@ -76,7 +76,7 @@ export default function SiemensArchitect({onHome,onTeamcenterDemo,onPolarionDemo
   const completed=useMemo(()=>config.decisions.reduce((n,d)=>n+(checks[product+'-'+d.kind]?1:0),0),[checks,config,product])
   const pick=(next:Product)=>{setProduct(next);setSelected('experience');setView('infra');setTab('map')}
   return <section className="sa-page">
-    <div className="sa-path"><button type="button" onClick={onHome}><ArrowRight size={15}/> 일반 AI</button><span>/</span><strong>Siemens Architecture</strong></div>
+    <div className="sa-path"><button type="button" onClick={onHome}><ArrowRight size={15}/> Polarion 운영 가이드</button><span>/</span><strong>Siemens Architecture · Old</strong></div>
     <header className="sa-intro">
       <div><span className="sa-eyebrow"><span className="sa-on"/> SOLUTION ARCHITECT NOTES · 2026</span><h1>아키텍처를<br/><em>눈으로 설계하다.</em></h1><p>Teamcenter, Polarion, Opcenter. 제품 설계부터 검증과 제조 실행까지 살펴보세요.</p></div>
       <div className="sa-version-plate"><span>PRODUCT RELEASES</span><strong>2606 <span>/</span> 2606</strong><small>Teamcenter · Polarion ALM</small><p>아키텍처 설명에 사용하는 버전입니다. 실제 적용 시 지원 매트릭스와 최신 패치를 확인하세요.</p></div>
