@@ -9,3 +9,5 @@
 .new-app:has(.site-header-siemens) .pm-sidebar{top:142px;max-height:calc(100vh - 160px)}
 @media(max-width:760px){.site-header-siemens .header-inner{height:98px}.siemens-subnav{gap:4px;padding:6px 9px}.siemens-subnav button{flex:1;min-width:0;padding:8px 4px;font-size:12px}.new-app:has(.site-header-siemens) .pm-sidebar{top:auto;max-height:65vh}}
 @media print{.siemens-subnav{display:none}}
+
+.opcenter-subnav{display:flex;gap:6px;flex-wrap:wrap;padding:14px 0 2px}.opcenter-subnav button,.opcenter-subnav a{font:inherit;font-size:13px;font-weight:700;text-decoration:none;border:1px solid #bedbd1;border-radius:8px;padding:8px 12px;color:#126d65;background:#fff;cursor:pointer}.opcenter-subnav .active{background:#126d65;color:white}
