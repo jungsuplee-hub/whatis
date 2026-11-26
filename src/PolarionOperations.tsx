@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { ArrowLeft, ArrowRight, BookOpen, Search, ExternalLink } from 'lucide-react'
 import './polarion-operations.css'
+import { opsDetails } from './polarion-ops-details'
 
 const guides = [
   {
@@ -391,17 +392,18 @@ export default function PolarionOperations({onOld,onDemo}:{onOld:()=>void;onDemo
  const [query,setQuery]=useState('')
  const [group,setGroup]=useState('전체')
  const [selected,setSelected]=useState('')
- const filtered=useMemo(()=>guides.filter(g=>(group==='전체'||g.group===group)&&query.trim().toLowerCase().split(/\s+/).every(q=>[g.title,g.keywords,g.summary,g.checks.join(' '),g.reference].join(' ').toLowerCase().includes(q))),[query,group])
+ const filtered=useMemo(()=>guides.filter(g=>(group==='전체'||g.group===group)&&query.trim().toLowerCase().split(/\s+/).every(q=>[g.title,g.keywords,g.summary,g.checks.join(' '),g.reference,JSON.stringify(opsDetails[g.id]??{})].join(' ').toLowerCase().includes(q))),[query,group])
  const current=filtered.find(g=>g.id===selected)??filtered[0]
+ const detail=current?opsDetails[current.id]:undefined
  return <section className="po-page">
   <nav className="po-nav"><span>SIEMENS ARCHITECT / POLARION 2606</span><button onClick={onOld}>Old · 기존 아키텍처 <ArrowRight size={16}/></button></nav>
   <header className="po-hero"><div><span>OPERATIONS KNOWLEDGE BASE</span><h1>Polarion 2606<br/>운영 기술 가이드</h1><p>서버·화면·환경설정·장애 대응을 검색하고 점검 순서를 확인하세요.</p></div><div className="po-hero-stat"><strong>{guides.length}</strong><span>운영 주제</span><button onClick={onDemo}>화면 체험 <ArrowRight size={16}/></button></div></header>
-  <div className="po-notice"><BookOpen size={20}/><div><strong>운영 체크리스트 · 공개용 초안</strong><p>공개 가능한 일반 점검 방법과 공개 공식 자료를 정리했습니다. 비공개 매뉴얼 본문, 환경별 설정값, 패치 명령은 게시하지 않습니다. 실제 변경은 2606 공식 문서와 검증 환경에서 확인하세요.</p></div></div>
+  <div className="po-notice"><BookOpen size={20}/><div><strong>운영 실무 가이드 · 2606</strong><p>공개 공식 자료에서 확인한 기술 정보와 자체 작성한 운영 절차를 수록했습니다. 2606 문서의 참고 절·페이지를 함께 제공하며, 환경별 변경 절차와 비공개 원문은 공식 문서에서 확인하세요.</p></div></div>
   <div className="po-search"><Search size={22}/><input id="polarion-ops-search" aria-label="운영 가이드 검색" placeholder="예: SVN, Reindex, 사용자 권한, Hotfix" value={query} onChange={e=>{setQuery(e.target.value);setSelected('')}}/><button onClick={()=>{setQuery('');setGroup('전체');setSelected('')}}>초기화</button></div>
   <div className="po-chips" aria-label="자주 찾는 주제">{shortcuts.map(s=><button key={s} onClick={()=>{setQuery(s);setGroup('전체');setSelected('')}}>{s}</button>)}</div>
   <div className="po-tabs" role="group" aria-label="운영 가이드 분류">{groups.map(g=><button key={g} aria-pressed={g===group} className={g===group?'active':''} onClick={()=>{setGroup(g);setSelected('')}}>{g}</button>)}<small>{filtered.length}개 결과</small></div>
   <div className="po-layout"><aside aria-label="운영 가이드 목록">{filtered.map(g=><button key={g.id} className={current?.id===g.id?'active':''} onClick={()=>setSelected(g.id)}><span>{g.group}</span><strong>{g.title}</strong><ArrowRight size={15}/></button>)}</aside>
-  {current?<article key={current.id}><span className="po-label">POLARION 2606 / {current.group}</span><h2>{current.title}</h2><p>{current.summary}</p><h3>운영 점검 순서</h3><ol>{current.checks.map(c=><li key={c}>{c}</li>)}</ol><h3>공식 문서 찾기</h3><p>{current.reference}</p><div className="po-links"><a href={official} target="_blank" rel="noreferrer">Siemens Support Center <ExternalLink size={15}/></a>{current.id==='api'||current.id==='integration'?<><a href={developer} target="_blank" rel="noreferrer">2606 개발자 문서 <ExternalLink size={15}/></a><a href={auth} target="_blank" rel="noreferrer">REST 인증 <ExternalLink size={15}/></a></>:null}{current.id==='release'||current.id==='upgrade'?<a href={release} target="_blank" rel="noreferrer">2606 공개 릴리스 안내 <ExternalLink size={15}/></a>:null}</div><p className="po-small">점검 순서는 운영용으로 자체 작성한 일반 체크리스트입니다. 공식 지원값·정확한 절차는 제품 문서에서 확인해야 합니다.</p></article>:<article><h2>검색 결과가 없습니다.</h2><p>다른 키워드나 전체 분류로 검색하세요.</p><button onClick={()=>{setQuery('');setGroup('전체')}}><ArrowLeft size={16}/> 전체 보기</button></article>}
+  {current?<article key={current.id}><span className="po-label">POLARION 2606 / {current.group}</span><h2>{current.title}</h2><p>{current.summary}</p>{detail&&<><h3>기술 설명</h3><p>{detail.body}</p><h3>실무 절차</h3><p>{detail.procedure}</p>{detail.command&&<><h3>설정 및 진단 명령 예시</h3><pre className="po-code"><code>{detail.command}</code></pre></>}<h3>주의 사항</h3><p className="po-caution">{detail.caution}</p></>}<h3>운영 점검 순서</h3><ol>{current.checks.map(c=><li key={c}>{c}</li>)}</ol><h3>공식 문서 찾기</h3><p>{current.reference}</p>{detail&&<p className="po-small">2606 문서 참고 위치: {detail.section}</p>}<div className="po-links">{detail&&<a href={detail.url} target="_blank" rel="noreferrer">해당 기술 참고자료 <ExternalLink size={15}/></a>}<a href={official} target="_blank" rel="noreferrer">Siemens Support Center <ExternalLink size={15}/></a>{current.id==='api'||current.id==='integration'?<><a href={developer} target="_blank" rel="noreferrer">2606 개발자 문서 <ExternalLink size={15}/></a><a href={auth} target="_blank" rel="noreferrer">REST 인증 <ExternalLink size={15}/></a></>:null}{current.id==='release'||current.id==='upgrade'?<a href={release} target="_blank" rel="noreferrer">2606 공개 릴리스 안내 <ExternalLink size={15}/></a>:null}</div><p className="po-small">본문과 점검 순서는 자체 작성한 운영 가이드입니다. 제품 고유의 지원값과 정확한 적용 절차는 공식 문서에서 확인하세요.</p></article>:<article><h2>검색 결과가 없습니다.</h2><p>다른 키워드나 전체 분류로 검색하세요.</p><button onClick={()=>{setQuery('');setGroup('전체')}}><ArrowLeft size={16}/> 전체 보기</button></article>}
   </div><footer className="po-footer"><a href={release} target="_blank" rel="noreferrer">2606 공식 릴리스</a><a href={developer} target="_blank" rel="noreferrer">공식 개발자 문서</a><a href={official} target="_blank" rel="noreferrer">Support Center</a><button onClick={onOld}>Old · 기존 Siemens Architect</button></footer>
  </section>
 }
