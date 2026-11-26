@@ -78,7 +78,7 @@ export default function SiemensArchitect({onHome,onTeamcenterDemo,onPolarionDemo
   return <section className="sa-page">
     <div className="sa-path"><button type="button" onClick={onHome}><ArrowRight size={15}/> 일반 AI</button><span>/</span><strong>Siemens Architecture</strong></div>
     <header className="sa-intro">
-      <div><span className="sa-eyebrow"><span className="sa-on"/> SOLUTION ARCHITECT NOTES · 2026</span><h1>아키텍처를<br/><em>눈으로 설계하다.</em></h1><p>Teamcenter와 Polarion. 어디에 무엇을 배치하고, 무엇을 확인해야 할까요?</p></div>
+      <div><span className="sa-eyebrow"><span className="sa-on"/> SOLUTION ARCHITECT NOTES · 2026</span><h1>아키텍처를<br/><em>눈으로 설계하다.</em></h1><p>Teamcenter, Polarion, Opcenter. 제품 설계부터 검증과 제조 실행까지 살펴보세요.</p></div>
       <div className="sa-version-plate"><span>PRODUCT RELEASES</span><strong>2606 <span>/</span> 2606</strong><small>Teamcenter · Polarion ALM</small><p>아키텍처 설명에 사용하는 버전입니다. 실제 적용 시 지원 매트릭스와 최신 패치를 확인하세요.</p></div>
     </header>
     <div className="sa-products" role="group" aria-label="솔루션 선택">
@@ -86,6 +86,11 @@ export default function SiemensArchitect({onHome,onTeamcenterDemo,onPolarionDemo
         <span className="sa-product-mark">{v==='teamcenter'?'TC':'PL'}</span>
         <span className="sa-product-name"><strong>{products[v].label}</strong><small>{products[v].subtitle}</small></span><span className="sa-product-version">2606</span><ArrowRight size={20}/>
       </button>)}
+      <a className="sa-product sa-opcenter-link" href="./mes/">
+        <span className="sa-product-mark">OC</span>
+        <span className="sa-product-name"><strong>Opcenter</strong><small>MES · 제조 실행 시뮬레이션</small></span>
+        <span className="sa-product-version">LAB</span><ArrowRight size={20}/>
+      </a>
     </div>
     <div className="sa-learning-entries">
       <div className="sa-user-guide-entry"><div><span>INTERACTIVE USER GUIDE · TEAMCENTER 2606</span><h3>Teamcenter 화면을 직접 체험하세요.</h3><p>Active Workspace · Item/Revision · BOM · 문서 · 승인 · 변경 관리</p></div><button type="button" onClick={onTeamcenterDemo}>Teamcenter 데모 열기 <ArrowRight size={17}/></button></div>

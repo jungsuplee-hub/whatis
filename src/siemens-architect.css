@@ -47,3 +47,8 @@
 .sa-learning-entries .sa-polarion-guide-entry>div>span{color:#207f9c}
 .sa-learning-entries .sa-polarion-guide-entry button{background:#137b98;border-color:#137b98}
 @media(max-width:780px){.sa-learning-entries{grid-template-columns:1fr;margin:-8px 0 22px}.sa-learning-entries .sa-user-guide-entry{min-height:unset;padding:16px 18px;gap:12px}.sa-learning-entries .sa-user-guide-entry button{width:100%}}
+
+/* Opcenter MES lab entry */
+.sa-products{grid-template-columns:repeat(3,minmax(0,1fr))}.sa-opcenter-link{text-decoration:none;color:inherit}.sa-opcenter-link:focus-visible{outline:2px solid #385f41;outline-offset:3px}.sa-products .sa-product{gap:12px;padding:18px}.sa-products .sa-product>svg{flex-shrink:0}
+@media(max-width:960px){.sa-products{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.sa-products{grid-template-columns:1fr}.sa-products .sa-product{padding:14px;gap:9px}}

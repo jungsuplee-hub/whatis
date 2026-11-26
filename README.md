@@ -19,7 +19,7 @@
 - **눈으로 먼저 보기**: 따뜻한 미니멀 채팅창과 대비되는 내부 프로세스 패널, Pretendard Variable 기반의 타이포그래피와 에디토리얼 카드 레이아웃
 - **클릭하면 설명 보기**: 기본 화면은 질문·애니메이션에 집중; 단계별 설명과 일상 비유·사용 사례·주의점·공식 출처는 상세에서 펼치기
 - **비전공자 친화적인 콘텐츠**: src/lessonContent.ts가 36개 전체 주제의 쉬운 질문/설명/일상 비유/주의점을 관리하고, src/data.ts가 정확한 기술 정보·출처·단계별 구조를 관리
-- **Siemens Solution Architect**: Teamcenter 2606 및 Polarion ALM 2606 중심의 공개 가능한 개념형 아키텍처 가이드. 논리/배포 영역 시각화, 선택형 구성요소 설명, 설계 검토 체크리스트, 양 제품 간 연계 검토 도식을 제공합니다. Opcenter는 후속 확장 대상입니다.
+- **Siemens Solution Architect**: Teamcenter 2606 및 Polarion ALM 2606 중심의 공개 가능한 개념형 아키텍처 가이드. 논리/배포 영역 시각화, 선택형 구성요소 설명, 설계 검토 체크리스트, 양 제품 간 연계 검토 도식을 제공합니다. Opcenter는 Siemens 메뉴에서 MES 교육용 실습으로 연결됩니다.
 - **Teamcenter 인프라 탐색**: Client / Web / Enterprise / Resource의 4계층과 FMS·캐시·볼륨·검색·연동·인증·운영을 클릭하는 독립형 인프라 구성도. 제품 정보 조회·CAD 파일 접근·외부 연계의 요청 경로를 선택할 수 있으며 HA/DR·보안·성능 설계 질문을 표시합니다. 공개 Siemens 설명과 Microsoft/AWS 참조 아키텍처를 참고한 교육용 도식이며, 설치 가이드 또는 확정 서버 수/지원 구성으로 주장하지 않습니다. 소스: src/TeamcenterInfrastructure.tsx.
 - **Teamcenter 2606 심화 아키텍처**: 사용자가 작성한 2026년 3월 Google Drawing을 서비스 수준의 도식으로 재구성했습니다. src/TeamcenterDeepDive.tsx 에서 Client/Web/Enterprise/Resource 19개 서비스 노드, 16개 연결, 4개 업무 흐름, 포트 검색/근거 분류, 제품 Copilot·자체호스팅 사례·Microsoft 365 Copilot·별도 MCP 확장 흐름, 사전 색인/실시간 추론 구분, 운영 점검 항목을 제공합니다. AWS형 연결선은 `src/ServiceConnections.tsx`에서 16개 연결 데이터만 이용해 실제 노드 위치 사이에 SVG 화살표로 그리며, 해당 선을 클릭하면 연결 포트·근거 수준이 같은 화면에 표시됩니다. 흐름별 강조/전체 연결선 토글, 모바일 내부 가로 스크롤을 지원합니다. 기존 간단 4계층 설명도는 접어서 남겨두었습니다.
 - **Teamcenter·Polarion 서비스 상세 가이드 및 AI Microservice Catalog**: 소스 src/architecture-service-guides.ts에 Teamcenter 2606 도식 19개 구성요소, Polarion 2606 도식 15개 구성요소의 개별 배치/처리 흐름/운영점검/주의사항을 정리하고, 기존 우측·모바일 하단 상세 패널에 연결했습니다. src/TeamcenterMicroserviceAtlas.tsx의 Microservices 탭은 AI 애플리케이션 4개, AI 처리 Microservices 4개, SO-341 Agent/MCP 예시 3개, 선택형 모델·검색·컨테이너 인프라 7개 등 총 18개 항목을 구별합니다. 표시된 18개 항목이 모두 설치된 Microservice라는 뜻은 아닙니다. 논리적 처리 흐름(질문/사전색인/Agent) 선택, 카테고리 필터, 검색, 항목별 설명 패널을 제공합니다. 참고 근거: Siemens Teamcenter Deployment Reference Architecture 2606 (April 2026), Teamcenter Rich Client 2606 가이드, Siemens Unrestricted Teamcenter AI Extension Microservices Configuration (2025), Polarion Deployment and Maintenance Guide 2606, 그리고 사용자가 정리한 2606 구축 지침. 내부 설치의 비밀값·호스트·사설 Endpoint 등은 공개하지 않습니다. 배경에는 블러 필터를 적용하지 않고 반투명 오버레이만 사용합니다.
@@ -65,4 +65,4 @@ npm run build
 - 사이트의 제품 소개와 버전은 공개 Siemens 릴리스 자료를 링크하며, 인프라/복구/보안 항목은 독자적으로 작성한 범용 솔루션 아키텍트 검토 질문입니다.
 - 논리 구조와 배포 구역은 학습용 개념도입니다. Siemens 공식 지원 구성이나 검증된 HA/DR 토폴로지·사이징 값이 아닙니다.
 - 실제 배포에는 권한이 있는 담당자가 최신 Siemens 지원 매트릭스·문서·계약 조건·현장 작업량을 확인하고 설계합니다.
-- src/SiemensArchitect.tsx에서 공개 가능한 아키텍트 가이드 내용을 유지보수합니다. Opcenter는 추후 검증 후 별도로 설계합니다.
+- src/SiemensArchitect.tsx에서 공개 가능한 아키텍트 가이드 내용을 유지보수합니다. Opcenter의 실제 제품 아키텍처는 별도 검증 대상이며, 현재 MES 교육용 실습만 제공합니다.
