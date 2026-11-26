@@ -2,7 +2,7 @@
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WHATIS · Opcenter Presales Field Guide</title>
 <style>
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font:15px/1.7 system-ui,sans-serif;color:#203231;background:#f8f8f5}a{color:#126d65;text-underline-offset:3px}header{background:#fff;border-bottom:1px solid #d8e3df}header div,main{max-width:1260px;margin:auto;padding:16px 24px}header div{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap}header a{text-decoration:none;font-weight:750}.brand{font-size:27px;letter-spacing:-2px}.brand span{color:#078578}.eyebrow{font-size:12px;letter-spacing:.12em;color:#126d65;font-weight:800}.hero{padding:28px 0 16px}h1{font-size:clamp(34px,5vw,64px);letter-spacing:-.065em;line-height:1.08;margin:10px 0 18px}h2{font-size:26px;letter-spacing:-.04em;line-height:1.25;margin:0 0 12px}h3{font-size:18px;margin:16px 0 8px}p{margin:8px 0 15px}.note,small{font-size:13px;color:#526966}.nav{display:flex;gap:7px;flex-wrap:wrap;margin:20px 0}.nav a,.btn,button{display:inline-block;border:1px solid #b9cec6;padding:7px 12px;border-radius:8px;background:white;color:#14544c;text-decoration:none;font:inherit;font-weight:650;cursor:pointer}.btn.primary{color:white;background:#126d65;border-color:#126d65}.panel{margin:18px 0;background:#fff;border:1px solid #d8e3df;border-radius:16px;padding:22px;scroll-margin-top:12px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.tile{padding:15px;border:1px solid #d8e3df;border-radius:10px;background:#f5f9f7}.tile h3{margin-top:0}.table{overflow:auto}table{border-collapse:collapse;width:100%;font-size:14px}td,th{padding:10px;vertical-align:top;text-align:left;border-bottom:1px solid #e1e9e5}th{background:#edf5f1;color:#365d56}td:first-child{min-width:135px}code{overflow-wrap:anywhere;background:#edf5f1;padding:2px 4px;border-radius:4px}.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.flow div{border:1px solid #d8e3df;border-radius:10px;padding:12px;background:#edf5f1}.flow strong{display:block}.tag{display:inline-block;background:#edf5f1;color:#126d65;padding:3px 7px;border-radius:5px;font-size:12px;font-weight:700}.pending{background:#f1f0ed;color:#5f5c52}input,select{font:inherit;max-width:100%;border:1px solid #b9cec6;padding:8px;border-radius:7px;background:#fff;color:inherit}input[type=search]{width:100%;margin:8px 0 12px}label{display:block;margin:8px 0}input[type=checkbox]{accent-color:#126d65}details{border-bottom:1px solid #e1e9e5;padding:10px 0}summary{cursor:pointer;font-weight:750}ol,ul{padding-left:22px}li{margin:5px 0}a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #e6a243;outline-offset:2px}.checklist{columns:2;column-gap:20px}.checklist label{break-inside:avoid}.result{padding:12px;background:#edf5f1;border-radius:8px;margin-top:12px;font-weight:650}.sources li{overflow-wrap:anywhere}footer{color:#526966;font-size:13px;padding:16px 0 45px}@media(max-width:740px){header div,main{padding:12px}.panel{padding:14px}.grid,.flow{grid-template-columns:1fr}.checklist{columns:1}td{min-width:150px}}@media print{header,.nav,.btn,button{display:none}.panel{break-inside:avoid}body{background:white}}
-</style></head><body>
+html.embedded header{display:none}html.embedded body{background:transparent}html.embedded main{padding-top:0}html.embedded footer{padding-bottom:12px}</style></head><body>
 <header><div><a class="brand" href="../../#siemens">whatis<span>.</span></a><span class="eyebrow">SIEMENS / PRESALES FIELD GUIDE</span><a href="../">MES 실습 연구실 →</a></div></header>
 <main><section class="hero"><span class="eyebrow">MOM · MES · DIGITAL THREAD / 2026-11-26</span><h1>Opcenter Presales<br>Field Guide.</h1><p>제품을 외우는 것에서 고객의 공장 문제를 구조화하고, 적합한 솔루션을 선정하고, 기술과 사업 가치를 증명하는 단계까지.</p><a class="btn primary" href="../">ECU 제조 시뮬레이터 실행 →</a> <a class="btn" href="#discovery">Discovery 체크리스트</a>
 <p class="note">독립 학습 자료. Siemens 공개 자료와 ISA-95 개념을 기반으로 작성한 제안 방법론이며, 실제 기능·제품 구성·지원 플랫폼·라이선스는 대상 릴리스와 계약에서 검증해야 합니다. 비공개 매뉴얼의 내용·경로·인증 정보는 게시하지 않습니다.</p>
@@ -87,6 +87,24 @@
 <li><a href="https://resources.sw.siemens.com/ko-KR/case-study-watts-electronics/">Watts Electronics 고객 사례 (기업별 결과이며 일반화 금지)</a></li>
 </ol><p>학습 범위는 제품군 분류와 공개 자료를 기반으로 한다. 버전별 매뉴얼 전수 분석·실제 라이선스 환경 검증·설치 요건 대조는 완료하지 않았다. 별도의 권한 있는 공식 문서와 지원 채널에서 확인해야 한다.</p></section><footer>WHATIS · 독립 교육용 자료 · Siemens 공식 문서 또는 제품 데모가 아닙니다.</footer></main>
 <script>
+if(new URLSearchParams(location.search).get('embed')==='1'){
+  document.documentElement.classList.add('embedded');
+  document.querySelectorAll('a').forEach(a=>{
+    const href=a.getAttribute('href')||'';
+    if(href.startsWith('#')){
+      a.addEventListener('click',e=>{
+        const target=document.getElementById(href.slice(1));
+        if(target&&window.frameElement){
+          e.preventDefault();
+          const y=window.frameElement.getBoundingClientRect().top+window.parent.scrollY+target.getBoundingClientRect().top;
+          const header=window.parent.document.querySelector('.site-header');
+          window.parent.scrollTo({top:y-(header?.getBoundingClientRect().height||0)-12,behavior:'smooth'});
+        }
+      });
+    }else if(href.startsWith('http')){a.target='_blank';a.rel='noopener noreferrer';}
+    else{a.target='_top';}
+  });
+}
 const search=document.getElementById('filter'),rows=[...document.querySelectorAll('#products tbody tr')],count=document.getElementById('filtercount');
 function filter(){const q=search.value.trim().toLowerCase();let n=0;rows.forEach(r=>{const match=r.textContent.toLowerCase().includes(q);r.hidden=!match;if(match)n++});count.textContent=n+' / '+rows.length+' 제품군 분류 표시'}search.addEventListener('input',filter);filter();
 const checks=[...document.querySelectorAll('#checks input')];function checked(){document.getElementById('checkResult').textContent=checks.filter(c=>c.checked).length+' / '+checks.length+' 항목 확인'}checks.forEach(c=>c.addEventListener('change',checked));document.getElementById('resetChecks').addEventListener('click',()=>{checks.forEach(c=>c.checked=false);checked()});checked();

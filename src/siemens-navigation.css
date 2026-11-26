@@ -1,0 +1,11 @@
+.site-header.site-header-siemens{height:auto!important}
+.site-header-siemens .header-inner{height:76px}
+.siemens-subnav{display:flex;align-items:center;justify-content:center;gap:8px;border-top:1px solid #e6e9e2;padding:7px 12px;background:#f8f9f5}
+.siemens-subnav button{border:1px solid transparent;background:transparent;color:#626f68;font-size:13px;font-weight:750;border-radius:8px;padding:8px 22px;white-space:nowrap;cursor:pointer}
+.siemens-subnav button:hover{background:#eaf1ec;color:#24594e}
+.siemens-subnav button.active{border-color:#bedbd1;background:#e6f3ec;color:#126d65}
+.siemens-subnav button:focus-visible{outline:2px solid #126d65;outline-offset:2px}
+.opcenter-presales-frame{display:block;width:100%;height:800px;border:0;background:transparent}
+.new-app:has(.site-header-siemens) .pm-sidebar{top:142px;max-height:calc(100vh - 160px)}
+@media(max-width:760px){.site-header-siemens .header-inner{height:98px}.siemens-subnav{gap:4px;padding:6px 9px}.siemens-subnav button{flex:1;min-width:0;padding:8px 4px;font-size:12px}.new-app:has(.site-header-siemens) .pm-sidebar{top:auto;max-height:65vh}}
+@media print{.siemens-subnav{display:none}}

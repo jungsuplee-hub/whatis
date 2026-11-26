@@ -65,7 +65,7 @@ const relationNodes=[
   {title:'요구사항·검증',subtitle:'Polarion',details:'요구사항, 테스트, 추적 가능한 업무 항목'},
   {title:'연결 관계',subtitle:'Integration',details:'양쪽의 변경 영향·참조·책임 범위'}
 ]
-export default function SiemensArchitect({onHome,onTeamcenterDemo,onPolarionDemo}:{onHome:()=>void;onTeamcenterDemo:()=>void;onPolarionDemo:()=>void}) {
+export default function SiemensArchitect({onHome,onTeamcenterDemo,onPolarionDemo,scopedTeamcenter=false}:{onHome:()=>void;onTeamcenterDemo:()=>void;onPolarionDemo:()=>void;scopedTeamcenter?:boolean}) {
   const [product,setProduct]=useState<Product>('teamcenter')
   const [view,setView]=useState<View>('infra')
   const [selected,setSelected]=useState('experience')
@@ -76,12 +76,12 @@ export default function SiemensArchitect({onHome,onTeamcenterDemo,onPolarionDemo
   const completed=useMemo(()=>config.decisions.reduce((n,d)=>n+(checks[product+'-'+d.kind]?1:0),0),[checks,config,product])
   const pick=(next:Product)=>{setProduct(next);setSelected('experience');setView('infra');setTab('map')}
   return <section className="sa-page">
-    <div className="sa-path"><button type="button" onClick={onHome}><ArrowRight size={15}/> Polarion 운영 가이드</button><span>/</span><strong>Siemens Architecture · Old</strong></div>
+    <div className="sa-path"><button type="button" onClick={onHome}><ArrowRight size={15}/> Polarion 운영 가이드</button><span>/</span><strong>{scopedTeamcenter?'Teamcenter':'Siemens Architecture · Old'}</strong></div>
     <header className="sa-intro">
       <div><span className="sa-eyebrow"><span className="sa-on"/> SOLUTION ARCHITECT NOTES · 2026</span><h1>아키텍처를<br/><em>눈으로 설계하다.</em></h1><p>Teamcenter, Polarion, Opcenter. 제품 설계부터 검증과 제조 실행까지 살펴보세요.</p></div>
       <div className="sa-version-plate"><span>PRODUCT RELEASES</span><strong>2606 <span>/</span> 2606</strong><small>Teamcenter · Polarion ALM</small><p>아키텍처 설명에 사용하는 버전입니다. 실제 적용 시 지원 매트릭스와 최신 패치를 확인하세요.</p></div>
     </header>
-    <div className="sa-products" role="group" aria-label="솔루션 선택">
+    {!scopedTeamcenter&&<div className="sa-products" role="group" aria-label="솔루션 선택">
       {(['teamcenter','polarion'] as Product[]).map(v=><button key={v} className={'sa-product '+(product===v?'selected':'')} onClick={()=>pick(v)} aria-pressed={product===v}>
         <span className="sa-product-mark">{v==='teamcenter'?'TC':'PL'}</span>
         <span className="sa-product-name"><strong>{products[v].label}</strong><small>{products[v].subtitle}</small></span><span className="sa-product-version">2606</span><ArrowRight size={20}/>
@@ -91,10 +91,10 @@ export default function SiemensArchitect({onHome,onTeamcenterDemo,onPolarionDemo
         <span className="sa-product-name"><strong>Opcenter</strong><small>MOM · 프리세일즈 가이드 + MES 실습</small></span>
         <span className="sa-product-version">GUIDE</span><ArrowRight size={20}/>
       </a>
-    </div>
+    </div>}
     <div className="sa-learning-entries">
       <div className="sa-user-guide-entry"><div><span>INTERACTIVE USER GUIDE · TEAMCENTER 2606</span><h3>Teamcenter 화면을 직접 체험하세요.</h3><p>Active Workspace · Item/Revision · BOM · 문서 · 승인 · 변경 관리</p></div><button type="button" onClick={onTeamcenterDemo}>Teamcenter 데모 열기 <ArrowRight size={17}/></button></div>
-      <div className="sa-user-guide-entry sa-polarion-guide-entry"><div><span>INTERACTIVE USER GUIDE · POLARION 2606</span><h3>Polarion ALM을 직접 체험하세요.</h3><p>Work Items · Requirements · LiveDocs · Plans · Test Runs · Traceability</p></div><button type="button" onClick={onPolarionDemo}>Polarion 데모 열기 <ArrowRight size={17}/></button></div>
+      {!scopedTeamcenter&&<div className="sa-user-guide-entry sa-polarion-guide-entry"><div><span>INTERACTIVE USER GUIDE · POLARION 2606</span><h3>Polarion ALM을 직접 체험하세요.</h3><p>Work Items · Requirements · LiveDocs · Plans · Test Runs · Traceability</p></div><button type="button" onClick={onPolarionDemo}>Polarion 데모 열기 <ArrowRight size={17}/></button></div>}
     </div>
     <div className="sa-workspace">
       <div className="sa-workspace-header">
