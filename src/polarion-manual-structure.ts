@@ -51,6 +51,7 @@ export const chapters:Chapter[]=[
       "upgrade",
       "updatecluster",
       "migration",
+      "svn-transfer",
       "preview"
     ],
     "groups": [
@@ -71,7 +72,8 @@ export const chapters:Chapter[]=[
       {
         "title": "데이터 마이그레이션",
         "ids": [
-          "migration"
+          "migration",
+          "svn-transfer"
         ]
       },
       {
@@ -90,18 +92,24 @@ export const chapters:Chapter[]=[
     "ids": [
       "handover",
       "service",
+      "version-check",
       "svn",
       "postgres",
       "apache",
+      "svn-maintenance",
+      "pg-maintenance",
+      "apache-logs",
       "jvm",
       "ehcache",
       "index",
       "location",
+      "jvm-diagnostics",
       "logs",
       "txlogger",
       "diagtool",
       "jobs",
       "scheduler",
+      "job-history",
       "backup"
     ],
     "groups": [
@@ -109,7 +117,8 @@ export const chapters:Chapter[]=[
         "title": "운영 인수인계 / 서비스",
         "ids": [
           "handover",
-          "service"
+          "service",
+          "version-check"
         ]
       },
       {
@@ -117,7 +126,10 @@ export const chapters:Chapter[]=[
         "ids": [
           "svn",
           "postgres",
-          "apache"
+          "apache",
+          "svn-maintenance",
+          "pg-maintenance",
+          "apache-logs"
         ]
       },
       {
@@ -126,7 +138,8 @@ export const chapters:Chapter[]=[
           "jvm",
           "ehcache",
           "index",
-          "location"
+          "location",
+          "jvm-diagnostics"
         ]
       },
       {
@@ -141,7 +154,8 @@ export const chapters:Chapter[]=[
         "title": "Job / Scheduler",
         "ids": [
           "jobs",
-          "scheduler"
+          "scheduler",
+          "job-history"
         ]
       },
       {
@@ -248,7 +262,12 @@ export const chapters:Chapter[]=[
       "svn-cpu",
       "httpd-memory",
       "project-missing",
-      "upload-error"
+      "upload-error",
+      "request-timeout",
+      "host-header",
+      "open-files",
+      "nodejs-port",
+      "cache-recovery"
     ],
     "groups": [
       {
@@ -270,6 +289,16 @@ export const chapters:Chapter[]=[
         "ids": [
           "project-missing",
           "upload-error"
+        ]
+      },
+      {
+        "title": "기동 / JVM / 요청 오류",
+        "ids": [
+          "request-timeout",
+          "host-header",
+          "open-files",
+          "nodejs-port",
+          "cache-recovery"
         ]
       }
     ]

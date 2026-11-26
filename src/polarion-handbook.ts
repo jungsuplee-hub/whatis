@@ -1,5 +1,5 @@
 export type OpsTable={title:string;head:string[];rows:string[][]}
-export type Handbook={ref:string;sections?:string[][];tables?:OpsTable[];code?:string;verify?:string}
+export type Handbook={ref:string;sections?:string[][];tables?:OpsTable[];code?:string;verify?:string;links?:string[]}
 export const handbook:Record<string,Handbook>={
   "sizing": {
     "ref": "Deployment and Maintenance Guide, 1-1~1-6, 6-1~6-2, 6-42~6-44",
@@ -272,7 +272,7 @@ export const handbook:Record<string,Handbook>={
     "verify": "프로세스 active 여부뿐 아니라 실제 화면·검색·저장 성공을 검증한다."
   },
   "properties": {
-    "ref": "Deployment and Maintenance Guide, 3-6; Polarion 2606 Config Properties Reference (각 property 이름); Deployment and Maintenance Guide 6-24, 7-26",
+    "ref": "Deployment and Maintenance Guide, 3-6; Polarion 2606 Config Properties Reference (각 property 이름); Deployment and Maintenance Guide 6-24, 7-26; OneNote Polarion 05.Configuration (설정별 페이지와 2606 대조)",
     "sections": [
       [
         "설정 위치와 반영 방식",
@@ -285,6 +285,10 @@ export const handbook:Record<string,Handbook>={
       [
         "문서 간 값 차이",
         "동일한 2606 문서라도 security.cacheSize는 Config Properties Reference에서 20,000, Deployment Guide 6-19 및 6-24에서 30,000으로 표기된다. startup.workers도 Reference에서는 min(CPU, maxPoolSize−1), Deployment Guide에서는 CPU 수 중심으로 설명한다. 실제 설치의 로그·유효 설정을 확인하고 단일 기본값으로 단정하지 않는다."
+      ],
+      [
+        "OneNote 설정 검증",
+        "OneNote Configuration의 설정 설명과 2606 Config Properties Reference를 대조하여 확인된 항목만 추가했다. bulkEditBatchSize는 제한 모드에서만 적용된다는 조건을 반영했다. 구버전에서 제거되거나 현재 기본값을 확인하지 못한 키는 미수록했다."
       ]
     ],
     "code": "# 키 존재 여부만 확인 (실제 설정 파일 기준)\ngrep -nE '^com\\.polarion\\.startup\\.workers[.=]|^com\\.siemens\\.polarion\\.platform\\.sql\\.maxPoolSize=' /opt/polarion/etc/polarion.properties\n# 변경 전 백업 예시\ncp -p /opt/polarion/etc/polarion.properties /opt/polarion/etc/polarion.properties.prechange",
@@ -537,6 +541,151 @@ export const handbook:Record<string,Handbook>={
             "com.polarion.platform.cacheStats.columns",
             "모든 열 (Deployment Guide 6-24)",
             "캐시 통계 출력 열 선택"
+          ],
+          [
+            "com.polarion.ui.bulkEditBatchSize",
+            "500",
+            "제한 모드 Bulk Edit에서 commit당 항목 수. -1은 단일 transaction; 0 불가"
+          ],
+          [
+            "com.polarion.ui.bulkEditRestrictedLimit",
+            "100",
+            "초과 선택 시 현재 필드 값을 로딩하지 않는 제한 모드"
+          ],
+          [
+            "com.polarion.ui.defaultQuery",
+            "NOT HAS_VALUE:resolution",
+            "Work Items 기본 쿼리; 사용자 재정의가 없는 경우"
+          ],
+          [
+            "com.polarion.ui.table.hardLimit",
+            "10000",
+            "테이블에 표시하는 최대 항목 수"
+          ],
+          [
+            "com.polarion.platform.tomcatSessionTimeout",
+            "30 분",
+            "Tomcat 세션 timeout"
+          ],
+          [
+            "com.polarion.platform.transaction.timeout",
+            "3600 초",
+            "transaction timeout"
+          ],
+          [
+            "com.polarion.platform.threadStatistics",
+            "false",
+            "TX 로그 thread contention 통계; 성능 영향 주의"
+          ],
+          [
+            "com.siemens.polarion.platform.threadKillingMode",
+            "killAll",
+            "장시간 read-only UI 요청 중단 모드"
+          ],
+          [
+            "com.siemens.polarion.platform.threadKillingTimeout",
+            "590000 ms",
+            "장시간 UI 요청 중단 후보 시간"
+          ],
+          [
+            "com.siemens.polarion.platform.threadKillingLogStackTrace",
+            "false",
+            "중단된 요청 stack trace 기록 여부"
+          ],
+          [
+            "com.siemens.polarion.platform.hardSearchSizeLimit",
+            "100000",
+            "검색 결과 상한 초과 시 중단"
+          ],
+          [
+            "com.siemens.polarion.platform.softSearchSizeLimit",
+            "20000",
+            "초과 시 로그 경고, 쿼리 계속"
+          ],
+          [
+            "luceneMaxClauseCount",
+            "20000",
+            "Lucene AND/OR clause 상한"
+          ],
+          [
+            "luceneRAMBufferSizeMB",
+            "128 MB",
+            "색인 flush 전 RAM buffer"
+          ],
+          [
+            "maxAttachmentSize",
+            "200000000 bytes",
+            "첨부 및 관련 업로드 한도; 최대 2147482623 bytes, Classic Wiki 524288000"
+          ],
+          [
+            "com.siemens.polarion.collaborationNotifications.enabled",
+            "false",
+            "동시 LiveDoc 편집 알림"
+          ],
+          [
+            "com.siemens.polarion.collaborationNotifications.port",
+            "40608",
+            "알림 서비스 포트; Apache 및 Cluster Coordinator 설정 연계"
+          ],
+          [
+            "com.siemens.polarion.collaborationNotifications.maxNumberOfUsersShown",
+            "10",
+            "문서 편집기 알림 사용자 표시 상한"
+          ],
+          [
+            "showJobCancelButton",
+            "false",
+            "Monitor Cancel 버튼 표시; 모든 Job 취소 가능 아님"
+          ],
+          [
+            "com.siemens.polarion.cluster.stickyCookieMaxAge",
+            "0 또는 300초 (문서 표기)",
+            "초기 300초 권고, 문서의 범위 120~600초"
+          ],
+          [
+            "com.polarion.ui.maxRenderedItemsInGroupsDialogs",
+            "100",
+            "그룹 관리 대화상자 최대 표시 항목"
+          ],
+          [
+            "com.siemens.polarion.ui.maxReferencedWorkItemsForInsert",
+            "5000",
+            "LiveDoc 참조 항목 1회 삽입 상한"
+          ],
+          [
+            "com.siemens.polarion.security.requestRetry.count",
+            "3",
+            "일시 연결 실패 시 재시도 횟수"
+          ],
+          [
+            "com.siemens.polarion.security.requestRetry.delay",
+            "400 ms",
+            "재시도 사이 간격"
+          ],
+          [
+            "pdf.export.fonts.dir",
+            "none",
+            "PDF export 폰트 디렉터리"
+          ],
+          [
+            "wikiProtocolSchema",
+            "N/A",
+            "Wiki 프로토콜 override; 기본은 서버 URL"
+          ],
+          [
+            "TomcatService.request.safeListedHosts",
+            "localhost, base.url, cluster.nodeHostname",
+            "승인된 추가 Host 목록"
+          ],
+          [
+            "com.polarion.loadBalancer.workerUrl",
+            "None",
+            "Cluster Node별 LB 접근 URL"
+          ],
+          [
+            "com.polarion.ui.richText.fonts",
+            "빈 문자열",
+            "편집기 폰트 목록 및 대체 매핑"
           ]
         ]
       }
@@ -901,7 +1050,7 @@ export const handbook:Record<string,Handbook>={
     "verify": "격리된 환경에서 백업을 실제 복원하고 로그인·Work Item·첨부·이력·검색을 확인한다. 백업 성공 로그만으로 복구 성공이라고 판단하지 않는다."
   },
   "upgrade": {
-    "ref": "Deployment and Maintenance Guide, 8-1~8-25, 8-80; 2606 update package files",
+    "ref": "Deployment and Maintenance Guide, 8-1~8-25, 8-80; 2606 update package files; OneNote 설치관련: Polarion 과거버전으로 롤백하는 방법 (구버전 사례)",
     "sections": [
       [
         "업데이트 사전 준비",
@@ -918,6 +1067,10 @@ export const handbook:Record<string,Handbook>={
       [
         "Cumulative Patch",
         "동일 버전의 공개 누적 패치는 앞선 패치의 수정 내용을 포함한다. 일반적으로 minor update는 Reindex를 요구하지 않지만 실제 패키지의 안내와 required config changes에 따라 판단한다. 주요 업데이트 시 자동 재색인으로 중단이 길어질 수 있다."
+      ],
+      [
+        "구버전 롤백 사례 주의",
+        "OneNote의 과거 KB 사례에는 .eclipseproduct 정보를 수정해 과거 업데이트를 재실행하는 방법이 있다. 2606에서 인증 DB 및 저장소 구성 전환까지 역으로 되돌릴 수 있는지는 확인되지 않았다. 버전 파일 수정 방식 대신 동일 시점 전체 백업·복원 계획을 기본으로 한다."
       ]
     ],
     "code": "# 승인된 단일 인스턴스 업데이트 작업\nsystemctl stop polarion\n# 배포 패키지를 해제한 위치에서\nchmod +x update.sh\n./update.sh\n# warnings.txt 및 필수 설정 검토 후 기동\nsystemctl start polarion",
@@ -964,7 +1117,7 @@ export const handbook:Record<string,Handbook>={
     "verify": "대상 경로·ID·이력·사용자 권한·목록 노출·검색을 확인한다."
   },
   "attachments": {
-    "ref": "Deployment and Maintenance Guide, 5-28~5-36; Administrator and User Help 4-613~4-621; Config Properties Reference",
+    "ref": "Deployment and Maintenance Guide, 5-28~5-36; Administrator and User Help 4-613~4-621; Config Properties Reference; Config Properties Reference: maxAttachmentSize; OneNote 05.Configuration",
     "sections": [
       [
         "External Storage 저장 방식",
@@ -985,6 +1138,10 @@ export const handbook:Record<string,Handbook>={
       [
         "업로드 Antivirus와 장애 분류",
         "com.siemens.polarion.antivirus.scannerCmd에 승인된 검사 실행 파일 또는 wrapper를 지정하면 파일이 임시 저장된 뒤 검사되고 정상 파일만 영구 저장된다. 검사 대상은 첨부뿐 아니라 ReqIF, Page/Project import, Word round-trip 등 전체 업로드다. 표준화된 검사 종료 코드 0은 정상, 1은 감염, 기타는 검사 실패로 처리된다. 감염이나 검사 실패는 업로드 거부와 transaction rollback을 유발한다. 파일별 거부 시 검사 프로그램의 상태 및 exit code를 확인하되 검사를 우회하지 않는다."
+      ],
+      [
+        "업로드 크기의 제품 한도",
+        "maxAttachmentSize의 기본은 200000000 bytes, 최대 지원값은 2147482623 bytes이며 Classic Wiki는 524288000 bytes이다. 더 큰 설정은 제품 상한으로 제한된다. Apache LimitRequestBody 및 JVM 메모리 조건을 함께 검토한다. Project Import archive 한도와는 별개다."
       ]
     ],
     "code": "# fileSystem 예시: 사전에 경로 생성 및 권한 검증\ncom.siemens.polarion.attachments.externalStorage.type=fileSystem\ncom.siemens.polarion.attachments.externalStorage.fileSystem.basePath=/storage/polarion-attachments",
@@ -1474,7 +1631,7 @@ export const handbook:Record<string,Handbook>={
     "verify": "기존/신규 방식의 백업 호환 여부와 재색인 요구를 확인한다."
   },
   "authdb": {
-    "ref": "Deployment and Maintenance Guide 8-9~8-17, 8-142~8-144",
+    "ref": "Deployment and Maintenance Guide 8-9~8-17, 8-142~8-144; OneNote Trouble Shooting: POLARION SERVER IS NOT ABLE TO LOG INTO SVN",
     "sections": [
       [
         "변경 배경",
@@ -1487,6 +1644,10 @@ export const handbook:Record<string,Handbook>={
       [
         "장애와 백업",
         "PostgreSQL 재시작 뒤 Apache 연결 pool이 stale해질 수 있으므로 Apache 재시작이 필요하다고 문서는 안내한다. DB와 인증 테이블을 백업 범위에 포함한다. 비밀번호 해시·토큰을 공개하거나 일반 진단 자료에 덤프하지 않는다."
+      ],
+      [
+        "구버전 SVN 인증 사례의 적용 제한",
+        "OneNote에는 passwd/passwd_credentials의 불일치에 대응한 구버전 사례가 기록되어 있다. 2512부터 DB 기반 인증을 사용하는 2606에는 그 조치를 일반적으로 적용하지 않는다. 실제 인증 유형 및 migration 상태를 확인한다."
       ]
     ],
     "tables": [
@@ -2768,7 +2929,7 @@ export const handbook:Record<string,Handbook>={
     "verify": "파일 위치와 실행 서비스, 설정 반영 범위 및 변경 전후 대표 기능을 비교한다."
   },
   "extension-management": {
-    "ref": "Deployment and Maintenance Guide 8-6, 8-28; Administrator and User Help 5-1~5-89",
+    "ref": "Deployment and Maintenance Guide 8-6, 8-28; Administrator and User Help 5-1~5-89; OneNote 07.Extensions: Extension 적용방법",
     "sections": [
       [
         "확장 유형",
@@ -2785,6 +2946,10 @@ export const handbook:Record<string,Handbook>={
       [
         "사후 검증",
         "클러스터의 모든 관련 Node에 동일한 지원 버전이 적용됐는지 확인한다. 시작 오류, 클래스 로딩, API 호환성, 라이선스 및 사용자 기능을 검사하고 확장 원복 절차를 확보한다."
+      ],
+      [
+        "실무 적용 사례",
+        "OneNote에는 확장 배포 파일의 README를 확인하고 extensions 폴더에 추가한 후 서비스 재시작 및 main log를 확인한 사례가 있다. 해당 확장의 2606 호환성은 확인되지 않았으므로 특정 제품 또는 버전의 설치를 보장하지 않는다."
       ]
     ],
     "verify": "확장 이름/버전, 배포 위치, 공급자 문서, 테스트 결과와 원복 파일을 기록한다."
@@ -2840,6 +3005,243 @@ export const handbook:Record<string,Handbook>={
     ],
     "code": "findmnt -t nfs,nfs4\nsystemctl status polarion --no-pager\ntimedatectl status\n# 서비스 unit의 파일 디스크립터 한도 확인\nsystemctl show polarion -p LimitNOFILE",
     "verify": "Node 간 시간, 공유 mount, 서비스 상태, 접근 권한과 운영 기능이 정상인지 확인한다."
+  },
+  "job-history": {
+    "ref": "OneNote 운영관련 · job 수행이력 확인; Deployment and Maintenance Guide 4-103~4-107, 8-90",
+    "sections": [
+      [
+        "Monitor와 로그를 함께 확인",
+        "Monitor의 실행 결과는 권한 및 필터 영향을 받는다. 서버의 log4j-jobs-* 로그는 Job 실행 이력을 조사하는 별도 자료다. Cluster에서는 실행 Node, 시작/종료 시각, Job 이름, 상태를 일치시킨다."
+      ],
+      [
+        "날짜와 Job 이름으로 검색",
+        "파일 이름의 날짜와 수정 시각은 구분한다. 최근 수정된 파일만 조사할 경우 과거 기록이 빠질 수 있다. 아래 예시는 로그 경로와 Job 이름을 바꾸어 사용하며 파일명과 행 번호를 함께 표시한다."
+      ],
+      [
+        "결과 판단",
+        "Worker 기록만으로 성공 여부를 판단하지 않는다. 완료/실패 로그와 Monitor 결과를 확인하며, 여러 Node의 로그는 시간대를 맞춰 비교한다. 로그에 고객 정보가 포함될 수 있으므로 승인된 범위에서만 보관한다."
+      ]
+    ],
+    "code": "cd /opt/polarion/data/logs/main\nJOB='YOUR_JOB_NAME'\nfind . -maxdepth 1 -type f -name 'log4j-jobs-*.log' -mtime -10 -print0 |\n  xargs -0 -r grep -nH -F -- \"$JOB\"\n# 파일 수정 시각 기준 최근 10일, GNU find/xargs 환경",
+    "verify": "Job 이름, 실행 Node, 시작/종료 시각, 결과와 근거 파일을 남긴다.",
+    "links": []
+  },
+  "cache-recovery": {
+    "ref": "OneNote 운영관련 · attachments-cache 폴더 정리 / ehcache 관련 cache 폴더 초기화; Deployment and Maintenance Guide 6-14~6-28, 8-83~8-89",
+    "sections": [
+      [
+        "OneNote 사례 — 검증 수준 제한",
+        "기존 노트에는 Node 중지 후 attachments-cache 또는 cache를 별도 위치로 이동하고 재기동한 사례가 기록되어 있다. Ehcache 초기화 오류와 cache-config.xml 관련 점검도 언급된다. 2606 가이드에서 해당 경로의 전체/일부 수동 삭제 및 재생성 절차를 확인하지 못했으므로 운영용 삭제 명령으로 제공하지 않는다."
+      ],
+      [
+        "먼저 확인할 대상",
+        "설치 경로와 symlink, 실제 mount, owner/group 및 권한, 사용량, startup 오류를 확인한다. attachments-cache, preview cache, 외부 첨부 저장소, SVN 및 index 원본을 구분한다. cache-config.xml 누락이 모든 Initialize failed의 원인은 아니다."
+      ],
+      [
+        "복구 판단",
+        "정상 노드와 비교하고 정확한 버전의 지원 확인, 백업, 서비스 영향 검토가 완료된 경우에만 격리 환경에서 재생성 여부를 시험한다. 부분 삭제의 안전성은 확인되지 않았다."
+      ]
+    ],
+    "code": "ROOT=/opt/polarion/data/workspace/polarion-data\nls -ld \"$ROOT\" \"$ROOT/cache\" \"$ROOT/attachments-cache\"\nfindmnt -T \"$ROOT\"\n# 디렉터리 사용량 조회도 대규모 환경에서는 I/O 비용 확인\n# du -sh \"$ROOT/cache\" \"$ROOT/attachments-cache\"",
+    "verify": "지원되는 복구 방법인지 확인하고, 재기동 후 원본 첨부 다운로드·문서 조회·검색·캐시 통계를 확인한다.",
+    "links": []
+  },
+  "version-check": {
+    "ref": "OneNote 운영관련 · Polarion 설치버전 확인방법; Siemens Support KB PL8015931 (OneNote에 보관된 구버전 사례)",
+    "sections": [
+      [
+        "파일 기반 확인",
+        "OneNote에는 /opt/polarion/polarion/.eclipseproduct가 설치 버전 확인 위치로 기록되어 있다. 파일이 존재하는 설치에서 version, versionName, build, id 값을 읽는다. 제품이 실행 중인 서버의 실제 설치 위치가 다를 수 있다."
+      ],
+      [
+        "패치 확인",
+        "build 문자열과 대상 패치 배포 기록, 업데이트 결과를 함께 비교한다. 버전 파일만 보고 개별 Hotfix의 적용 여부를 확정하지 않는다. 파일 수정으로 버전을 바꾸는 방식은 2606 롤백 절차로 검증되지 않았으므로 사용하지 않는다."
+      ]
+    ],
+    "code": "FILE=/opt/polarion/polarion/.eclipseproduct\nif [ -r \"$FILE\" ]; then\n  grep -E '^(name|id|version|versionName|build)=' \"$FILE\"\nelse\n  echo 'Version file not found; verify actual installation path.'\nfi",
+    "verify": "모든 Node와 Coordinator의 실제 설치 버전 및 Build, 패치 기록을 비교한다.",
+    "links": []
+  },
+  "pg-maintenance": {
+    "ref": "OneNote 운영관련 · Slow Query 로그남기는 방법 / Full Vacuum 작업가이드; PostgreSQL 14 Logging, Routine Vacuuming, VACUUM; Deployment and Maintenance Guide 6-10~6-14",
+    "sections": [
+      [
+        "Slow Query 기록",
+        "log_min_duration_statement는 실행 완료된 SQL 중 기준 시간 이상을 기록하는 PostgreSQL 설정이다. 단위는 ms이며 -1이면 비활성이다. 0은 모든 statement duration을 기록하므로 운영에서 무조건 사용하지 않는다. SHOW와 pg_settings로 현재 값, source, context를 확인한다. SQL에는 민감 데이터가 포함될 수 있다."
+      ],
+      [
+        "Dead Tuple 분석",
+        "n_live_tup과 n_dead_tup은 통계 기반 추정치이다. 비율이 높더라도 곧바로 VACUUM FULL을 결정하지 않는다. autovacuum 실행 시각, relation 크기, 오래 열린 transaction, 실제 I/O와 응답시간을 확인한다."
+      ],
+      [
+        "VACUUM과 FULL의 차이",
+        "일반 VACUUM은 사용하지 않는 공간을 테이블 내부에서 재사용할 수 있게 한다. FULL은 테이블을 재작성해 OS에 공간을 반환할 수 있지만 강한 배타적 잠금과 추가 디스크 공간이 필요하다. Polarion DB 역할과 중단 범위를 확인하고 승인된 유지보수 창에서만 검토한다."
+      ]
+    ],
+    "code": "SHOW log_min_duration_statement;\nSELECT name, setting, unit, context, source, pending_restart\nFROM pg_settings WHERE name = 'log_min_duration_statement';\nSELECT schemaname, relname, n_live_tup, n_dead_tup,\n  round(100.0*n_dead_tup / NULLIF(n_live_tup+n_dead_tup,0),2) AS dead_pct,\n  pg_size_pretty(pg_total_relation_size(relid)) AS total_size,\n  last_autovacuum, last_vacuum\nFROM pg_stat_user_tables ORDER BY n_dead_tup DESC LIMIT 30;",
+    "verify": "대상 DB와 쿼리의 지연, 공간, lock, autovacuum 및 애플리케이션 결과를 비교한다.",
+    "links": [
+      "https://www.postgresql.org/docs/14/runtime-config-logging.html",
+      "https://www.postgresql.org/docs/14/routine-vacuuming.html",
+      "https://www.postgresql.org/docs/14/sql-vacuum.html"
+    ]
+  },
+  "apache-logs": {
+    "ref": "OneNote 운영관련 · httpd 응답시간 관련 로그 설정 / 재시작 없이 설정 반영하는 방법; Apache 2.4 mod_log_config, Stopping and Restarting, Log Files",
+    "sections": [
+      [
+        "응답시간 단위",
+        "%D는 요청 처리시간을 마이크로초로, %T는 초로 기록한다. %>s는 최종 상태 코드이다. %r은 요청 줄 전체를 기록하므로 URL에 민감 정보가 있는 경우 로그 정책을 검토한다. 예제는 URL을 제외한 최소 형식이며 기존 감사 로그를 대체하지 않는다."
+      ],
+      [
+        "graceful의 실제 의미",
+        "systemctl reload httpd가 graceful 동작인지 unit의 ExecReload를 확인한다. graceful은 기존 child가 처리 중 작업을 마치도록 하고 새 설정으로 child를 생성한다. 장시간 연결과 종료 중 child가 남을 수 있어 완전한 무중단을 보장하지 않는다. ServerLimit 같은 수명 범위 설정은 완전한 stop/start가 필요할 수 있다."
+      ],
+      [
+        "로그 회전",
+        "Apache가 기존 파일 descriptor를 계속 보유할 수 있으므로 회전 후 공식 절차에 맞게 재개방 신호를 전달한다. 기존 logrotate 정책과 보관 기준, 압축 및 이전 child가 쓰던 파일의 완료 여부를 검토한다."
+      ]
+    ],
+    "code": "# Apache 구성 예시 (승인 후 기존 로그와 별도 사용)\nLogFormat \"%{%Y-%m-%dT%H:%M:%S%z}t %m %>s %D\" timing\n# CustomLog /path/to/approved/timing_log timing\n# 형식: 시간 method status duration_us\n# 읽기 전용: 10초 이상 요청의 분별 집계\nawk '$4 ~ /^[0-9]+$/ && $4>=10000000 {print substr($1,1,16)}' timing_log | sort | uniq -c\n# 실제 reload 설정 확인\nsystemctl cat httpd\nhttpd -t\n# 승인된 작업 창에서만: systemctl reload httpd",
+    "verify": "테스트 요청의 로그 필드 단위와 정상·실패 응답, 회전 및 기존 설정 유지 여부를 확인한다.",
+    "links": [
+      "https://httpd.apache.org/docs/2.4/mod/mod_log_config.html",
+      "https://httpd.apache.org/docs/2.4/stopping.html",
+      "https://httpd.apache.org/docs/2.4/logs.html"
+    ]
+  },
+  "svn-transfer": {
+    "ref": "OneNote 운영관련 · SVN Export and Import 하는 방법; 설치관련 · Downtime을 최소화 하면서 데이터 마이그레이션 하는법 / Hot Copy / svnadmin dump / load; SVN Book; Apache Subversion FAQ",
+    "sections": [
+      [
+        "작업 선택",
+        "Export/Import는 특정 시점의 파일 트리를 복제하는 방식이며 기존 revision 이력 전체를 옮기지 않는다. dump/load는 revision 기록을 스트림으로 재생한다. hotcopy는 저장소 파일 구조를 일관된 방식으로 복제하지만 Polarion의 DB와 외부 저장소 백업을 대체하지 않는다."
+      ],
+      [
+        "증분 이전",
+        "동일 제품 버전에서 원본과 대상의 정합성부터 검증한다. 초기 dump의 마지막 revision을 기록한 뒤 이후 revision을 순서대로 증분 dump/load한다. 원본의 revision property 수정, copyfrom 의존성, 외부 첨부, 인증 DB 및 설정은 별도로 고려한다. 최종 전환 전 쓰기를 통제하고 대상 검증 후 서비스를 공개한다."
+      ],
+      [
+        "명령 예시의 범위",
+        "아래는 격리된 시험 repository에 대한 예시이다. 실제 운영 경로에 load/import를 실행하지 않는다. dump 파일의 손상 여부, 사용 공간, UUID와 revision mapping, hook 및 인증 구성을 검증한다. 과거 버전 파일을 조작해 재업데이트하는 방식은 2606에 검증되지 않았다."
+      ]
+    ],
+    "code": "# 테스트 repository 경로만 사용\nsvnadmin dump /path/to/source-repo -r 0:100 > full.dump\nsvnadmin dump /path/to/source-repo -r 101:110 --incremental > incr.dump\n# 비어 있는 검증용 repository에만 적용\nsvnadmin create /path/to/test-repo\nsvnadmin load /path/to/test-repo < full.dump\nsvnadmin load /path/to/test-repo < incr.dump\nsvnlook youngest /path/to/test-repo\n# 실제 URL 대신 검증용 URL 사용\n# svn export -r 100 https://SVN_HOST/repo/PROJECT ./exported\n# svn import ./exported https://TEST_HOST/repo/NEW_PROJECT -m 'Test import'",
+    "verify": "리비전 수와 대표 경로, 첨부·권한·이력 및 제품별 데이터 정합성을 검증한다.",
+    "links": [
+      "https://subversion.apache.org/faq",
+      "https://svnbook.red-bean.com/en/1.8/svn.ref.svnadmin.c.hotcopy.html",
+      "https://svnbook.red-bean.com/en/1.8/svn.reposadmin.maint.html"
+    ]
+  },
+  "svn-maintenance": {
+    "ref": "OneNote 운영관련 · svn pack 이란? / svnserve log설정; Deployment and Maintenance Guide 8-81~8-83; SVN Book Repository Maintenance",
+    "sections": [
+      [
+        "pack",
+        "FSFS의 완료된 shard를 pack 파일로 통합한다. 리비전을 삭제하는 기능이 아니며 저장 용량이 반드시 크게 감소하는 것도 아니다. 2606 가이드는 정기 pack을 권고한다. 운영 중 가능한 작업이더라도 대형 저장소의 I/O 부하와 다른 유지보수 작업을 고려한다."
+      ],
+      [
+        "svnserve 로그",
+        "svnserve --log-file 옵션을 지원하는 설치라면 서비스 unit에서 실제 적용 옵션 및 로그 경로를 확인한다. 운영 노트의 root 실행, 모든 인터페이스 bind, 높은 thread/limit 값은 환경 전용이므로 일반 추천으로 옮기지 않는다. 내부 네트워크 접근과 log rotation, 소유권을 확인한다."
+      ]
+    ],
+    "code": "svnadmin help pack\nsvnlook youngest /path/to/repo\nsvnserve --help | grep -F -- '--log-file'\nsystemctl cat svnserve\n# 검증 및 작업 승인 후에만: svnadmin pack /path/to/repo",
+    "verify": "작업 전후 리비전과 접근 정상, 디스크 사용량, 작업 로그 및 I/O 영향을 확인한다.",
+    "links": [
+      "https://svnbook.red-bean.com/en/1.8/svn.reposadmin.maint.html"
+    ]
+  },
+  "request-timeout": {
+    "ref": "OneNote Trouble Shooting · took too long to process 에러 관련; Polarion 2606 Config Properties Reference",
+    "sections": [
+      [
+        "발생 조건",
+        "ExecutionThreadMonitoring은 장시간 실행된 읽기 전용 UI 요청을 설정에 따라 중단할 수 있다. threadKillingTimeout의 기본값은 590000ms이며 0 이하로 지정하면 기본값으로 동작한다. 모든 작업 및 쓰기 요청을 일괄 종료하는 설정은 아니다."
+      ],
+      [
+        "관련 설정",
+        "killAll은 장시간 읽기 전용 UI 요청 전체, reportOnly는 Pages 또는 Classic Wiki의 읽기 전용 요청, disabled는 중단하지 않고 기록하는 모드다. LogStackTrace 기본 false는 중단 사실 위주, true는 관련 stack trace까지 남긴다."
+      ],
+      [
+        "장애 조사",
+        "오류 화면의 요청 식별자와 main/TX/RPC 로그를 비교하고 보고서·검색 조건·스크립트·데이터량을 확인한다. Apache timeout보다 짧게 설정한다는 가이드 조건을 확인한다. 보호 기능을 끄거나 무조건 timeout을 늘리는 대신 느린 요청을 최적화한다."
+      ]
+    ],
+    "code": "com.siemens.polarion.platform.threadKillingMode=killAll\ncom.siemens.polarion.platform.threadKillingTimeout=590000\ncom.siemens.polarion.platform.threadKillingLogStackTrace=false\n# 요청 식별자 예시: 실제 로그 파일 및 ID 지정\n# grep -nF 'REQ_NUMBER' /path/to/main.log",
+    "verify": "동일 요청의 실행 시간, 원인 계층과 오류 메시지를 비교하여 해결 여부를 판단한다.",
+    "links": []
+  },
+  "host-header": {
+    "ref": "OneNote Trouble Shooting · Polarion detected an unexpected hostname; Polarion 2606 Config Properties Reference",
+    "sections": [
+      [
+        "발생 조건",
+        "Host 헤더가 허용된 hostname/IP에 포함되지 않으면 Polarion은 400 응답과 main log WARN을 기록할 수 있다. 기본 허용 대상에는 localhost, base.url의 값 및 cluster.nodeHostname 값이 포함된다."
+      ],
+      [
+        "조치 기준",
+        "정상 대체 서비스 호스트인지 DNS, LB, reverse proxy 및 실제 URL을 확인한다. 정상으로 승인된 이름만 콤마 구분 목록에 추가한다. 알 수 없는 Host는 보안 담당자가 확인하도록 하고 검증 기능을 해제하지 않는다."
+      ]
+    ],
+    "code": "# 승인된 대체 호스트의 형식 예시 (프로토콜 제외)\nTomcatService.request.safeListedHosts=approved-alias.example.invalid\n# 실제 로그에서 경고 식별\n# grep -nF 'HostHeaderValidator' /path/to/main.log",
+    "verify": "승인된 서비스 URL 접근이 정상이며 알 수 없는 Host 요청은 여전히 거부되는지 검증한다.",
+    "links": []
+  },
+  "open-files": {
+    "ref": "OneNote Trouble Shooting · Too many open files; systemd.exec / proc / Linux 운영 진단",
+    "sections": [
+      [
+        "오류 구분",
+        "프로세스별 file descriptor 한도와 OS 전체 파일 핸들 제한은 서로 다르다. 파일뿐 아니라 소켓 등도 descriptor를 사용한다. 실제 오류 PID, 프로세스 한도, fd 수의 변화, 시스템 file-max를 확인한다."
+      ],
+      [
+        "systemd 적용 범위",
+        "systemd 서비스는 LimitNOFILE 및 실행 프로세스의 /proc/PID/limits에서 유효값을 확인한다. 로그인 셸의 ulimit 또는 PAM limits.conf가 해당 systemd 서비스에 자동 적용된다고 단정하지 않는다. 배포자 unit 대신 승인된 override 방식으로 변경을 관리한다."
+      ]
+    ],
+    "code": "systemctl show httpd -p MainPID -p LimitNOFILE\ncat /proc/sys/fs/file-max\n# 실제 승인된 PID 지정\n# cat /proc/PID/limits\n# ls -1 /proc/PID/fd | wc -l\n# prlimit --pid PID --nofile",
+    "verify": "정상/장애 구간의 descriptor 수와 한도, 요청량, 프로세스 수명 및 오류 재발을 비교한다.",
+    "links": []
+  },
+  "jvm-diagnostics": {
+    "ref": "OneNote Trouble Shooting · GC가 길어져서 문제가 되는 케이스; 운영관련 · Thread Dump / Heap 영역정보; JDK 21 jcmd / jfr 공식 문서",
+    "sections": [
+      [
+        "GC와 Swap",
+        "OneNote에는 in-memory 사용 시 메모리 및 swap 사용 증가와 GC 지연이 동반된 사례가 있다. 이는 특정 환경의 관측이며 일반 인과관계로 단정하지 않는다. vmstat의 si/so, GC 시간, MemAvailable, JVM heap과 native memory를 함께 비교한다. swap 제거 또는 swappiness 변경을 일괄 권장하지 않는다."
+      ],
+      [
+        "JVM 진단 범위",
+        "JDK 21의 jcmd는 실행 중 JVM에 진단 요청을 보낸다. 대상 PID 및 동일 실행 계정, 사용 중인 JDK와 도구 호환성을 확인한다. GC.heap_info와 Thread.print의 영향은 JVM 규모에 따라 달라지고 heap dump는 특히 큰 부하·파일 크기 및 정지를 유발할 수 있다."
+      ],
+      [
+        "JFR 분석",
+        "기존 승인된 JFR 파일은 오프라인에서 jfr summary로 기록 내용을 확인할 수 있다. 녹화 수집 방식과 기간은 운영 영향 평가 후 결정하고 진단 파일에는 내부 데이터가 포함될 수 있으므로 공개하지 않는다."
+      ]
+    ],
+    "code": "free -h\nvmstat 1 5\n# 실행 계정과 JDK가 맞는 승인된 환경에서만 조회\n# jcmd PID help\n# jcmd PID GC.heap_info\n# jcmd PID Thread.print -l\n# 기존 JFR 파일의 오프라인 요약\n# jfr summary /path/to/recording.jfr",
+    "verify": "GC pause, swap I/O, 실제 느린 요청의 시간축을 비교한다. JVM 상세 진단은 운영 승인과 저장 공간을 확인한다.",
+    "links": [
+      "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html",
+      "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html"
+    ]
+  },
+  "nodejs-port": {
+    "ref": "OneNote Trouble Shooting · 시작시 34568 관련에러; Polarion 2606 Config Properties Reference",
+    "sections": [
+      [
+        "확인된 설정",
+        "2606의 com.siemens.polarion.nodeJsServer.port 기본값은 34568이다. Node.js는 수식 SVG 변환에 사용된다. OneNote에는 DB 재시작 뒤 기동됐다는 사례가 있지만 PostgreSQL이 원인이었는지는 확인되지 않았다."
+      ],
+      [
+        "진단",
+        "포트 점유 프로세스와 실제 PostgreSQL port, Node.js 설정, startup 로그의 bind 오류를 확인한다. 동일 포트를 사용하는 서비스가 실제 확인되지 않은 상태에서 PostgreSQL을 재시작하지 않는다."
+      ]
+    ],
+    "code": "ss -lntp | grep ':34568'\n# 설정 확인 (실제 파일 위치)\ngrep -n '^com\\.siemens\\.polarion\\.nodeJsServer\\.port=' /opt/polarion/etc/polarion.properties\n# DB에서 읽기 전용으로 확인: SHOW port;",
+    "verify": "기동 후 수식 렌더링과 관련 로그 및 모든 의존 서비스의 정상 상태를 확인한다.",
+    "links": []
   }
 }
 export const extraGuides=[
@@ -3139,5 +3541,113 @@ export const extraGuides=[
     "summary": "Polarion의 기반 OS 설정을 읽기 중심으로 확인한다.",
     "checks": [],
     "reference": "Deployment and Maintenance Guide 2-101~2-105, 3-5~3-6; 일반 Linux 진단 예시"
+  },
+  {
+    "id": "job-history",
+    "group": "운영",
+    "title": "Job 실행 이력 및 노드별 로그 확인",
+    "keywords": "job 수행이력 log4j-jobs Worker cluster node",
+    "summary": "운영 중 예약 작업의 실제 실행 기록을 검색한다.",
+    "checks": [],
+    "reference": "OneNote 운영관련 · job 수행이력 확인; Deployment and Maintenance Guide 4-103~4-107, 8-90"
+  },
+  {
+    "id": "cache-recovery",
+    "group": "운영",
+    "title": "첨부 캐시·Ehcache 초기화 사례와 적용 제한",
+    "keywords": "attachments-cache cache-config.xml Initialize failed cache 초기화",
+    "summary": "캐시 초기화는 원본 데이터 삭제와 구분하며 기존 사례의 적용 가능성을 검토한다.",
+    "checks": [],
+    "reference": "OneNote 운영관련 · attachments-cache 폴더 정리 / ehcache 관련 cache 폴더 초기화; Deployment and Maintenance Guide 6-14~6-28, 8-83~8-89"
+  },
+  {
+    "id": "version-check",
+    "group": "운영",
+    "title": "설치된 Polarion 버전 및 Build 확인",
+    "keywords": "eclipseproduct versionName build 설치버전 패치",
+    "summary": "설치 바이너리의 버전 정보 파일을 조회한다.",
+    "checks": [],
+    "reference": "OneNote 운영관련 · Polarion 설치버전 확인방법; Siemens Support KB PL8015931 (OneNote에 보관된 구버전 사례)"
+  },
+  {
+    "id": "pg-maintenance",
+    "group": "운영",
+    "title": "PostgreSQL Slow Query·Dead Tuple·VACUUM",
+    "keywords": "slow query log_min_duration_statement dead tuple vacuum full autovacuum",
+    "summary": "DB 로그와 통계로 유지보수 필요성을 판단한다.",
+    "checks": [],
+    "reference": "OneNote 운영관련 · Slow Query 로그남기는 방법 / Full Vacuum 작업가이드; PostgreSQL 14 Logging, Routine Vacuuming, VACUUM; Deployment and Maintenance Guide 6-10~6-14"
+  },
+  {
+    "id": "apache-logs",
+    "group": "운영",
+    "title": "Apache 응답시간 로그·graceful reload·logrotate",
+    "keywords": "httpd LogFormat %D %T duration graceful reload logrotate",
+    "summary": "지연 요청을 정량적으로 분석하기 위한 로그 설정 및 반영 조건을 설명한다.",
+    "checks": [],
+    "reference": "OneNote 운영관련 · httpd 응답시간 관련 로그 설정 / 재시작 없이 설정 반영하는 방법; Apache 2.4 mod_log_config, Stopping and Restarting, Log Files"
+  },
+  {
+    "id": "svn-transfer",
+    "group": "운영",
+    "title": "SVN Export·Import·Dump·Load·Hotcopy 비교",
+    "keywords": "svn export import dump load hotcopy incremental migration revision",
+    "summary": "이력 보존 여부에 따라 이전 방식을 선택한다.",
+    "checks": [],
+    "reference": "OneNote 운영관련 · SVN Export and Import 하는 방법; 설치관련 · Downtime을 최소화 하면서 데이터 마이그레이션 하는법 / Hot Copy / svnadmin dump / load; SVN Book; Apache Subversion FAQ"
+  },
+  {
+    "id": "svn-maintenance",
+    "group": "운영",
+    "title": "SVN pack 및 svnserve 로그 운영",
+    "keywords": "svnadmin pack svnserve log-file revision shard",
+    "summary": "SVN 저장소 정기 유지보수의 영향과 확인법을 구분한다.",
+    "checks": [],
+    "reference": "OneNote 운영관련 · svn pack 이란? / svnserve log설정; Deployment and Maintenance Guide 8-81~8-83; SVN Book Repository Maintenance"
+  },
+  {
+    "id": "request-timeout",
+    "group": "운영",
+    "title": "장시간 UI 요청 자동 중단 및 OperationTimeoutException",
+    "keywords": "took too long to process stopped clogging server threadKillingTimeout REQ OperationTimeoutException",
+    "summary": "590초 타임아웃 경고가 나타날 때 적용 설정과 조사 절차를 이해한다.",
+    "checks": [],
+    "reference": "OneNote Trouble Shooting · took too long to process 에러 관련; Polarion 2606 Config Properties Reference"
+  },
+  {
+    "id": "host-header",
+    "group": "운영",
+    "title": "Unexpected hostname·HTTP 400 경고",
+    "keywords": "HostHeaderValidator TomcatService.request.safeListedHosts unexpected hostname",
+    "summary": "정상 서비스 주소와 예상치 못한 Host 헤더를 구분한다.",
+    "checks": [],
+    "reference": "OneNote Trouble Shooting · Polarion detected an unexpected hostname; Polarion 2606 Config Properties Reference"
+  },
+  {
+    "id": "open-files",
+    "group": "운영",
+    "title": "Too many open files / 파일 디스크립터 한도",
+    "keywords": "prlimit nofile LimitNOFILE too many open files fd systemd",
+    "summary": "프로세스별 한도와 실제 열린 파일 수를 비교한다.",
+    "checks": [],
+    "reference": "OneNote Trouble Shooting · Too many open files; systemd.exec / proc / Linux 운영 진단"
+  },
+  {
+    "id": "jvm-diagnostics",
+    "group": "운영",
+    "title": "JVM·GC·Swap·Thread Dump·JFR 진단",
+    "keywords": "heap gc swap jcmd thread dump jfr heap info",
+    "summary": "진단별 부하를 구분하고 실제 원인 확인에 필요한 지표를 수집한다.",
+    "checks": [],
+    "reference": "OneNote Trouble Shooting · GC가 길어져서 문제가 되는 케이스; 운영관련 · Thread Dump / Heap 영역정보; JDK 21 jcmd / jfr 공식 문서"
+  },
+  {
+    "id": "nodejs-port",
+    "group": "운영",
+    "title": "Node.js 34568 포트 충돌·기동 오류",
+    "keywords": "34568 nodejs nodeJsServer.port startup bind address already in use",
+    "summary": "수식 변환 서비스 포트 사용 여부와 실제 점유 프로세스를 구분한다.",
+    "checks": [],
+    "reference": "OneNote Trouble Shooting · 시작시 34568 관련에러; Polarion 2606 Config Properties Reference"
   }
 ]
