@@ -21,7 +21,7 @@ import './home-polish.css'
 import './mobile-clarity.css'
 import './siemens-navigation.css'
 
-type Route = {area: Area|'computer'; page:'home'|'category'|'topic'|'saved'|'tc-demo'|'polarion-demo'|'lab'|'siemens-old'|'teamcenter'|'opcenter'|'opcenter-ai'|'polarion-ops';id?:string}
+type Route = {area: Area|'computer'; page:'home'|'category'|'topic'|'saved'|'tc-demo'|'polarion-demo'|'lab'|'siemens-old'|'teamcenter'|'opcenter'|'opcenter-ai'|'opcenter-lab'|'polarion-ops';id?:string}
 const routeFromHash = ():Route => {
   const paths=decodeURIComponent(window.location.hash.slice(1)).split('/').filter(Boolean)
   if(paths[0]==='computer'){
@@ -32,6 +32,7 @@ const routeFromHash = ():Route => {
   }
   if(paths[0]==='general'&&paths[1]==='lab')return {area:'general',page:'lab',id:paths[2]}
   if(paths[0]==='siemens'&&paths[1]==='teamcenter')return {area:'siemens',page:'teamcenter'}
+  if(paths[0]==='siemens'&&paths[1]==='opcenter'&&paths[2]==='lab')return {area:'siemens',page:'opcenter-lab'}
   if(paths[0]==='siemens'&&paths[1]==='opcenter'&&paths[2]==='ai')return {area:'siemens',page:'opcenter-ai'}
   if(paths[0]==='siemens'&&paths[1]==='opcenter')return {area:'siemens',page:'opcenter'}
   if(paths[0]==='siemens'&&(paths[1]==='old'||paths[1]==='flows'))return {area:'siemens',page:'siemens-old'}
@@ -46,7 +47,7 @@ const routeFromHash = ():Route => {
   if(t?.area===area)return {area,page:'topic',id:t.id}
   return {area,page:'home'}
 }
-const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/'+(r.area==='computer'?'chapter':'category')+'/'+r.id:r.page==='saved'?'/saved':r.page==='lab'?'/lab'+(r.id?'/'+r.id:''):r.page==='tc-demo'?'/teamcenter-demo':r.page==='polarion-demo'?'/polarion-demo':r.page==='teamcenter'?'/teamcenter':r.page==='opcenter-ai'?'/opcenter/ai':r.page==='opcenter'?'/opcenter':r.page==='siemens-old'?'/old':r.page==='polarion-ops'?'/ops/'+r.id:'')
+const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/'+(r.area==='computer'?'chapter':'category')+'/'+r.id:r.page==='saved'?'/saved':r.page==='lab'?'/lab'+(r.id?'/'+r.id:''):r.page==='tc-demo'?'/teamcenter-demo':r.page==='polarion-demo'?'/polarion-demo':r.page==='teamcenter'?'/teamcenter':r.page==='opcenter-lab'?'/opcenter/lab':r.page==='opcenter-ai'?'/opcenter/ai':r.page==='opcenter'?'/opcenter':r.page==='siemens-old'?'/old':r.page==='polarion-ops'?'/ops/'+r.id:'')
 const technicalName = (t:Topic) => ({
   ai:'AI', 'machine-learning':'Machine Learning', 'deep-learning':'Deep Learning',
   'neural-networks':'Neural Network', 'supervised-learning':'Supervised Learning',
@@ -68,11 +69,17 @@ const simple = (t:Topic) => lessons[t.id]?.short||t.summary
 const grouped=categories.filter(c=>c.area==='general')
 const featuredIds=['search-vs-ai','image-generation','hallucination','speech-to-text','tokens','personal-data']
 
-function OpcenterPresales({ai=false}:{ai?:boolean}){
+function OpcenterPresales({ai=false,lab=false}:{ai?:boolean;lab?:boolean}){
   const frame=useRef<HTMLIFrameElement>(null)
   useEffect(()=>{
     const el=frame.current
     if(!el)return
+    if(lab){
+      const resizeLab=()=>{el.style.height=Math.max(300,window.innerHeight-el.getBoundingClientRect().top-8)+'px'}
+      resizeLab()
+      window.addEventListener('resize',resizeLab)
+      return ()=>window.removeEventListener('resize',resizeLab)
+    }
     let observer:ResizeObserver|undefined
     const resize=()=>{
       observer?.disconnect()
@@ -87,7 +94,7 @@ function OpcenterPresales({ai=false}:{ai?:boolean}){
     if(el.contentDocument?.readyState==='complete')resize()
     return ()=>{el.removeEventListener('load',resize);observer?.disconnect()}
   },[])
-  return <iframe ref={frame} className="opcenter-presales-frame" src={ai?"./mes/ai/?embed=1":"./mes/presales/?embed=1"} title={ai?"Opcenter AI Deep Dive":"Opcenter Presales Field Guide"}/>
+  return <iframe ref={frame} className={"opcenter-presales-frame"+(lab?" opcenter-lab-frame":"")} src={lab?"./mes/?embed=1":ai?"./mes/ai/?embed=1":"./mes/presales/?embed=1"} title={lab?"MES 실습 연구실":ai?"Opcenter AI Deep Dive":"Opcenter Presales Field Guide"}/>
 }
 
 function App(){
@@ -165,7 +172,7 @@ function App(){
       {route.area==='siemens'&&<nav className="siemens-subnav" aria-label="Siemens 제품 메뉴">
         <button type="button" className={['teamcenter','tc-demo','siemens-old'].includes(route.page)?'active':''} aria-current={['teamcenter','tc-demo','siemens-old'].includes(route.page)?'page':undefined} onClick={()=>navigate({area:'siemens',page:'teamcenter'})}>Teamcenter</button>
         <button type="button" className={['home','polarion-ops','polarion-demo'].includes(route.page)?'active':''} aria-current={['home','polarion-ops','polarion-demo'].includes(route.page)?'page':undefined} onClick={()=>navigate({area:'siemens',page:'home'})}>Polarion</button>
-        <button type="button" className={['opcenter','opcenter-ai'].includes(route.page)?'active':''} aria-current={['opcenter','opcenter-ai'].includes(route.page)?'page':undefined} onClick={()=>navigate({area:'siemens',page:'opcenter'})}>Opcenter</button>
+        <button type="button" className={['opcenter','opcenter-ai','opcenter-lab'].includes(route.page)?'active':''} aria-current={['opcenter','opcenter-ai','opcenter-lab'].includes(route.page)?'page':undefined} onClick={()=>navigate({area:'siemens',page:'opcenter'})}>Opcenter</button>
       </nav>}
     </header>
     <main className="site-main">
@@ -174,12 +181,12 @@ function App(){
       {route.page==='lab'&&route.area==='computer'&&<Suspense fallback={<div className="computer-page-loading" role="status">컴퓨터 구조 실습 연구실을 준비하고 있습니다.</div>}><PracticeLab domain="computer" startId={route.id} onBack={computerHome}/></Suspense>}
       {(route.page==='home'||route.page==='polarion-ops')&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Polarion 운영 가이드를 준비하고 있습니다.</div>}><PolarionOperations documentId={route.page==='polarion-ops'?route.id:undefined} onNavigate={id=>navigate(id?{area:'siemens',page:'polarion-ops',id}:{area:'siemens',page:'home'})} onOld={()=>navigate({area:'siemens',page:'siemens-old'})} onDemo={()=>navigate({area:'siemens',page:'polarion-demo'})}/></Suspense>}
       {(route.page==='siemens-old'||route.page==='teamcenter')&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Siemens 아키텍처 화면을 준비하고 있습니다.</div>}><SiemensArchitect key={route.page} scopedTeamcenter={route.page==='teamcenter'} onHome={()=>navigate({area:'siemens',page:'home'})} onTeamcenterDemo={()=>navigate({area:'siemens',page:'tc-demo'})} onPolarionDemo={()=>navigate({area:'siemens',page:'polarion-demo'})}/></Suspense>}
-      {['opcenter','opcenter-ai'].includes(route.page)&&route.area==='siemens'&&<>
+      {['opcenter','opcenter-ai','opcenter-lab'].includes(route.page)&&route.area==='siemens'&&<>
         <nav className="opcenter-subnav" aria-label="Opcenter 학습 메뉴">
           <button className={route.page==='opcenter'?'active':''} aria-current={route.page==='opcenter'?'page':undefined} onClick={()=>navigate({area:'siemens',page:'opcenter'})}>Presales 종합 가이드</button>
           <button className={route.page==='opcenter-ai'?'active':''} aria-current={route.page==='opcenter-ai'?'page':undefined} onClick={()=>navigate({area:'siemens',page:'opcenter-ai'})}>AI 심화 가이드</button>
-          <a href="./mes/">MES 실습</a>
-        </nav><OpcenterPresales key={route.page} ai={route.page==='opcenter-ai'}/>
+          <button className={route.page==='opcenter-lab'?'active':''} aria-current={route.page==='opcenter-lab'?'page':undefined} onClick={()=>navigate({area:'siemens',page:'opcenter-lab'})}>MES 실습</button>
+        </nav><OpcenterPresales key={route.page} ai={route.page==='opcenter-ai'} lab={route.page==='opcenter-lab'}/>
       </>}
       {route.page==='tc-demo'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Teamcenter 학습 화면을 준비하고 있습니다.</div>}><TeamcenterUserDemo onBack={()=>navigate({area:'siemens',page:'teamcenter'})}/></Suspense>}
       {route.page==='polarion-demo'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Polarion 학습 화면을 준비하고 있습니다.</div>}><PolarionUserDemo onBack={()=>navigate({area:'siemens',page:'home'})}/></Suspense>}

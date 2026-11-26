@@ -59,7 +59,7 @@ html.embedded header{display:none}html.embedded body{background:transparent}html
         }
       });
     }else if(href.startsWith('http')){a.target='_blank';a.rel='noopener noreferrer';}
-    else{a.target='_top';}
+    else{if(href==='../')a.href='../../#siemens/opcenter/lab';else if(href==='../presales/')a.href='../../#siemens/opcenter';a.target='_top';}
   });
 }
 

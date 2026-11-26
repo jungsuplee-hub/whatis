@@ -11,3 +11,5 @@
 @media print{.siemens-subnav{display:none}}
 
 .opcenter-subnav{display:flex;gap:6px;flex-wrap:wrap;padding:14px 0 2px}.opcenter-subnav button,.opcenter-subnav a{font:inherit;font-size:13px;font-weight:700;text-decoration:none;border:1px solid #bedbd1;border-radius:8px;padding:8px 12px;color:#126d65;background:#fff;cursor:pointer}.opcenter-subnav .active{background:#126d65;color:white}
+
+.opcenter-lab-frame{height:calc(100dvh - 190px);min-height:300px}

@@ -102,7 +102,7 @@ if(new URLSearchParams(location.search).get('embed')==='1'){
         }
       });
     }else if(href.startsWith('http')){a.target='_blank';a.rel='noopener noreferrer';}
-    else{a.target='_top';}
+    else{if(href==='../')a.href='../../#siemens/opcenter/lab';else if(href==='../presales/')a.href='../../#siemens/opcenter';a.target='_top';}
   });
 }
 const search=document.getElementById('filter'),rows=[...document.querySelectorAll('#products tbody tr')],count=document.getElementById('filtercount');
