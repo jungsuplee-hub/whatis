@@ -128,6 +128,10 @@ export const chapters:Chapter[]=[
     "ids": [
       "incident",
       "diag",
+      "svn-cpu",
+      "httpd-memory",
+      "upload-error",
+      "project-missing",
       "logs",
       "txlogger",
       "diagtool",

@@ -15,6 +15,10 @@ export const handbook:Record<string,Handbook>={
       [
         "메모리 해석",
         "Java Memory는 전체 RAM과 동일하지 않다. JVM 이외에 PostgreSQL, Apache, SVN, OS page cache, JVM native memory의 여유가 필요하다. 문서의 JVM 일반 지침은 RAM의 약 50% 수준부터 검토하는 것이지만 사이징 표의 권장 Java Memory는 등급별로 다르다. 두 지침을 혼용하여 일률적으로 고정하지 않는다."
+      ],
+      [
+        "인수인계용 용량 지표",
+        "동시 사용자 외에도 피크 요청률, SVN repository 크기·revision 증가량, DB·외부 첨부·backup 공간, index rebuild 시간, 노드 장애 시 잔존 용량을 기록한다. 용량 추정은 운영 데이터의 최근 성장 추세와 동일한 사용자 작업을 기준으로 검증한다."
       ]
     ],
     "tables": [
@@ -194,6 +198,10 @@ export const handbook:Record<string,Handbook>={
       [
         "인수인계에 남길 항목",
         "호스트별 역할, OS/Java/SVN/Apache/DB 버전, 실제 데이터·설정·로그 경로, 서비스 unit, URL·포트, 인증 방식, DB 위치, 공유 파일시스템 mount, 백업과 복구 정책을 기록한다. 비밀번호는 문서가 아닌 승인된 비밀 관리 시스템에 저장한다."
+      ],
+      [
+        "데이터의 권위와 복구 대상",
+        "운영 인수인계 시 SVN 원본(업무 객체 및 revision), 외부 첨부의 바이너리, PostgreSQL의 인덱스와 인증 DB, 공유 설정, 로컬 캐시를 서로 다른 복구 대상으로 분류한다. 인덱스는 원본으로부터 재생성 가능한 영역이 있으나 인증 DB는 같은 방식으로 재생성한다고 가정하지 않는다. 서비스 장애 때 어느 계층이 쓰기 작업을 책임지는지 먼저 파악해야 한다."
       ]
     ],
     "tables": [
@@ -264,7 +272,7 @@ export const handbook:Record<string,Handbook>={
     "verify": "프로세스 active 여부뿐 아니라 실제 화면·검색·저장 성공을 검증한다."
   },
   "properties": {
-    "ref": "Deployment and Maintenance Guide, 3-6; Polarion 2606 Config Properties Reference (각 property 이름)",
+    "ref": "Deployment and Maintenance Guide, 3-6; Polarion 2606 Config Properties Reference (각 property 이름); Deployment and Maintenance Guide 6-24, 7-26",
     "sections": [
       [
         "설정 위치와 반영 방식",
@@ -514,6 +522,21 @@ export const handbook:Record<string,Handbook>={
             "com.siemens.polarion.nodeJsServer.port",
             "34568",
             "수식 변환 서버 port"
+          ],
+          [
+            "com.siemens.polarion.systemload.loggingTimeInterval",
+            "10000 ms",
+            "Linux system load 로깅 주기"
+          ],
+          [
+            "com.siemens.polarion.systemload.minimalValueToLog",
+            "1",
+            "load average 로그 기록 시작 기준 (CPU % 아님)"
+          ],
+          [
+            "com.polarion.platform.cacheStats.columns",
+            "모든 열 (Deployment Guide 6-24)",
+            "캐시 통계 출력 열 선택"
           ]
         ]
       }
@@ -591,7 +614,7 @@ export const handbook:Record<string,Handbook>={
     "verify": "예시는 범용 운영 정답이 아니다. 현재 모듈·서버 역할·CPU·메모리·동시 요청에 맞추고 400 workers로 설정한 경우 16×25와 일치하는지 확인한다."
   },
   "svn": {
-    "ref": "Deployment and Maintenance Guide, 5-40~5-44, 6-3~6-10, 8-81~8-83; Administrator and User Help, 4-123~4-124",
+    "ref": "Deployment and Maintenance Guide, 5-40~5-44, 6-3~6-10, 8-81~8-83; Administrator and User Help, 4-123~4-124; 6-4~6-5 (svnserve 예시)",
     "sections": [
       [
         "SVN 시스템 접근과 사용자 접근",
@@ -608,6 +631,14 @@ export const handbook:Record<string,Handbook>={
       [
         "Access File 변경 영향",
         "2606에서 2506 이후 구성의 Access File은 저장소의 /.polarion/access를 사용한다. Apache에서 해당 위치의 AuthzSVNAccessFile을 확인한다. 권한 변경 시점과 CPU 상승, 지연 요청을 상관 분석하되 원인으로 단정하지 않는다."
+      ],
+      [
+        "svnserve 시스템 접근의 운영 검증",
+        "repoSystem은 사용자 HTTP 접근 경로와 구분되는 시스템 읽기용 URL이다. Linux에서는 실제 svnserve 서비스의 bind 주소, -r 저장소 root, -R read-only, thread 및 memory cache 설정을 확인한다. 6-5의 예시는 512 동시 사용자에 대한 로컬 구성으로 min threads 64, max threads 1024, cache 2048 MB이며 일반 권장 기본값으로 해석하지 않는다. 원격 Shared Services 구성에는 실제 필요한 호스트와 접근 정책을 적용한다."
+      ],
+      [
+        "SVN 캐시와 느린 요청",
+        "cache size 및 text delta/full text cache는 SVN 서버 읽기 처리 비용에 영향을 줄 수 있다. cache 확대 전 현재 리소스, 요청 종류와 정상 대비 지연을 확인한다. svnserve의 -M 단위는 MB, Apache SVNInMemoryCacheSize는 KB로 구분한다. svnserve와 HTTPD의 설정은 각각 독립적으로 관리한다."
       ]
     ],
     "code": "svnlook youngest /path/to/repo\nsvnlook uuid /path/to/repo\n# 구성 확인\nsvnserve --version --quiet\nsvnserve --help\n# polarion.properties 예시(실제 svnserve root 확인)\nrepoSystem=svn://localhost/\n# Apache mod_dav_svn 설정 예시\nSVNInMemoryCacheSize 131072\nSVNCacheTextDeltas On\nSVNCacheFullTexts On",
@@ -627,6 +658,14 @@ export const handbook:Record<string,Handbook>={
       [
         "DB 성능과 데이터 안전",
         "Deployment Guide에는 재구축 가능한 SQL 인덱스 중심의 튜닝 예시가 있으나 fsync, synchronous_commit, full_page_writes 비활성화는 내구성에 영향을 준다. 2606에서 인증 데이터도 PostgreSQL에 저장되므로 시스템 DB에 무조건 적용하지 않는다. autovacuum, dead tuple, 장시간 트랜잭션, I/O를 먼저 확인한다."
+      ],
+      [
+        "연결 및 대기 상태 진단",
+        "pg_stat_activity의 state는 backend의 처리 상태이고 wait_event_type/wait_event는 현재 대기 이벤트를 표시한다. active이면서 wait_event가 존재할 수도 있다. idle in transaction은 트랜잭션이 열린 상태에서 다음 요청을 기다리는 상태다. 장시간 열린 트랜잭션은 직접 종료하기 전에 해당 애플리케이션 작업과 영향 범위를 확인한다."
+      ],
+      [
+        "Pool 수와 연결 수",
+        "Polarion의 HEAD, HEAD read-only, History 연결 pool 외에 Resource Traceability pool(문서 기본 10) 및 외부 서비스가 별도 존재할 수 있다. 명시 maxPoolSize 20 초과의 경우 PostgreSQL max_connections를 4배 초과로 맞추라는 조건을 적용하고 실제 연결 여유를 검증한다. DB CPU 사용량이 낮아도 pool 대기가 발생할 수 있으므로 활성 연결·최대 설정 및 애플리케이션 로그를 비교한다."
       ]
     ],
     "tables": [
@@ -721,6 +760,10 @@ export const handbook:Record<string,Handbook>={
       [
         "workers 및 DB 연결",
         "workers, maxPoolSize, PostgreSQL max_connections를 함께 산정한다. 별도 phase workers는 Siemens가 특수 상황에서만 조정하도록 안내한다. Config Reference에는 phase 2도 Location Index에 한해 기술된다."
+      ],
+      [
+        "History DB 재색인 진행 중 사용자 영향",
+        "core index가 완료되어 접속이 가능해져도 History DB Creator가 진행 중이면 Document History의 backlink나 삭제 댓글이 불완전할 수 있다. Baseline(Time Machine), 역사 SQL 보고서, Plan burn-up/burn-down 및 일부 Test Management form extension은 사용 제한 또는 오류가 나타날 수 있다. 검색과 역사 기능 완료 시각을 따로 기록한다."
       ]
     ],
     "tables": [
@@ -783,6 +826,10 @@ export const handbook:Record<string,Handbook>={
       [
         "장애 격리",
         "한 Node 장애인지 공유 SVN/DB/인증/Load Balancer 장애인지 구분한다. Load Balancer 상태를 확인하고 영향 노드를 제외할 경우 승인 및 잔여 Node 용량을 검토한다. 다른 Node에서 동일 기능을 검증한다."
+      ],
+      [
+        "노드 단독 장애와 공통 서비스 장애",
+        "하나의 Node만 실패하면 LB 상태·노드 로컬 JVM/인덱스·DB 연결 및 로그를 비교하고, 여러 Node가 동시에 실패하면 Coordinator, SVN, 인증 DB, shared storage 등 공통 의존성도 조사한다. Coordinator 중지 시 모든 배포에서 동일한 서비스 가용성이 보장된다고 가정하지 않는다. 작업 범위를 정상 노드 및 잔여 용량과 함께 평가한다."
       ]
     ],
     "code": "# 모든 관련 서버에서 실제 mount 확인\nfindmnt -T /opt/polarion/shared\nls -ld /opt/polarion/shared\n# 공유 경로 설정 확인\n grep -n '^com\\.polarion\\.shared=' /opt/polarion/etc/polarion.properties",
@@ -802,6 +849,10 @@ export const handbook:Record<string,Handbook>={
       [
         "인덱스 backup/restore",
         "Global Administration > Scheduler에 polarion.jobs.backup Job을 설정한다. Monitor의 Scheduled Jobs에서 Backup Job을 선택하여 Execute now를 누르고 결과 경로를 확인한다. 복원 스크립트는 로컬 PostgreSQL 설치가 있어야 한다. Polarion 및 관련 PostgreSQL을 중지한 뒤 관리자 권한으로 restore.sh의 -backupFile을 지정하여 실행한다. 성공 후 DB, Polarion 순으로 시작한다."
+      ],
+      [
+        "복원 범위의 검증",
+        "Index backup과 운영 전체 백업을 복원 시나리오별로 분리한다. 예를 들어 검색만 손상된 경우와 SVN/인증 DB/외부 첨부 손상이 발생한 경우는 복구 자료가 달라진다. 정합성이 필요한 구성요소를 같은 시점으로 복원하고 복원 후 신규 쓰기, 이력 및 권한까지 확인한다."
       ]
     ],
     "tables": [
@@ -1036,7 +1087,7 @@ export const handbook:Record<string,Handbook>={
     "verify": "설정 변경 전 선택된 범위와 영향을 받는 프로젝트를 확인한다."
   },
   "logs": {
-    "ref": "Deployment and Maintenance Guide, 4-103~4-109, 7-20~7-26, 8-90",
+    "ref": "Deployment and Maintenance Guide, 4-103~4-109, 7-20~7-26, 8-90; 7-26 (System load averages)",
     "sections": [
       [
         "기본 로그 경로",
@@ -1049,6 +1100,10 @@ export const handbook:Record<string,Handbook>={
       [
         "분석 절차",
         "발생 시각을 고정하고 startup/REST/RPC/TX/main 및 Apache·DB 로그를 겹쳐 본다. 동일 시간의 정상 요청과 느린 요청을 구분한다. 로그에 요청 시간 필드가 없는 경우 추정하지 않는다."
+      ],
+      [
+        "System load 평균 로그 (Linux)",
+        "com.siemens.polarion.systemload.loggingTimeInterval 기본 10000ms, com.siemens.polarion.systemload.minimalValueToLog 기본 1이다. load average는 CPU 사용률(%)이 아니며 CPU 수와 실행/대기 작업의 관점에서 해석한다. 같은 시점의 vmstat·CPU·I/O와 비교한다."
       ]
     ],
     "tables": [
@@ -1248,7 +1303,7 @@ export const handbook:Record<string,Handbook>={
     "code": "ls -ld /opt/polarion /opt/polarion/data\nfindmnt -T /opt/polarion/data\ndf -h /opt/polarion/data"
   },
   "ehcache": {
-    "ref": "Deployment and Maintenance Guide 6-14~6-28; Config Properties Reference",
+    "ref": "Deployment and Maintenance Guide 6-14~6-28; Config Properties Reference; 6-24~6-28 (statistics)",
     "sections": [
       [
         "기본 구성과 재정의",
@@ -1265,6 +1320,14 @@ export const handbook:Record<string,Handbook>={
       [
         "제약",
         "user-restricted-projects, user-assigned-projects, wiki-page, wiki-page-exists는 heap-only를 유지한다. cache 파일 삭제 후 재기동 시 재생성되지만 warm-up 동안 성능에 영향이 있다. 설정 파일 변경 후 Polarion 재시작이 필요하다."
+      ],
+      [
+        "통계 비교 예시 (가상 데이터)",
+        "예를 들어 A 구간에서 GETS 100,000, MISSES 6,000, EVICTION 20,000이고 B 구간에서 GETS 100,000, MISSES 6,000, EVICTION 200이면 hit ratio는 둘 다 94%이지만 eviction 상황은 다르다. 실제 통계에서 GETS 증가량 대비 miss·eviction 증가량을 비교하고 재시작으로 counter가 초기화됐는지 확인한다. 이 숫자는 실제 장애 데이터가 아닌 설명 예시다."
+      ],
+      [
+        "캐시 설정 확인 순서",
+        "기본 XML의 alias별 목적·heap entry·disk size와 custom override를 비교하고, 실제 startup의 validation 결과를 확인한다. 보안 캐시 연관 값은 같은 규모로 맞추고 heap-only 캐시에 disk tier를 추가하지 않는다. 캐시가 작다는 판단은 eviction, I/O 대기, 응답 시간, Heap 여유를 종합해서 한다."
       ]
     ],
     "tables": [
@@ -1846,6 +1909,10 @@ export const handbook:Record<string,Handbook>={
       [
         "장애 분류",
         "401은 PAT 누락·무효 등 인증, 403은 endpoint 또는 객체 권한, 406은 Accept, 415는 Content-Type, 503은 REST 비활성 또는 서비스 불가 여부를 먼저 확인한다. Apache 등 다른 응답 주체의 오류는 body와 로그로 분리한다."
+      ],
+      [
+        "API 사용량 및 운영 경계",
+        "응답 링크에 next가 있으면 실제 다음 페이지 URL을 따라가고 없으면 종료한다. 제한을 넘긴 요청을 반복하지 않는다. 필요한 field만 선택하고 @all을 대량 사용하지 않는다. 자동 연동은 호출 횟수·응답코드·처리량·실패 재시도 및 인증 만료를 별도로 모니터링한다. 읽기 예제는 실제 운영 서비스에 대량 부하를 주는 방식으로 실행하지 않는다."
       ]
     ],
     "tables": [
@@ -2378,6 +2445,270 @@ export const handbook:Record<string,Handbook>={
       ]
     ],
     "verify": "테스트 환경에서 정상/실패/권한 부족/대량 데이터 조건을 검증하고 이전 버전 복원 경로를 보존한다."
+  },
+  "svn-cpu": {
+    "ref": "Deployment and Maintenance Guide 6-3~6-10, 7-26, 10-1; Apache HTTP Server 2.4 mod_status / mod_log_config; 자체 진단 절차",
+    "sections": [
+      [
+        "1. 관측 지표와 인과관계",
+        "SVN 서버의 호스트 CPU, httpd PID별 CPU, 실행 중 요청과 종료된 요청 로그는 서로 다른 관측값이다. Access File 변경 직후 CPU가 올라가는 경우 변경 리비전, CPU 상승 시작·종료 시간, 요청 지연의 시작 시각을 같은 타임존으로 비교한다. 같은 시간대에 발생했다는 사실만으로 authz 재계산을 원인으로 확정하지 않는다."
+      ],
+      [
+        "2. 장애가 시작됐을 때",
+        "먼저 OS의 vmstat 또는 mpstat, PID별 CPU와 메모리를 기록한다. 가능하면 승인된 내부 server-status에서 PID와 현재 요청을 확인한다. 서버가 응답하지 않으면 status나 SVN 명령을 반복 호출하지 않고 OS 관측을 우선한다. %CPU는 명령에 따라 누적값 또는 샘플 구간 값이므로 기록 방식도 남긴다."
+      ],
+      [
+        "3. 요청 로그 분류",
+        "Apache access log는 일반적으로 요청 종료 후 기록되므로 CPU 상승 시점과 로그 기록 시점이 같지 않을 수 있다. LogFormat에 %D(μs) 또는 %T(초)가 포함되는지 확인한다. 요청별 응답시간이 없다면 정확한 지연 순위를 복원할 수 없다. PROPFIND, REPORT, GET, MERGE 등 HTTP method별 요청량과 지연을 정상 구간과 비교한다."
+      ],
+      [
+        "4. Access File의 변경 확인",
+        "저장소 변경 경로와 권한 관련 관리 작업 시각을 확인하고 sync 이후 그룹 정의 변화와 path 규칙 변경을 분리한다. Access File이 변경됐는지, 동일한 리비전에서 문제가 반복되는지, 노드에서 발생한 요청의 분포가 달라졌는지 기록한다. 권한 정보를 그대로 외부에 전송하지 않는다."
+      ],
+      [
+        "5. 판단과 후속 조치",
+        "CPU 급등에 일치하는 PID 및 특정 작업 유형이 확인된 경우 그 근거로 Siemens 지원에 전달한다. 해당 시점의 요청 정보가 수집되지 않았으면 원인 미확정으로 남긴다. 긴급 대응과 재발 원인 분석을 분리하며, MPM 변경이나 Access File 원복의 효과는 같은 부하 조건에서 검증한다."
+      ]
+    ],
+    "tables": [
+      {
+        "title": "원인 분리용 증거 매트릭스",
+        "head": [
+          "관측",
+          "가능한 설명 (확정 아님)",
+          "추가 증거"
+        ],
+        "rows": [
+          [
+            "CPU 높음 / httpd CPU 높음",
+            "Apache 또는 SVN 처리 비용",
+            "PID별 현재 요청, access duration"
+          ],
+          [
+            "CPU 높음 / iowait 높음",
+            "디스크 대기 동반",
+            "iostat, storage latency"
+          ],
+          [
+            "Access 변경과 동시 발생",
+            "인가 관련 처리 가능성",
+            "변경 revision, 요청 분포, 재현"
+          ],
+          [
+            "CPU 정상 / 긴 요청 증가",
+            "대기·외부 의존성",
+            "TXLOGGER, DB wait, network"
+          ],
+          [
+            "access log 지연 기록 없음",
+            "시간 데이터 부족",
+            "LogFormat, 수집 정책 검토"
+          ]
+        ]
+      }
+    ],
+    "code": "# 읽기 전용 예시: 5초 간격 3회 샘플\nhostname; date -Is\nvmstat 5 3\nps -C httpd -o pid,ppid,%cpu,rss,nlwp,etime --sort=-%cpu | head -25\n# sysstat 설치 환경\npidstat -u -p ALL 5 3\n# 설정 파일에 기록된 응답시간 필드 확인 (RHEL 예시)\ngrep -RInE '^[[:space:]]*(LogFormat|CustomLog)' /etc/httpd --include='*.conf'\n# 저장소의 최신 리비전만 확인 (실제 경로 지정)\nsvnlook youngest /path/to/repo",
+    "verify": "정상 구간과 장애 구간을 같은 방식으로 수집한 뒤, CPU를 소비한 구성요소·요청·변경 시각을 확인된 증거와 미확인 가설로 구분한다."
+  },
+  "httpd-memory": {
+    "ref": "Apache HTTP Server 2.4 mpm_common, event, mod_status; Deployment and Maintenance Guide 6-28~6-34; 자체 진단 절차",
+    "sections": [
+      [
+        "RSS·PSS·호스트 메모리",
+        "RSS는 프로세스에 매핑된 resident 메모리이고 여러 프로세스가 공유하는 페이지를 각각 포함할 수 있다. PID RSS를 합산하면 실제 전체 물리 메모리 점유량을 과대평가할 수 있다. /proc/PID/smaps_rollup의 Pss와 free의 available을 함께 확인한다. 권한이 허용된 경우에만 조회한다."
+      ],
+      [
+        "event MPM의 프로세스 수",
+        "ThreadsPerChild는 프로세스별 worker 수, MaxRequestWorkers는 동시 처리 worker 상한이다. ServerLimit는 프로세스 한도에 관련된다. 종료 중인 자식 프로세스가 남을 수 있어 현재 PID 수를 단순히 MaxRequestWorkers/ThreadsPerChild로 제한된다고 판단하지 않는다."
+      ],
+      [
+        "MaxConnectionsPerChild",
+        "0은 연결 수 기준 자동 교체 제한 없음이다. 양수는 자식이 처리하는 연결 수에 따른 교체 정책이다. 처리 중인 연결이 남아 있을 수 있어 즉시 종료를 보장하지 않는다. HTTP 요청 건수와 TCP 연결 수를 동일하게 계산하지 않는다."
+      ],
+      [
+        "운영 중 판단",
+        "PID별 RSS/PSS·프로세스 생성 시각·BusyWorkers·IdleWorkers를 추적한다. 메모리와 동일 PID의 수명·작업량이 관련 있는지, graceful 종료 중인 자식이 누적되는지 확인한다. reload 후 RSS 하락만으로 메모리 누수 원인이 입증되는 것은 아니다."
+      ],
+      [
+        "변경의 검증 기준",
+        "MPM 변경 전 CPU·메모리·worker·오류율·지연의 정상 기준선을 남긴다. 하나의 변수씩 테스트하고 실제 max worker 포화가 발생했는지 확인한다. ServerLimit 또는 ThreadLimit은 서버 수명 범위 설정이므로 일반 reload로 적용된다고 가정하지 않는다."
+      ]
+    ],
+    "tables": [
+      {
+        "title": "모니터 지표 해석",
+        "head": [
+          "지표",
+          "의미",
+          "주의"
+        ],
+        "rows": [
+          [
+            "BusyWorkers",
+            "처리 중인 worker",
+            "CPU 사용률 아님"
+          ],
+          [
+            "IdleWorkers",
+            "대기 중인 worker",
+            "모든 연결 수와 다름"
+          ],
+          [
+            "RSS",
+            "프로세스 resident memory",
+            "공유 페이지 중복"
+          ],
+          [
+            "PSS",
+            "공유 페이지를 비례 배분한 값",
+            "권한 필요, 스냅샷"
+          ],
+          [
+            "MemAvailable",
+            "OS가 추정한 사용 가능한 메모리",
+            "free와 구분"
+          ],
+          [
+            "PID lifetime",
+            "프로세스 실행 시간",
+            "교체 여부 비교"
+          ]
+        ]
+      }
+    ],
+    "code": "free -h\nps -C httpd -o pid,ppid,etime,%cpu,rss,nlwp --sort=-rss | head -25\n# 승인된 PID의 비례 메모리 확인\n# grep -E '^(Rss|Pss|Private_Clean|Private_Dirty):' /proc/PID/smaps_rollup\nhttpd -V\nhttpd -t -D DUMP_RUN_CFG\n# 내부 관리 경로가 이미 구성된 환경에서만 status 확인\n# curl -fsS http://127.0.0.1/server-status?auto",
+    "verify": "변경 효과를 동일한 트래픽 조건에서 메모리 증가율, CPU, worker 포화, 오류율 및 응답 시간으로 비교한다."
+  },
+  "upload-error": {
+    "ref": "Administrator and User Help 4-59~4-63, 4-391, 4-613~4-621; Deployment and Maintenance Guide 5-28~5-37; REST API User Guide 3-12~3-17; 자체 운영 절차",
+    "sections": [
+      [
+        "1. 재현 조건",
+        "화면/REST/프로젝트 Import 중 어떤 경로인지, 파일 이름·확장자·바이트 크기, 발생 시간과 사용자 권한을 기록한다. 정상 소형 파일과 실패 파일을 검증 환경에서 비교한다. 원본 파일 내용과 인증 토큰은 공개 자료로 수집하지 않는다."
+      ],
+      [
+        "2. 프록시·HTTP 계층",
+        "브라우저 Network 또는 REST 응답의 상태 코드와 body를 확인하고 같은 시점의 Apache/프록시 오류 로그에서 응답을 만든 계층을 확인한다. 400은 잘못된 요청의 가능성, 403은 권한 또는 보안 정책, 413은 크기 제한, 415는 미지원 media type 가능성을 뜻한다. 상태 코드 하나로 특정 규칙이나 제품 원인을 확정할 수 없다."
+      ],
+      [
+        "3. 애플리케이션 검증",
+        "프로젝트 ZIP은 별도 archive 한도와 MIME 검사를 적용한다. Antivirus 구성 시 모든 업로드를 검사하며 파일 검사가 실패하면 작업이 거부될 수 있다. 검증에 실패한 파일을 정상 파일로 바꿔 테스트하고 검사 정책을 우회하지 않는다."
+      ],
+      [
+        "4. 저장소 및 결과",
+        "SVN과 외부 파일 저장소의 접근·용량·권한, 애플리케이션 로그, Import Job의 결과를 확인한다. 화면에서 Job이 실패로 표시되더라도 일부 대상이 생성되었는지 확인 후 재실행 여부를 결정한다."
+      ],
+      [
+        "5. 업로드와 표시를 구분",
+        "다운로드가 정상이고 미리보기만 실패하면 preview converter 또는 LiveDoc 로딩 문제를 우선 구분한다. 업로드가 실패한 경우는 정상 저장 및 원본 접근 여부부터 확인한다."
+      ]
+    ],
+    "tables": [
+      {
+        "title": "응답 코드별 확인 순서",
+        "head": [
+          "코드/증상",
+          "첫 확인",
+          "추가 확인"
+        ],
+        "rows": [
+          [
+            "400",
+            "request/응답 body",
+            "Apache·앱 오류"
+          ],
+          [
+            "401",
+            "인증",
+            "PAT 만료·사용자"
+          ],
+          [
+            "403",
+            "권한/보안 정책",
+            "응답 주체 및 로그"
+          ],
+          [
+            "413",
+            "요청 바이트 한도",
+            "Proxy/HTTP/제품별 제한"
+          ],
+          [
+            "415",
+            "Content-Type",
+            "JSON vs multipart"
+          ],
+          [
+            "Job Failed",
+            "Job log",
+            "실제 대상 반영 범위"
+          ],
+          [
+            "미리보기만 실패",
+            "원본 다운로드",
+            "변환 및 화면 로딩"
+          ]
+        ]
+      }
+    ],
+    "code": "# 저장소 공간 확인 (실제 경로로 변경)\ndf -h /opt/polarion/data\ndf -i /opt/polarion/data\n# 승인된 로그에서 시간과 오류 유형을 확인\n# grep -iE 'attachment|upload|multipart|antivirus|413|415' /path/to/error_log | tail -60",
+    "verify": "동일 계정에서 정상 파일 업로드·다운로드·미리보기와 권한 제한 파일의 의도된 거부를 확인한다."
+  },
+  "project-missing": {
+    "ref": "Administrator and User Help 4-44~4-59, 4-1080; Deployment and Maintenance Guide 8-83~8-89; 자체 운영 절차",
+    "sections": [
+      [
+        "증상 분류",
+        "프로젝트가 SVN에 존재하는 것과 Polarion에서 등록된 프로젝트로 인식되는 것은 별개다. 기존 Mark 메시지, 목록 미표시, 프로젝트 조회 실패, 검색 누락을 각각 기록한다. 프로젝트 ID와 SVN 경로, 표시 이름을 구분한다."
+      ],
+      [
+        "1. 관리자 화면",
+        "Repository 범위에서 Global Administration > Projects를 열고 필터를 초기화한 뒤 ID 및 표시 이름으로 확인한다. 사용자 계정과 global 관리자 결과를 비교한다. 프로젝트만 보이지 않는지, 다른 프로젝트와 전체 서비스가 정상인지 판단한다."
+      ],
+      [
+        "2. 원본 및 변경 이력",
+        "SVN 관리자 승인 하에 실제 프로젝트 경로 및 .polarion 구성 존재 여부와 이전 정상 리비전을 확인한다. 대량 삭제·재등록 또는 프로젝트 ID 변경을 피한다. 사용자/Role 및 access 규칙이 해당 경로에 맞는지 확인한다."
+      ],
+      [
+        "3. Index 상태",
+        "startup 및 프로젝트 관련 로그에서 변경 처리, Index 업데이트 실패 및 완료 상태를 확인한다. 표시되는 프로젝트의 Maintenance에서는 대상 Index에 Refresh/Check를 검토한다. 목록에 없어서 프로젝트 범위 기능에 접근 불가하면 global 범위에서 가능한 진단을 하고, 전체 재구축은 영향 분석 뒤 결정한다."
+      ],
+      [
+        "4. 복구 선택",
+        "Unmark는 파일을 남기고 포털에서 제외하는 기능이며 Delete는 파일 삭제를 포함한다. 이미 Mark로 표시되지만 화면에서 대상 선택이 안 되는 상황을 단순 Unmark 재실행으로 해결할 수 있다고 가정하지 않는다. 원인 불명일 경우 관련 로그와 실제 상태를 Siemens 지원에 전달한다."
+      ]
+    ],
+    "tables": [
+      {
+        "title": "상태별 대응",
+        "head": [
+          "확인 결과",
+          "다음 단계"
+        ],
+        "rows": [
+          [
+            "관리자만 조회 가능",
+            "사용자 Role/Permission 확인"
+          ],
+          [
+            "관리자도 목록 없음",
+            "등록·경로·색인 로그 확인"
+          ],
+          [
+            "SVN 경로 없음",
+            "삭제/이동 이력·백업 검증"
+          ],
+          [
+            "이미 Mark 메시지",
+            "중복 생성 금지, 실제 등록 상태 조사"
+          ],
+          [
+            "목록 정상, 검색만 누락",
+            "Refresh/Check Index 검토"
+          ]
+        ]
+      }
+    ],
+    "verify": "기존 프로젝트 ID·경로·이력을 보존한 상태에서 관리자 및 권한 있는 사용자에게 목록·검색·저장이 정상인지 확인한다."
   }
 }
 export const extraGuides=[
@@ -2596,5 +2927,41 @@ export const extraGuides=[
     "summary": "스크립트와 플러그인은 업그레이드 및 성능 장애의 점검 대상이다.",
     "checks": [],
     "reference": "Administrator and User Help 5-1~5-89; Deployment and Maintenance Guide 8-6"
+  },
+  {
+    "id": "svn-cpu",
+    "group": "성능",
+    "title": "SVN CPU 급등·Access File 변경 장애 분석",
+    "keywords": "svn cpu 100 access file authz spike httpd request slow PROPFIND REPORT",
+    "summary": "CPU 급등 시 프로세스와 지연 요청의 시간축을 맞추고 권한 파일 변경과의 관련성을 검증한다.",
+    "checks": [],
+    "reference": "Deployment and Maintenance Guide 6-3~6-10, 7-26, 10-1; Apache HTTP Server 2.4 mod_status / mod_log_config; 자체 진단 절차"
+  },
+  {
+    "id": "httpd-memory",
+    "group": "성능",
+    "title": "Apache 메모리 증가·Worker 포화 분석",
+    "keywords": "httpd memory RSS PSS MaxConnectionsPerChild scoreboard busy workers graceful reload",
+    "summary": "프로세스 메모리와 worker 사용량을 분리해 설정 변경의 필요성을 판단한다.",
+    "checks": [],
+    "reference": "Apache HTTP Server 2.4 mpm_common, event, mod_status; Deployment and Maintenance Guide 6-28~6-34; 자체 진단 절차"
+  },
+  {
+    "id": "upload-error",
+    "group": "화면",
+    "title": "첨부·Import 업로드 실패 및 HTTP 오류",
+    "keywords": "upload attachment MIME antivirus 400 403 413 415 mod_security multipart import",
+    "summary": "업로드 실패를 HTTP 수신, 파일 검증, 권한, 저장 및 미리보기 문제로 나눈다.",
+    "checks": [],
+    "reference": "Administrator and User Help 4-59~4-63, 4-391, 4-613~4-621; Deployment and Maintenance Guide 5-28~5-37; REST API User Guide 3-12~3-17; 자체 운영 절차"
+  },
+  {
+    "id": "project-missing",
+    "group": "화면",
+    "title": "프로젝트가 Mark 상태인데 목록에 보이지 않을 때",
+    "keywords": "project missing mark unmark project list index visibility SVN role",
+    "summary": "프로젝트 등록·접근·표시 및 색인을 분리해 확인한다.",
+    "checks": [],
+    "reference": "Administrator and User Help 4-44~4-59, 4-1080; Deployment and Maintenance Guide 8-83~8-89; 자체 운영 절차"
   }
 ]
