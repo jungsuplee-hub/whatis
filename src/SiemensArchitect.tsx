@@ -86,10 +86,10 @@ export default function SiemensArchitect({onHome,onTeamcenterDemo,onPolarionDemo
         <span className="sa-product-mark">{v==='teamcenter'?'TC':'PL'}</span>
         <span className="sa-product-name"><strong>{products[v].label}</strong><small>{products[v].subtitle}</small></span><span className="sa-product-version">2606</span><ArrowRight size={20}/>
       </button>)}
-      <a className="sa-product sa-opcenter-link" href="./mes/">
+      <a className="sa-product sa-opcenter-link" href="./mes/presales/">
         <span className="sa-product-mark">OC</span>
-        <span className="sa-product-name"><strong>Opcenter</strong><small>MES · 제조 실행 시뮬레이션</small></span>
-        <span className="sa-product-version">LAB</span><ArrowRight size={20}/>
+        <span className="sa-product-name"><strong>Opcenter</strong><small>MOM · 프리세일즈 가이드 + MES 실습</small></span>
+        <span className="sa-product-version">GUIDE</span><ArrowRight size={20}/>
       </a>
     </div>
     <div className="sa-learning-entries">
