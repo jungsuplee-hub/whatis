@@ -18,7 +18,8 @@ export const serviceExamples: Record<string, ServiceExample[]> = {
     item('Google Lens', '카메라나 이미지 속 물체·글자를 인식해 정보를 찾는 시각 AI', 'https://lens.google/'),
   ],
   'machine-learning': [
-    item('Google Vertex AI', '데이터로 머신러닝 모델을 만들고 평가·배포하는 클라우드 플랫폼', 'https://cloud.google.com/vertex-ai', '개발 도구'),
+    item('Teachable Machine', '사진이나 소리의 예시를 보여주고 새로운 입력을 구별하는 AI를 만들어 볼 수 있음', 'https://teachablemachine.withgoogle.com/', '개발 도구'),
+    item('Google Vertex AI', '판매량 예측이나 제품 분류에 필요한 모델을 학습시키는 플랫폼', 'https://cloud.google.com/vertex-ai', '개발 도구'),
     item('Amazon SageMaker AI', '머신러닝 모델의 학습과 추론을 위한 AWS 플랫폼', 'https://aws.amazon.com/sagemaker/ai/', '개발 도구'),
   ],
   'deep-learning': [
@@ -75,11 +76,12 @@ export const serviceExamples: Record<string, ServiceExample[]> = {
     item('LlamaIndex', '문서를 노드·청크로 구성해 검색 및 AI 앱에 연결', 'https://docs.llamaindex.ai/', '개발 도구'),
   ],
   'rag': [
+    item('NotebookLM (Gemini Notebook)', '등록한 자료를 근거로 질문에 답하고 출처를 표시하는 사용자 경험의 사례. 세부 내부 구현을 특정하는 것은 아님', 'https://support.google.com/gemininotebook/answer/16269187?hl=ko'),
     item('Azure AI Search', '검색한 기업 문서를 생성형 AI 답변의 근거로 연결', 'https://azure.microsoft.com/products/ai-services/ai-search', '개발 도구'),
     item('Amazon Bedrock Knowledge Bases', '자료 검색과 생성형 모델을 결합한 RAG 기능', 'https://aws.amazon.com/bedrock/knowledge-bases/', '개발 도구'),
   ],
   'ai-agent': [
-    item('ChatGPT agent', '웹·도구를 이용해 여러 단계의 작업을 진행하는 AI 에이전트', 'https://help.openai.com/en/articles/11752874-chatgpt-agent'),
+    item('ChatGPT Work 모드', '여러 자료를 조사하고 비교·분석한 뒤 보고서나 스프레드시트 같은 결과물을 만드는 여러 단계의 작업을 맡길 수 있음. 연결된 앱과 권한에 따라 가능한 작업이 달라짐', 'https://help.openai.com/ko-kr/articles/20001275-chatgpt-work-and-codex'),
     item('Microsoft Copilot Studio', '업무용 AI 에이전트와 자동화를 구성하는 플랫폼', 'https://www.microsoft.com/microsoft-copilot/microsoft-copilot-studio', '개발 도구'),
   ],
   'function-calling': [
@@ -87,6 +89,7 @@ export const serviceExamples: Record<string, ServiceExample[]> = {
     item('Gemini Function Calling', 'Gemini 모델의 출력을 외부 애플리케이션 함수와 연동', 'https://ai.google.dev/gemini-api/docs/function-calling', '개발 도구'),
   ],
   'mcp': [
+    item('Claude Desktop + MCP', '연결한 MCP 서버가 제공하는 자료나 기능을 AI 대화에서 사용할 수 있음', 'https://apps.extensions.modelcontextprotocol.io/api/documents/quickstart.html'),
     item('MCP 공식 서버 예시', 'MCP로 파일·도구 등 외부 시스템을 연결하는 서버 구현 예시', 'https://github.com/modelcontextprotocol/servers', '개발 도구'),
     item('MCP 공식 안내', '도구와 AI 애플리케이션을 연결하는 프로토콜을 설명', 'https://modelcontextprotocol.io/introduction', '관련 자료'),
   ],
@@ -136,7 +139,7 @@ export const serviceExamples: Record<string, ServiceExample[]> = {
   ],
   'hallucination': [
     item('Perplexity', '답변과 함께 관련 웹 자료를 제시해 원문 확인을 도움', 'https://www.perplexity.ai/'),
-    item('NotebookLM', '사용자가 제공한 자료를 바탕으로 질문에 답하고 출처를 표시', 'https://notebooklm.google.com/'),
+    item('NotebookLM (Gemini Notebook)', '등록한 자료에 근거해 답하고 출처를 표시하므로 원문 확인에 도움. 오류를 완전히 막는 것은 아님', 'https://support.google.com/gemininotebook/answer/16269187?hl=ko'),
   ],
   'image-generation': [
     item('ChatGPT 이미지 생성', '자연어 요청으로 이미지를 만들거나 수정', 'https://chatgpt.com/'),

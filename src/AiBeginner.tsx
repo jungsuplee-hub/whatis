@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Bookmark, BookmarkCheck, ChevronRi
 import { useState } from 'react'
 import { categories, generalTopics, topicById } from './data'
 import type { Category, Topic } from './data'
+import { examplesForTopic } from './serviceExamples'
 import './ai-beginner.css'
 
 type Intro = [question:string, answer:string, example:string]
@@ -42,6 +43,45 @@ export const aiIntros: Record<string,Intro> = {
   'search-vs-ai':['인터넷 검색과 AI 답변은 무엇이 다른가요?','검색은 질문과 관련된 자료나 링크를 찾아줍니다. 생성형 AI는 주어진 정보로 답변을 작성합니다. 검색 도구가 연결된 AI는 두 작업을 함께 할 수 있습니다.','공식 안내문을 검색해 원문을 찾은 뒤 AI로 주요 내용을 정리할 수 있습니다.'],
   'personal-data':['AI에 아무 정보나 입력해도 되나요?','AI 서비스마다 입력 자료를 보관하거나 사용하는 방식이 다릅니다. 비밀번호나 불필요한 개인정보, 공개하면 안 되는 자료는 입력하지 않는 것이 좋습니다.','회사 문서를 요약하기 전에 접근 권한과 이용 정책을 확인하고 불필요한 개인정보를 지웁니다.'],
   'ai-limitations':['AI 답변을 그대로 믿어도 되나요?','AI는 잘못된 정보를 제공하거나 질문을 오해할 수 있습니다. 중요한 내용은 신뢰할 수 있는 자료와 비교하고 필요한 경우 전문가의 확인을 받는 것이 중요합니다.','AI가 작성한 보고서에서 통계 수치와 출처, 날짜를 실제 자료와 대조합니다.']
+}
+// 짧은 실제 활용 상황: 제품 내부 구현을 단정하지 않고 사용자가 하는 일을 설명합니다.
+const practicalUses:Record<string,string> = {
+  ai:'사진 속 글자를 읽거나 질문에 답하기',
+  'machine-learning':'사진을 분류하는 AI를 학습시키기',
+  'deep-learning':'사진·음성을 처리하는 AI 모델 만들기',
+  'neural-networks':'사진 속 물체를 구별하는 모델 학습하기',
+  'supervised-learning':'정상·불량 사진을 알려주고 제품 분류하기',
+  'generative-ai':'이메일 초안 작성, 포스터 이미지 만들기',
+  llm:'긴 문서 요약, 번역, 질문에 답하기',
+  transformer:'문장 번역이나 문서 분류 모델 실행하기',
+  tokens:'입력한 글이 몇 개의 토큰인지 확인하기',
+  'prompt-engineering':'보고서 분량과 형식을 지정해 답변 받기',
+  multimodal:'사진을 첨부하고 내용이나 오류 메시지 물어보기',
+  embeddings:'서로 다른 표현의 문서에서 비슷한 내용 찾기',
+  'vector-database':'여러 회사 문서에서 관련 자료 빠르게 찾기',
+  'semantic-search':'정확한 제목을 몰라도 관련 문서 찾기',
+  chunking:'긴 설명서를 작은 부분으로 나누어 검색하기',
+  rag:'PDF나 회사 규정을 참고해 출처와 함께 답변 받기',
+  'ai-agent':'자료 조사부터 분석, 보고서 작성까지 맡기기',
+  'function-calling':'AI가 연결된 날씨 조회 기능 사용하기',
+  mcp:'AI에 문서 검색이나 외부 프로그램 기능 연결하기',
+  orchestration:'자료 수집, 요약, 결과 저장을 순서대로 자동화하기',
+  'context-memory':'이전에 지정한 답변 형식을 다음 대화에 활용하기',
+  'fine-tuning':'고객 문의에 정해진 형식으로 답하도록 추가 학습하기',
+  rlhf:'사람이 평가한 답변을 이용해 AI 개선하기',
+  quantization:'메모리가 적은 컴퓨터에서 AI 모델 실행하기',
+  distillation:'큰 모델의 결과를 이용해 작은 모델 학습시키기',
+  'training-vs-inference':'사진 분류 모델을 학습시키고 새 사진으로 시험하기',
+  'model-serving':'여러 사람이 동시에 사용하는 AI 서비스 운영하기',
+  'model-evaluation':'준비된 질문으로 AI가 정확히 답하는지 시험하기',
+  'ai-safety':'AI 서비스에 부적절한 내용이나 정보 노출이 있는지 점검하기',
+  observability:'AI 답변이 늦거나 실패한 이유 확인하기',
+  hallucination:'AI가 제시한 날짜·숫자·출처를 원문과 비교하기',
+  'image-generation':'행사 포스터나 발표용 그림 제작하기',
+  'speech-to-text':'회의 녹음에서 회의록 초안 만들기',
+  'search-vs-ai':'원문을 검색하고 핵심 내용을 AI로 정리하기',
+  'personal-data':'AI 서비스에서 대화 데이터 관련 설정 확인하기',
+  'ai-limitations':'AI의 답변에 나온 주장을 믿을 수 있는 자료로 검증하기'
 }
 const plainCautions:Record<string,string> = {
  ai:'모든 AI가 글을 만들거나 사람처럼 대화할 수 있는 것은 아닙니다.',
@@ -93,7 +133,14 @@ const primary = ['ai','machine-learning','generative-ai','llm','rag','ai-agent',
 const titleFor = (t:Topic) => t.id==='ai-agent'?'AI Agent (AI 에이전트)':t.id==='llm'?'LLM (대규모 언어 모델)':t.title
 export function IntroCard({topic,onTopic}:{topic:Topic,onTopic:(t:Topic)=>void}){
   const intro=aiIntros[topic.id]
-  return <button className="ab-topic" onClick={()=>onTopic(topic)}><span className="ab-term">{titleFor(topic)}</span><h3>{intro[0]}</h3><p>{intro[1]}</p><span className="ab-read">예시와 설명 보기 <ArrowRight size={17}/></span></button>
+  const services=examplesForTopic(topic.id).slice(0,2)
+  return <button className="ab-topic" onClick={()=>onTopic(topic)}>
+    <span className="ab-term">{titleFor(topic)}</span><h3>{intro[0]}</h3><p>{intro[1]}</p>
+    <div className="ab-use-preview"><span className="ab-use-label">실제 사용 사례</span><p>{practicalUses[topic.id]||intro[2]}</p>
+      {services.length>0&&<div className="ab-service-tags">{services.map(s=><span key={s.name}>{s.name}</span>)}</div>}
+    </div>
+    <span className="ab-read">예시와 설명 보기 <ArrowRight size={17}/></span>
+  </button>
 }
 export function BeginnerHome({onTopic,onCategory,onSearch,onDetail,onLab}:{onTopic:(t:Topic)=>void;onCategory:(c:Category)=>void;onSearch:()=>void;onDetail:()=>void;onLab:()=>void}){
   return <div className="ab-page">
@@ -112,12 +159,15 @@ export function BeginnerCollection({category,onTopic,onHome,onLab,onDetail}:{cat
 export function BeginnerTopic({topic,onHome,onCategory,onDetail,onTopic,bookmarked,onBookmark}:{topic:Topic;onHome:()=>void;onCategory:()=>void;onDetail:()=>void;onTopic:(t:Topic)=>void;bookmarked:boolean;onBookmark:()=>void}){
   const [copied,setCopied]=useState(false)
   const [question,answer,example]=aiIntros[topic.id]
+  const services=examplesForTopic(topic.id)
   const related=topic.related.map(topicById).filter((t):t is Topic=>!!t)
   return <article className="ab-page ab-article">
     <div className="ab-topic-nav"><button className="ab-back" onClick={onHome}><ArrowLeft size={17}/> AI 첫 화면</button><button className="ab-back" onClick={onCategory}>같은 분야의 주제 <ChevronRight size={16}/></button><div className="ab-tools"><button className="ab-secondary" onClick={onBookmark}>{bookmarked?<BookmarkCheck size={18}/>:<Bookmark size={18}/>} {bookmarked?'저장됨':'저장'}</button><button className="ab-secondary" onClick={async()=>{try{await navigator.clipboard.writeText(window.location.href);setCopied(true)}catch{setCopied(false)}}}><Share2 size={18}/> {copied?'복사됨':'공유'}</button></div></div>
     <header className="ab-collection-head"><span className="ab-kicker">{titleFor(topic)}</span><h1>{question}</h1></header>
     <section className="ab-answer"><h2>쉽게 설명하면</h2><p>{answer}</p></section>
-    <section className="ab-example"><h2>실제로 이렇게 사용합니다</h2><p>{example}</p></section>
+    <section className="ab-example"><h2>실제로 이렇게 사용합니다</h2><p>{example}</p>
+      {services.length>0&&<div className="ab-real-services"><h3>실제 서비스 · 도구</h3><div className="ab-service-grid">{services.map(s=><a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" className="ab-service-card"><span>{s.kind}</span><strong>{s.name} <ArrowUpRight size={16}/></strong><p>{s.description}</p><small>공식 자료 보기</small></a>)}</div><p className="ab-service-note">기술의 활용을 이해하기 위한 사례입니다. 제품마다 내부 구현, 제공 기능과 사용 권한은 다를 수 있습니다.</p></div>}
+    </section>
     <div className="ab-note"><strong>알아둘 점</strong><p>{plainCautions[topic.id]||topic.caution}</p></div>
     <section className="ab-more ab-section"><div><h2>어떻게 작동하는지 더 알고 싶나요?</h2><p>단계별 애니메이션, 내부 기술 구조, 사용 사례와 기술 설명을 확인할 수 있습니다.</p></div><button className="ab-primary" onClick={onDetail}>상세보기 <ArrowRight size={18}/></button></section>
     <section className="ab-sources"><h2>참고 자료</h2>{topic.sources.map(s=><a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer">{s.name} <ArrowUpRight size={15}/></a>)}</section>
