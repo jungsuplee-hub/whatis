@@ -7,6 +7,7 @@ import SystemsFlowGallery, { SystemsFlowFocus, stageFlow } from './SystemsFlowAt
 import { topicBeginners, topicStepBasics } from './systemsTopicBeginner'
 const SiemensArchitect=lazy(()=>import('./SiemensArchitect'))
 const PolarionOperations=lazy(()=>import('./PolarionOperations'))
+const TeamcenterHandover=lazy(()=>import('./TeamcenterHandover'))
 const TeamcenterUserDemo=lazy(()=>import('./TeamcenterUserDemo'))
 const PolarionUserDemo=lazy(()=>import('./PolarionUserDemo'))
 const ComputerAtlas=lazy(()=>import('./ComputerAtlas'))
@@ -22,7 +23,7 @@ import './mobile-clarity.css'
 import './siemens-navigation.css'
 import { BeginnerHome, BeginnerCollection, BeginnerTopic, aiIntros, IntroCard } from './AiBeginner'
 
-type Route = {area: Area|'computer'; page:'home'|'category'|'topic'|'saved'|'tc-demo'|'polarion-demo'|'lab'|'siemens-old'|'teamcenter'|'opcenter'|'opcenter-ai'|'opcenter-lab'|'polarion-ops';id?:string;detail?:boolean}
+type Route = {area: Area|'computer'; page:'home'|'category'|'topic'|'saved'|'tc-demo'|'polarion-demo'|'lab'|'siemens-old'|'teamcenter'|'opcenter'|'opcenter-ai'|'opcenter-lab'|'polarion-ops'|'tc-ops'|'tc-architecture';id?:string;detail?:boolean}
 const routeFromHash = ():Route => {
   const paths=decodeURIComponent(window.location.hash.slice(1)).split('/').filter(Boolean)
   if(paths[0]==='computer'){
@@ -33,6 +34,8 @@ const routeFromHash = ():Route => {
   }
   if(paths[0]==='general'&&paths[1]==='detail')return {area:'general',page:'home',detail:true}
   if(paths[0]==='general'&&paths[1]==='lab')return {area:'general',page:'lab',id:paths[2]}
+  if(paths[0]==='siemens'&&paths[1]==='teamcenter'&&paths[2]==='atlas')return {area:'siemens',page:'tc-architecture'}
+  if(paths[0]==='siemens'&&paths[1]==='teamcenter'&&paths[2])return {area:'siemens',page:'tc-ops',id:paths[2]}
   if(paths[0]==='siemens'&&paths[1]==='teamcenter')return {area:'siemens',page:'teamcenter'}
   if(paths[0]==='siemens'&&paths[1]==='opcenter'&&paths[2]==='lab')return {area:'siemens',page:'opcenter-lab'}
   if(paths[0]==='siemens'&&paths[1]==='opcenter'&&paths[2]==='ai')return {area:'siemens',page:'opcenter-ai'}
@@ -49,7 +52,7 @@ const routeFromHash = ():Route => {
   if(t?.area===area)return {area,page:'topic',id:t.id,detail:area==='general'&&paths[2]==='detail'}
   return {area,page:'home'}
 }
-const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/'+(r.area==='computer'?'chapter':'category')+'/'+r.id:r.page==='saved'?'/saved':r.page==='lab'?'/lab'+(r.id?'/'+r.id:''):r.page==='tc-demo'?'/teamcenter-demo':r.page==='polarion-demo'?'/polarion-demo':r.page==='teamcenter'?'/teamcenter':r.page==='opcenter-lab'?'/opcenter/lab':r.page==='opcenter-ai'?'/opcenter/ai':r.page==='opcenter'?'/opcenter':r.page==='siemens-old'?'/old':r.page==='polarion-ops'?'/ops/'+r.id:'')+(r.area==='general'&&r.detail?'/detail':'')
+const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/'+(r.area==='computer'?'chapter':'category')+'/'+r.id:r.page==='saved'?'/saved':r.page==='lab'?'/lab'+(r.id?'/'+r.id:''):r.page==='tc-demo'?'/teamcenter-demo':r.page==='polarion-demo'?'/polarion-demo':r.page==='teamcenter'?'/teamcenter':r.page==='tc-architecture'?'/teamcenter/atlas':r.page==='tc-ops'?'/teamcenter/'+r.id:r.page==='opcenter-lab'?'/opcenter/lab':r.page==='opcenter-ai'?'/opcenter/ai':r.page==='opcenter'?'/opcenter':r.page==='siemens-old'?'/old':r.page==='polarion-ops'?'/ops/'+r.id:'')+(r.area==='general'&&r.detail?'/detail':'')
 const technicalName = (t:Topic) => ({
   ai:'AI', 'machine-learning':'Machine Learning', 'deep-learning':'Deep Learning',
   'neural-networks':'Neural Network', 'supervised-learning':'Supervised Learning',
@@ -144,7 +147,7 @@ function App(){
       if(e.key==='Escape')setSearchOpen(false)
       const active=e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement
       if(((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k')||(e.key==='/'&&!active)){
-        e.preventDefault();const ops=document.getElementById('polarion-ops-search');if(ops instanceof HTMLInputElement){ops.focus();ops.select()}else setSearchOpen(true)
+        e.preventDefault();const ops=document.getElementById('teamcenter-ops-search')||document.getElementById('polarion-ops-search');if(ops instanceof HTMLInputElement){ops.focus();ops.select()}else setSearchOpen(true)
       }
     }
     document.addEventListener('keydown',handler)
@@ -167,12 +170,12 @@ function App(){
           <button type="button" className={route.area==='siemens'?'active':''} onClick={()=>navigate({area:'siemens',page:'home'})}>Siemens</button>
         </nav>
         <div className="header-actions">
-          <button type="button" aria-label={route.area==='computer'?'컴퓨터 기술 검색':route.area==='siemens'?'Polarion 운영 가이드 검색':'AI 기술 검색'} className="header-icon" onClick={()=>{if(route.area==='computer'){computerHome();window.setTimeout(()=>document.getElementById('computer-tech-search')?.focus(),90)}else if(route.area==='siemens'){navigate({area:'siemens',page:'home'});window.setTimeout(()=>document.getElementById('polarion-ops-search')?.focus(),250)}else setSearchOpen(true)}}><Search size={20}/></button>
+          <button type="button" aria-label={route.area==='computer'?'컴퓨터 기술 검색':route.area==='siemens'?(route.page.startsWith('tc-')||route.page==='teamcenter'?'Teamcenter 운영 가이드 검색':'Polarion 운영 가이드 검색'):'AI 기술 검색'} className="header-icon" onClick={()=>{if(route.area==='computer'){computerHome();window.setTimeout(()=>document.getElementById('computer-tech-search')?.focus(),90)}else if(route.area==='siemens'){const tc=route.page.startsWith('tc-')||route.page==='teamcenter';navigate({area:'siemens',page:tc?'teamcenter':'home'});window.setTimeout(()=>document.getElementById(tc?'teamcenter-ops-search':'polarion-ops-search')?.focus(),250)}else setSearchOpen(true)}}><Search size={20}/></button>
           <button type="button" aria-label="저장한 글 보기" className="header-icon saved-icon" onClick={()=>navigate({area:'general',page:'saved'})}><Bookmark size={20}/>{saved.length>0&&<i/>}</button>
         </div>
       </div>
       {route.area==='siemens'&&<nav className="siemens-subnav" aria-label="Siemens 제품 메뉴">
-        <button type="button" className={['teamcenter','tc-demo','siemens-old'].includes(route.page)?'active':''} aria-current={['teamcenter','tc-demo','siemens-old'].includes(route.page)?'page':undefined} onClick={()=>navigate({area:'siemens',page:'teamcenter'})}>Teamcenter</button>
+        <button type="button" className={['teamcenter','tc-ops','tc-architecture','tc-demo','siemens-old'].includes(route.page)?'active':''} aria-current={['teamcenter','tc-ops','tc-architecture','tc-demo','siemens-old'].includes(route.page)?'page':undefined} onClick={()=>navigate({area:'siemens',page:'teamcenter'})}>Teamcenter</button>
         <button type="button" className={['home','polarion-ops','polarion-demo'].includes(route.page)?'active':''} aria-current={['home','polarion-ops','polarion-demo'].includes(route.page)?'page':undefined} onClick={()=>navigate({area:'siemens',page:'home'})}>Polarion</button>
         <button type="button" className={['opcenter','opcenter-ai','opcenter-lab'].includes(route.page)?'active':''} aria-current={['opcenter','opcenter-ai','opcenter-lab'].includes(route.page)?'page':undefined} onClick={()=>navigate({area:'siemens',page:'opcenter'})}>Opcenter</button>
       </nav>}
@@ -182,7 +185,8 @@ function App(){
       {route.page==='lab'&&route.area==='general'&&<Suspense fallback={<div className="computer-page-loading" role="status">AI 실습 연구실을 준비하고 있습니다.</div>}><PracticeLab domain="ai" startId={route.id} onBack={home}/></Suspense>}
       {route.page==='lab'&&route.area==='computer'&&<Suspense fallback={<div className="computer-page-loading" role="status">컴퓨터 구조 실습 연구실을 준비하고 있습니다.</div>}><PracticeLab domain="computer" startId={route.id} onBack={computerHome}/></Suspense>}
       {(route.page==='home'||route.page==='polarion-ops')&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Polarion 운영 가이드를 준비하고 있습니다.</div>}><PolarionOperations documentId={route.page==='polarion-ops'?route.id:undefined} onNavigate={id=>navigate(id?{area:'siemens',page:'polarion-ops',id}:{area:'siemens',page:'home'})} onOld={()=>navigate({area:'siemens',page:'siemens-old'})} onDemo={()=>navigate({area:'siemens',page:'polarion-demo'})}/></Suspense>}
-      {(route.page==='siemens-old'||route.page==='teamcenter')&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Siemens 아키텍처 화면을 준비하고 있습니다.</div>}><SiemensArchitect key={route.page} scopedTeamcenter={route.page==='teamcenter'} onHome={()=>navigate({area:'siemens',page:'home'})} onTeamcenterDemo={()=>navigate({area:'siemens',page:'tc-demo'})} onPolarionDemo={()=>navigate({area:'siemens',page:'polarion-demo'})}/></Suspense>}
+      {['teamcenter','tc-ops'].includes(route.page)&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Teamcenter 운영 가이드를 준비하고 있습니다.</div>}><TeamcenterHandover id={route.page==='tc-ops'?route.id:undefined} onNavigate={id=>navigate(id?{area:'siemens',page:'tc-ops',id}:{area:'siemens',page:'teamcenter'})} onArchitecture={()=>navigate({area:'siemens',page:'tc-architecture'})} onDemo={()=>navigate({area:'siemens',page:'tc-demo'})}/></Suspense>}
+      {(route.page==='siemens-old'||route.page==='tc-architecture')&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Siemens 아키텍처 화면을 준비하고 있습니다.</div>}><SiemensArchitect key={route.page} scopedTeamcenter={route.page==='tc-architecture'} onHome={()=>navigate({area:'siemens',page:'home'})} onTeamcenterDemo={()=>navigate({area:'siemens',page:'tc-demo'})} onPolarionDemo={()=>navigate({area:'siemens',page:'polarion-demo'})}/></Suspense>}
       {['opcenter','opcenter-ai','opcenter-lab'].includes(route.page)&&route.area==='siemens'&&<>
         <nav className="opcenter-subnav" aria-label="Opcenter 학습 메뉴">
           <button className={route.page==='opcenter'?'active':''} aria-current={route.page==='opcenter'?'page':undefined} onClick={()=>navigate({area:'siemens',page:'opcenter'})}>Presales 종합 가이드</button>
