@@ -20,8 +20,9 @@ import './service-examples.css'
 import './home-polish.css'
 import './mobile-clarity.css'
 import './siemens-navigation.css'
+import { BeginnerHome, BeginnerCollection, BeginnerTopic, aiIntros, IntroCard } from './AiBeginner'
 
-type Route = {area: Area|'computer'; page:'home'|'category'|'topic'|'saved'|'tc-demo'|'polarion-demo'|'lab'|'siemens-old'|'teamcenter'|'opcenter'|'opcenter-ai'|'opcenter-lab'|'polarion-ops';id?:string}
+type Route = {area: Area|'computer'; page:'home'|'category'|'topic'|'saved'|'tc-demo'|'polarion-demo'|'lab'|'siemens-old'|'teamcenter'|'opcenter'|'opcenter-ai'|'opcenter-lab'|'polarion-ops';id?:string;detail?:boolean}
 const routeFromHash = ():Route => {
   const paths=decodeURIComponent(window.location.hash.slice(1)).split('/').filter(Boolean)
   if(paths[0]==='computer'){
@@ -30,6 +31,7 @@ const routeFromHash = ():Route => {
     if(paths[1])return {area:'computer',page:'topic',id:paths[1]}
     return {area:'computer',page:'home'}
   }
+  if(paths[0]==='general'&&paths[1]==='detail')return {area:'general',page:'home',detail:true}
   if(paths[0]==='general'&&paths[1]==='lab')return {area:'general',page:'lab',id:paths[2]}
   if(paths[0]==='siemens'&&paths[1]==='teamcenter')return {area:'siemens',page:'teamcenter'}
   if(paths[0]==='siemens'&&paths[1]==='opcenter'&&paths[2]==='lab')return {area:'siemens',page:'opcenter-lab'}
@@ -41,13 +43,13 @@ const routeFromHash = ():Route => {
   if(paths[0]==='siemens'&&paths[1]==='polarion-demo')return {area:'siemens',page:'polarion-demo'}
   const area:Area=paths[0]==='siemens'?'siemens':'general'
   const category=paths[1]==='category'?categoryById(paths[2]||''):undefined
-  if(category?.area===area)return {area,page:'category',id:category.id}
+  if(category?.area===area)return {area,page:'category',id:category.id,detail:area==='general'&&paths[3]==='detail'}
   if(paths[1]==='saved')return {area,page:'saved'}
   const t=topicById(paths[1]||'')
-  if(t?.area===area)return {area,page:'topic',id:t.id}
+  if(t?.area===area)return {area,page:'topic',id:t.id,detail:area==='general'&&paths[2]==='detail'}
   return {area,page:'home'}
 }
-const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/'+(r.area==='computer'?'chapter':'category')+'/'+r.id:r.page==='saved'?'/saved':r.page==='lab'?'/lab'+(r.id?'/'+r.id:''):r.page==='tc-demo'?'/teamcenter-demo':r.page==='polarion-demo'?'/polarion-demo':r.page==='teamcenter'?'/teamcenter':r.page==='opcenter-lab'?'/opcenter/lab':r.page==='opcenter-ai'?'/opcenter/ai':r.page==='opcenter'?'/opcenter':r.page==='siemens-old'?'/old':r.page==='polarion-ops'?'/ops/'+r.id:'')
+const hashFor = (r:Route) => '#'+r.area+(r.page==='topic'?'/'+r.id:r.page==='category'?'/'+(r.area==='computer'?'chapter':'category')+'/'+r.id:r.page==='saved'?'/saved':r.page==='lab'?'/lab'+(r.id?'/'+r.id:''):r.page==='tc-demo'?'/teamcenter-demo':r.page==='polarion-demo'?'/polarion-demo':r.page==='teamcenter'?'/teamcenter':r.page==='opcenter-lab'?'/opcenter/lab':r.page==='opcenter-ai'?'/opcenter/ai':r.page==='opcenter'?'/opcenter':r.page==='siemens-old'?'/old':r.page==='polarion-ops'?'/ops/'+r.id:'')+(r.area==='general'&&r.detail?'/detail':'')
 const technicalName = (t:Topic) => ({
   ai:'AI', 'machine-learning':'Machine Learning', 'deep-learning':'Deep Learning',
   'neural-networks':'Neural Network', 'supervised-learning':'Supervised Learning',
@@ -152,7 +154,7 @@ function App(){
   const filtered=useMemo(()=>{
     const q=query.trim().toLocaleLowerCase()
     if(!q)return generalTopics.slice(0,10)
-    return generalTopics.filter(t=>[t.title,t.english,friendly(t),simple(t),t.summary,categoryById(t.category)?.title].some(v=>v?.toLocaleLowerCase().includes(q))).slice(0,20)
+    return generalTopics.filter(t=>[t.title,t.english,friendly(t),simple(t),t.summary,...(aiIntros[t.id]||[]),categoryById(t.category)?.title].some(v=>v?.toLocaleLowerCase().includes(q))).slice(0,20)
   },[query])
 
   return <div className="new-app">
@@ -176,7 +178,7 @@ function App(){
       </nav>}
     </header>
     <main className="site-main">
-      {route.page==='home'&&route.area==='general'&&<HomePage onTopic={openTopic} onCategory={openCategory} onSearch={()=>setSearchOpen(true)} onLab={()=>aiLab()}/>}
+      {route.page==='home'&&route.area==='general'&&(route.detail?<><div className="ab-detail-back"><button onClick={home}><ArrowLeft size={17}/> 쉬운 설명으로 돌아가기</button></div><HomePage onTopic={t=>navigate({area:t.area,page:'topic',id:t.id,detail:true})} onCategory={c=>navigate({area:c.area,page:'category',id:c.id,detail:true})} onSearch={()=>setSearchOpen(true)} onLab={()=>aiLab()}/></>:<BeginnerHome onTopic={openTopic} onCategory={openCategory} onSearch={()=>setSearchOpen(true)} onDetail={()=>navigate({area:'general',page:'home',detail:true})} onLab={()=>aiLab()}/>)}
       {route.page==='lab'&&route.area==='general'&&<Suspense fallback={<div className="computer-page-loading" role="status">AI 실습 연구실을 준비하고 있습니다.</div>}><PracticeLab domain="ai" startId={route.id} onBack={home}/></Suspense>}
       {route.page==='lab'&&route.area==='computer'&&<Suspense fallback={<div className="computer-page-loading" role="status">컴퓨터 구조 실습 연구실을 준비하고 있습니다.</div>}><PracticeLab domain="computer" startId={route.id} onBack={computerHome}/></Suspense>}
       {(route.page==='home'||route.page==='polarion-ops')&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Polarion 운영 가이드를 준비하고 있습니다.</div>}><PolarionOperations documentId={route.page==='polarion-ops'?route.id:undefined} onNavigate={id=>navigate(id?{area:'siemens',page:'polarion-ops',id}:{area:'siemens',page:'home'})} onOld={()=>navigate({area:'siemens',page:'siemens-old'})} onDemo={()=>navigate({area:'siemens',page:'polarion-demo'})}/></Suspense>}
@@ -191,9 +193,9 @@ function App(){
       {route.page==='tc-demo'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Teamcenter 학습 화면을 준비하고 있습니다.</div>}><TeamcenterUserDemo onBack={()=>navigate({area:'siemens',page:'teamcenter'})}/></Suspense>}
       {route.page==='polarion-demo'&&route.area==='siemens'&&<Suspense fallback={<div className="computer-page-loading" role="status">Polarion 학습 화면을 준비하고 있습니다.</div>}><PolarionUserDemo onBack={()=>navigate({area:'siemens',page:'home'})}/></Suspense>}
       {route.area==='computer'&&route.page!=='lab'&&<Suspense fallback={<div className="computer-page-loading" role="status">컴퓨터 구조 학습 화면을 준비하고 있습니다.</div>}><ComputerAtlas view={route.page==='category'?'chapter':route.page==='topic'?'topic':'home'} id={route.id} onTopic={computerTopic} onChapter={computerChapter} onHome={computerHome} onLab={computerLab}/></Suspense>}
-      {route.page==='category'&&category&&<TopicCollection key={category.id} category={category} onTopic={openTopic} onHome={home} onLab={()=>aiLab(generalTopics.find(t=>t.category===category.id)?.id)}/>}
+      {route.page==='category'&&category&&(route.detail?<><div className="ab-detail-back"><button onClick={()=>openCategory(category)}><ArrowLeft size={17}/> 쉬운 설명으로 돌아가기</button></div><TopicCollection key={category.id} category={category} onTopic={t=>navigate({area:t.area,page:'topic',id:t.id,detail:true})} onHome={()=>navigate({area:'general',page:'home',detail:true})} onLab={()=>aiLab(generalTopics.find(t=>t.category===category.id)?.id)}/></>:<BeginnerCollection key={category.id} category={category} onTopic={openTopic} onHome={home} onDetail={()=>navigate({area:category.area,page:'category',id:category.id,detail:true})} onLab={()=>aiLab(generalTopics.find(t=>t.category===category.id)?.id)}/>)}
       {route.page==='saved'&&<SavedCollection ids={saved} onTopic={openTopic} onHome={home}/>}
-      {route.page==='topic'&&topic&&<TopicLesson key={topic.id} topic={topic} onHome={home} onCategory={()=>openCategory(categoryById(topic.category)!)} onTopic={openTopic} onLab={()=>aiLab(topic.id)} bookmarked={saved.includes(topic.id)} onBookmark={()=>favorite(topic.id)}/>}
+      {route.page==='topic'&&topic&&(route.detail?<><div className="ab-detail-back"><button onClick={()=>openTopic(topic)}><ArrowLeft size={17}/> 쉬운 설명으로 돌아가기</button></div><TopicLesson key={topic.id} topic={topic} onHome={()=>navigate({area:'general',page:'home',detail:true})} onCategory={()=>openCategory(categoryById(topic.category)!)} onTopic={t=>navigate({area:t.area,page:'topic',id:t.id,detail:true})} onLab={()=>aiLab(topic.id)} bookmarked={saved.includes(topic.id)} onBookmark={()=>favorite(topic.id)}/></>:<BeginnerTopic key={topic.id} topic={topic} onHome={home} onCategory={()=>openCategory(categoryById(topic.category)!)} onTopic={openTopic} onDetail={()=>navigate({area:topic.area,page:'topic',id:topic.id,detail:true})} bookmarked={saved.includes(topic.id)} onBookmark={()=>favorite(topic.id)}/>)}
     </main>
     <footer className="site-footer"><span>whatis. <i>알수록 가까워지는 기술</i></span><span>기술을 눈으로 이해하는 인터랙티브 학습</span></footer>
     {searchOpen&&<div className="finder-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setSearchOpen(false)}}>
@@ -202,7 +204,7 @@ function App(){
         <div className="finder-results">
           <p>{query?'찾은 이야기':'여기서부터 살펴보세요'}</p>
           {filtered.length===0&&<div className="finder-empty">관련된 글이 없습니다. 다른 말로 검색해 보세요.</div>}
-          {filtered.map(t=><button key={t.id} onClick={()=>openTopic(t)}><span className="finder-dot"/><span><strong>{friendly(t)}</strong><small>{t.title}</small></span><ArrowUpRight size={16}/></button>)}
+          {filtered.map(t=><button key={t.id} onClick={()=>openTopic(t)}><span className="finder-dot"/><span><strong>{aiIntros[t.id]?.[0]||friendly(t)}</strong><small>{t.title}</small></span><ArrowUpRight size={16}/></button>)}
         </div>
         <div className="finder-foot">검색은 이 사이트의 글에서만 이뤄집니다.</div>
       </section>
@@ -268,7 +270,7 @@ function SavedCollection({ids,onTopic,onHome}:{ids:string[];onTopic:(t:Topic)=>v
   return <section className="collection-page">
     <button className="back-link" onClick={onHome}><ArrowLeft size={17}/> 돌아가기</button>
     <header className="saved-heading"><span className="kicker">MY COLLECTION</span><h1>다시 보고 싶은 이야기</h1><p>이 브라우저에만 저장됩니다.</p></header>
-    {list.length?<TopicCards items={list} onTopic={onTopic}/>:<div className="no-saved"><Bookmark size={37}/><p>아직 저장한 글이 없어요.</p><button onClick={onHome}>둘러보기 <ArrowRight size={16}/></button></div>}
+    {list.length?<div className="ab-page"><div className="ab-grid">{list.map(t=><IntroCard key={t.id} topic={t} onTopic={onTopic}/>)}</div></div>:<div className="no-saved"><Bookmark size={37}/><p>아직 저장한 글이 없어요.</p><button onClick={onHome}>둘러보기 <ArrowRight size={16}/></button></div>}
   </section>
 }
 function TopicLesson({topic,onHome,onCategory,onTopic,onLab,bookmarked,onBookmark}:{topic:Topic;onHome:()=>void;onCategory:()=>void;onTopic:(t:Topic)=>void;onLab:()=>void;bookmarked:boolean;onBookmark:()=>void}){
@@ -345,10 +347,9 @@ function TopicLesson({topic,onHome,onCategory,onTopic,onLab,bookmarked,onBookmar
     </section>}
     <div className="lesson-read-more">
       <div className="lesson-read-more-head"><span>더 자세한 설명</span><span>DETAILS</span></div>
-      <details open><summary><span className="detail-index">01</span><span>일상에서 어떤 모습일까?</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>{lesson?.familiar||topic.analogy}</p><p className="detail-annotation">{topic.analogy}</p></div></details>
-      <details open><summary><span className="detail-index">02</span><span>쉽게 다시 설명해 줘</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>{topic.description}</p><ul>{topic.insights.map(s=><li key={s}>{s}</li>)}</ul></div></details>
-      <details open><summary><span className="detail-index">03</span><span>어디에 사용할 수 있을까?</span><ChevronDown size={20}/></summary><div className="detail-answer"><div className="use-examples">{topic.useCases.map(s=><span key={s}>{s}</span>)}</div></div></details>
-      <details open><summary><span className="detail-index">04</span><span>이건 꼭 조심하세요</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>{lesson?.keyIdea||topic.caution}</p><p className="detail-annotation">{topic.caution}</p></div></details>
+      <details open><summary><span className="detail-index">01</span><span>기술의 핵심 개념</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>{topic.description}</p><ul>{topic.insights.map(s=><li key={s}>{s}</li>)}</ul></div></details>
+      <details open><summary><span className="detail-index">02</span><span>어디에 사용할 수 있을까?</span><ChevronDown size={20}/></summary><div className="detail-answer"><div className="use-examples">{topic.useCases.map(s=><span key={s}>{s}</span>)}</div></div></details>
+      <details open><summary><span className="detail-index">03</span><span>이건 꼭 조심하세요</span><ChevronDown size={20}/></summary><div className="detail-answer"><p>{lesson?.keyIdea||topic.caution}</p><p className="detail-annotation">{topic.caution}</p></div></details>
     </div>
     {related.length>0&&<section className="next-stories"><div className="next-head"><span>RELATED STORIES</span><h2>다음에는 이것도 살펴보세요</h2></div><div className="next-grid">{related.map(t=><button key={t.id} onClick={()=>onTopic(t)}><span>{friendly(t)}</span><ArrowUpRight size={18}/></button>)}</div></section>}
   </article>
