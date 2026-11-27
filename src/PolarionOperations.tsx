@@ -7,6 +7,7 @@ import type { OpsTable } from './polarion-handbook'
 import { chapters, runbooks } from './polarion-manual-structure'
 import type { Runbook } from './polarion-manual-structure'
 import { polarionProcedureDetails } from './operations-procedure-details'
+import { polarionStandard } from './polarion-standard-manual'
 import { ManualVisuals } from './PolarionManualVisuals'
 import { diagrams, screenshots, officialVisualLinks } from './polarion-visuals'
 
@@ -414,9 +415,11 @@ const normalize=(v:string)=>v.toLocaleLowerCase().replace(/[\u200b-\u200d]/g,'')
 function getSections(g:Guide):ManualSection[]{
  const b=handbook[g.id],r=runbooks[g.id],d=opsDetails[g.id]
  const result:ManualSection[]=[]
+ const standard=polarionStandard[g.id]
+ if(standard)result.push({id:'standard-location',title:'실제 설치 경로 및 관리 위치',body:standard[0]+' — Linux 기본 경로 또는 관리 위치 예시이며 실제 설치 환경과 제품 버전을 확인합니다.'},{id:'standard-how',title:'실무 확인 및 작업 방법',body:standard[1]},{id:'standard-result',title:'결과 해석 및 운영 판단',body:standard[2]})
  if(b?.sections?.length)b.sections.forEach(([title,body],i)=>result.push({id:'s'+i,title,body}))
  else if(!b&&d)result.push({id:'s0',title:'기술 설명',body:d.body},{id:'s1',title:'운영 절차',body:d.procedure})
- if(diagrams[g.id]||screenshots[g.id]||officialVisualLinks[g.id])result.splice(Math.min(1,result.length),0,{id:'visuals',title:'구성도 및 화면 참고',kind:'visuals'})
+ if(diagrams[g.id]||screenshots[g.id]||officialVisualLinks[g.id])result.splice(Math.min(standard?4:1,result.length),0,{id:'visuals',title:'구성도 및 화면 참고',kind:'visuals'})
  b?.tables?.forEach((table,i)=>result.push({id:'t'+i,title:table.title,table}))
  if(r)result.push({id:'runbook',title:'상세 운영 방법',kind:'runbook'})
  if(b?.code||(!b&&d?.command))result.push({id:'code',title:'명령어 및 설정 예시',kind:'code',body:b?.code||d?.command})
@@ -477,7 +480,7 @@ export default function PolarionOperations({onOld,onDemo,documentId,onNavigate}:
  useEffect(()=>{if(activeChapter)setExpanded(old=>old.includes(activeChapter.id)?old:[...old,activeChapter.id]);setMobileOpen(false);setTocOpen(false);setCopyStatus('')},[documentId,activeChapter?.id])
  const go=(id?:string)=>{setQuery('');setSearchScope('all');onNavigate(id);setMobileOpen(false);setTocOpen(false)}
  const searchable=useMemo(()=>allGuides.map(g=>{
-  const ss=getSections(g);const r=runbooks[g.id];return {g,ss,hay:normalize([g.title,g.keywords,g.summary,g.reference,JSON.stringify(handbook[g.id]||{}),JSON.stringify(r||{}),JSON.stringify(polarionProcedureDetails[g.id]||[]),JSON.stringify(diagrams[g.id]||[]),JSON.stringify(screenshots[g.id]||[]),chapterOf(g.id)?.title].join(' '))}
+  const ss=getSections(g);const r=runbooks[g.id];return {g,ss,hay:normalize([g.title,g.keywords,g.summary,g.reference,JSON.stringify(handbook[g.id]||{}),JSON.stringify(r||{}),JSON.stringify(polarionProcedureDetails[g.id]||[]),JSON.stringify(polarionStandard[g.id]||[]),JSON.stringify(diagrams[g.id]||[]),JSON.stringify(screenshots[g.id]||[]),chapterOf(g.id)?.title].join(' '))}
  }),[])
  const results=useMemo(()=>{const tokens=normalize(query).split(' ').filter(Boolean);if(!tokens.length)return [];return searchable.filter(x=>(searchScope==='all'||chapterOf(x.g.id)?.id===searchScope)&&tokens.every(t=>x.hay.includes(t))).map(x=>({...x,rank:tokens.reduce((sum,t)=>sum+(normalize(x.g.title).includes(t)?8:0)+(normalize(x.g.keywords).includes(t)?4:0),0)})).sort((a,b)=>b.rank-a.rank||guideOrder.indexOf(a.g.id)-guideOrder.indexOf(b.g.id))},[query,searchScope,searchable])
  const toggleChapter=(id:string)=>setExpanded(v=>v.includes(id)?v.filter(x=>x!==id):[...v,id])
