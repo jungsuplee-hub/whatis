@@ -23,3 +23,5 @@
 .pm-note-page-group h3 span{color:#688e7c;font-size:11px;font-variant-numeric:tabular-nums}
 @media(max-width:830px){.pm-notebook-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:9px;margin-bottom:10px;scrollbar-width:thin}.pm-notebook-tabs button{font-size:11px;padding:8px 10px;flex-shrink:0}.pm-note-page-group{margin:19px 0 23px}}
 @media print{.pm-notebook-tabs{display:none!important}}
+
+.pm-procedure-pre p,.pm-procedure-explain p{font-size:14px;line-height:1.9;color:#344f47;margin:7px 0 12px}.pm-procedure-explain{border-bottom:1px solid #dce7e1;padding:10px 0}.pm-procedure-explain h5{font-size:14px;color:#244f43;margin:0 0 8px}.pm-procedure .pm-steps li{grid-template-columns:29px minmax(0,1fr);padding:14px 12px}.pm-procedure .pm-steps p{font-size:13px;line-height:1.9}.pm-procedure .pm-run-header{margin-bottom:16px}.pm-procedure-pre p{padding-left:12px;border-left:2px solid #c5ded2}
