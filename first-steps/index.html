@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI 첫걸음</title>
+<meta name="description" content="AI가 문장을 만드는 원리와 모르는 것을 해결하는 방법을, 직접 눌러 보며 배우는 초보자용 한 페이지 안내서">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout concept: one narrow reading column, four numbered lessons (a real sequence), each lesson ends in something to touch.
+   Color: cool paper, ink blue-black, cobalt for interaction, marigold only for "most likely / the point". */
+:root {
+  color-scheme: light;
+  --bg: #f2f5f8;
+  --surface: #ffffff;
+  --ink: #13202b;
+  --muted: #566776;
+  --line: #d6dfe7;
+  --accent: #2b59ff;
+  --accent-ink: #ffffff;
+  --accent-soft: #e2e9ff;
+  --hi: #ffd23f;
+  --hi-soft: #fff0b3;
+  --hi-ink: #3a2f00;
+  --good: #14794f;
+  --good-soft: #dcf3e8;
+  --bad: #b5372a;
+  --bad-soft: #fbe2de;
+  --font-body: "IBM Plex Sans KR", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-label: "Space Grotesk", "IBM Plex Sans KR", "Noto Sans KR", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e161d;
+    --surface: #16212a;
+    --ink: #e8eef3;
+    --muted: #97a6b3;
+    --line: #273541;
+    --accent: #8aa6ff;
+    --accent-ink: #0e1530;
+    --accent-soft: #1c2a52;
+    --hi: #f2c63a;
+    --hi-soft: #3d3310;
+    --hi-ink: #2a2200;
+    --good: #4cc790;
+    --good-soft: #14392b;
+    --bad: #ff8574;
+    --bad-soft: #43201c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e161d;
+  --surface: #16212a;
+  --ink: #e8eef3;
+  --muted: #97a6b3;
+  --line: #273541;
+  --accent: #8aa6ff;
+  --accent-ink: #0e1530;
+  --accent-soft: #1c2a52;
+  --hi: #f2c63a;
+  --hi-soft: #3d3310;
+  --hi-ink: #2a2200;
+  --good: #4cc790;
+  --good-soft: #14392b;
+  --bad: #ff8574;
+  --bad-soft: #43201c;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  padding-block: 20px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 720px; margin: 0 auto; }
+h1, h2, h3, p { margin: 0; }
+h1, h2 { text-wrap: balance; }
+a { color: var(--accent); }
+button { font-family: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.topbar { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.brand { font-family: var(--font-label); font-weight: 700; font-size: 15px; letter-spacing: 0.02em; }
+.topbar span { color: var(--muted); font-size: 13px; }
+
+.hero { padding-block: 44px 28px; display: grid; gap: 18px; }
+.eyebrow { font-family: var(--font-label); font-weight: 500; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.hero h1 { font-size: clamp(2rem, 7.4vw, 3.3rem); line-height: 1.2; font-weight: 700; letter-spacing: -0.02em; }
+.mark { background: linear-gradient(transparent 58%, var(--hi) 58%, var(--hi) 92%, transparent 92%); padding-inline: 2px; }
+.lead { color: var(--muted); font-size: 1.05rem; max-width: 34em; }
+.jump { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 6px; }
+.jump a { text-decoration: none; color: var(--ink); border: 1px solid var(--line); background: var(--surface); padding: 6px 12px; border-radius: 999px; font-size: 14px; min-height: 36px; display: inline-flex; align-items: center; gap: 8px; }
+.jump a b { font-family: var(--font-label); color: var(--accent); font-weight: 700; }
+.jump a:hover { border-color: var(--accent); }
+
+.lesson { padding-block: 44px 8px; border-top: 1px solid var(--line); margin-top: 28px; display: grid; gap: 16px; }
+.lesson h2 { font-size: clamp(1.4rem, 4.6vw, 1.85rem); line-height: 1.3; letter-spacing: -0.01em; }
+.lesson p { max-width: 36em; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tab { border: 1px solid var(--line); background: transparent; color: var(--muted); padding: 6px 12px; border-radius: 999px; font-size: 14px; cursor: pointer; min-height: 36px; }
+.tab[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.sentence { font-size: clamp(1.25rem, 4.6vw, 1.7rem); line-height: 1.5; font-weight: 500; min-height: 3em; padding: 10px 2px; }
+.np-picked { color: var(--accent); font-weight: 700; }
+.caret { display: inline-block; width: 2px; height: 1.1em; background: var(--accent); vertical-align: text-bottom; margin-left: 3px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+.cands { display: grid; gap: 8px; }
+.cand { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; font-size: 16px; text-align: left; cursor: pointer; overflow: hidden; }
+.cand:hover { border-color: var(--accent); }
+.cand .bar { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent-soft); z-index: 0; transition: width 0.35s ease; }
+.cand.top .bar { background: var(--hi-soft); }
+.cand .t, .cand .pc { position: relative; z-index: 1; }
+.cand .pc { font-family: var(--font-label); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cand .badge { margin-left: 8px; font-size: 11px; background: var(--hi); color: var(--hi-ink); padding: 1px 7px; border-radius: 999px; font-weight: 700; vertical-align: middle; }
+
+.controls { display: grid; gap: 10px; }
+.slider { display: grid; gap: 4px; }
+.slider label { font-size: 14px; display: flex; justify-content: space-between; gap: 12px; }
+.slider label b { color: var(--accent); }
+input[type="range"] { width: 100%; accent-color: var(--accent); min-height: 28px; }
+.ticks { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+
+.btn { border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); padding: 8px 16px; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer; min-height: 40px; }
+.btn.ghost { background: transparent; color: var(--accent); }
+.done-note { background: var(--hi-soft); color: var(--ink); padding: 10px 14px; border-radius: 8px; font-size: 15px; }
+
+.tok-in { width: 100%; min-height: 46px; padding: 10px 14px; font-size: 16px; font-family: var(--font-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px 4px; padding-block: 4px; }
+.chip { display: inline-flex; flex-direction: column; align-items: center; border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px 3px; background: var(--bg); line-height: 1.25; }
+.chip.first { margin-left: 8px; }
+.chip:first-child { margin-left: 0; }
+.chip .w { font-size: 17px; font-weight: 500; }
+.chip .id { font-family: var(--font-label); font-size: 12px; color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+.stat { font-size: 15px; }
+.stat b { font-family: var(--font-label); font-variant-numeric: tabular-nums; }
+
+.ladder { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.ladder li { position: relative; padding: 0 0 22px 44px; }
+.ladder li::before { content: ""; position: absolute; left: 13px; top: 28px; bottom: 0; width: 2px; background: var(--line); }
+.ladder li:last-child { padding-bottom: 0; }
+.ladder li:last-child::before { display: none; }
+.ladder .n { position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-family: var(--font-label); font-weight: 700; font-size: 13px; }
+.ladder h3 { font-size: 1.1rem; line-height: 1.4; }
+.ladder .term { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.ladder .term span { color: var(--accent); font-weight: 500; }
+
+.callout { border-left: 3px solid var(--hi); padding: 4px 0 4px 14px; max-width: 36em; }
+.callout b { font-weight: 700; }
+
+.qz-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.qz-head h3 { font-size: 1.05rem; }
+.qz-count { font-family: var(--font-label); font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.qz-q { font-size: clamp(1.15rem, 4vw, 1.4rem); font-weight: 500; line-height: 1.5; padding-block: 6px; }
+.qz-opts { display: grid; gap: 8px; }
+.opt { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 10px 14px; text-align: left; font-size: 16px; cursor: pointer; min-height: 48px; }
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--good); background: var(--good-soft); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.fb { font-size: 15px; min-height: 1.5em; }
+.fb b.ok { color: var(--good); }
+.fb b.no { color: var(--bad); }
+.score { font-family: var(--font-label); font-size: clamp(2.2rem, 9vw, 3.2rem); font-weight: 700; line-height: 1.1; }
+
+.gloss { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.gloss details { border-bottom: 1px solid var(--line); }
+.gloss summary { cursor: pointer; padding: 14px 4px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; list-style: none; min-height: 48px; }
+.gloss summary::-webkit-details-marker { display: none; }
+.gloss summary::after { content: "+"; font-family: var(--font-label); font-size: 20px; color: var(--accent); }
+.gloss details[open] summary::after { content: "–"; }
+.gloss .term { font-weight: 700; font-size: 1.05rem; }
+.gloss .one { color: var(--muted); font-size: 14px; flex: 1; text-align: right; }
+.gloss .body { padding: 0 4px 16px; display: grid; gap: 8px; max-width: 38em; }
+.gloss .real { font-size: 14px; color: var(--muted); }
+
+.foot { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); max-width: 40em; }
+.back { display: inline-block; margin-top: 12px; font-size: 14px; }
+
+@media (max-width: 520px) {
+  .gloss summary { flex-wrap: wrap; }
+  .gloss .one { text-align: left; flex-basis: 100%; order: 3; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .caret { animation: none; }
+  .cand .bar { transition: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">AI 첫걸음</div>
+    <span>읽는 시간 약 8분</span>
+  </div>
+
+  <header class="hero">
+    <div class="eyebrow">처음 만나는 인공지능</div>
+    <h1>AI는 <span class="mark">다음에 올 말</span>을 맞히는 기계예요</h1>
+    <p class="lead">어려운 용어는 맨 뒤에 모아 두었어요. 먼저 직접 눌러 보면서, AI가 어떻게 문장을 만들고 모르는 것을 어떻게 해결하는지 느껴 보세요.</p>
+    <nav class="jump" aria-label="목차">
+      <a href="#predict"><b>1</b>다음 말 맞히기</a>
+      <a href="#pieces"><b>2</b>조각으로 읽기</a>
+      <a href="#unknown"><b>3</b>모를 때는</a>
+      <a href="#words"><b>4</b>용어 사전</a>
+    </nav>
+  </header>
+
+  <section class="lesson" id="predict">
+    <div class="eyebrow">1 / 4</div>
+    <h2>문장은 한 조각씩 이어 붙여서 만들어져요</h2>
+    <p>AI는 답 전체를 한꺼번에 떠올리지 않아요. 지금까지 쓴 글을 보고, 다음에 올 만한 조각마다 점수를 매겨요. 그중 하나를 골라 붙이고, 또 같은 일을 반복해요. 아래에서 직접 후보를 골라 보세요.</p>
+
+    <div class="panel">
+      <div class="tabs" id="np-tabs" role="group" aria-label="시작 문장 고르기"></div>
+      <div class="sentence" id="np-sentence" aria-live="polite"></div>
+      <div class="cands" id="np-list"></div>
+      <div class="done-note" id="np-done" hidden>이렇게 두 번 이어 붙이면 한 문장이 돼요. 긴 답변도 같은 일을 수백 번 반복해서 만들어져요.</div>
+      <div class="controls">
+        <div class="slider">
+          <label for="np-temp"><span>AI의 성격</span><b id="np-temp-label">보통</b></label>
+          <input type="range" id="np-temp" min="0" max="2" step="1" value="1">
+          <div class="ticks"><span>안정적</span><span>보통</span><span>엉뚱함</span></div>
+        </div>
+        <div class="row">
+          <button type="button" class="btn" id="np-pick">AI가 대신 고르게 하기</button>
+          <button type="button" class="btn ghost" id="np-reset">처음부터</button>
+        </div>
+      </div>
+    </div>
+    <p class="small muted">슬라이더를 엉뚱함 쪽으로 밀면 점수가 낮은 후보도 뽑힐 확률이 올라가요. 실제 서비스에서는 이 값을 조절해서 답변이 얼마나 창의적일지 정해요. 화면의 퍼센트는 이해를 돕는 예시 숫자이고, 실제 모델은 수만 개의 조각을 놓고 계산해요.</p>
+  </section>
+
+  <section class="lesson" id="pieces">
+    <div class="eyebrow">2 / 4</div>
+    <h2>컴퓨터는 글자가 아니라 번호를 읽어요</h2>
+    <p>AI는 문장을 작은 조각으로 나누고, 조각마다 번호표를 붙여요. 이 조각을 토큰이라고 불러요. AI가 계산하는 대상은 글자 모양이 아니라 이 번호예요. 아래 칸에 아무 문장이나 써 보세요.</p>
+
+    <div class="panel">
+      <label for="tok-in" class="small muted">문장 입력</label>
+      <input class="tok-in" id="tok-in" type="text" maxlength="60" value="비 오는 날에는 파전이 생각나요" autocomplete="off">
+      <div class="chips" id="tok-out" aria-live="polite"></div>
+      <div class="stat" id="tok-stat"></div>
+    </div>
+    <p class="small muted">조각을 나누는 규칙과 번호는 설명용 예시예요. 실제 모델마다 나누는 방식과 번호가 달라요. 한 번에 읽을 수 있는 조각 수에는 한계가 있고, 이 한계를 컨텍스트 창이라고 불러요. 책상 위에 한꺼번에 펼칠 수 있는 종이의 양이라고 생각하면 쉬워요.</p>
+  </section>
+
+  <section class="lesson" id="unknown">
+    <div class="eyebrow">3 / 4</div>
+    <h2>모르는 건 어떻게 해결할까요?</h2>
+    <p>AI는 학습할 때 본 내용으로 답해요. 학습이 끝난 뒤에 생긴 일, 우리 회사 안에만 있는 문서, 컴퓨터에서 직접 해야 하는 일은 혼자서 알 수 없어요. 그래서 도움을 세 단계로 나눠 생각해요.</p>
+
+    <ol class="ladder">
+      <li>
+        <span class="n">1</span>
+        <h3>혼자 답하기</h3>
+        <p>시험장에서 외운 내용만으로 푸는 학생이에요. 널리 알려진 지식이나, 붙여 준 글을 다듬는 일은 이걸로 충분해요.</p>
+      </li>
+      <li>
+        <span class="n">2</span>
+        <h3>찾아서 답하기</h3>
+        <p>책을 펴 놓고 보는 오픈북 시험이에요. 필요한 자료를 먼저 찾아 읽고, 그 내용으로 답해요.</p>
+        <div class="term">용어로는 <span>검색, RAG</span></div>
+      </li>
+      <li>
+        <span class="n">3</span>
+        <h3>직접 해서 답하기</h3>
+        <p>일을 맡은 비서예요. 계산기나 파일, 서버 같은 도구를 직접 쓰고, 결과를 확인하면서 다음 일을 이어 가요.</p>
+        <div class="term">용어로는 <span>도구 사용, 에이전트</span></div>
+      </li>
+    </ol>
+
+    <div class="callout">
+      <p><b>AI가 틀리는 이유.</b> 모르는 질문을 받아도 "모른다"보다 그럴듯한 말을 이어 붙이는 경우가 있어요. 말이 자연스러워도 사실이 아닐 수 있어서, 중요한 내용은 출처를 꼭 확인해야 해요. 이런 현상을 환각이라고 불러요.</p>
+    </div>
+
+    <div class="panel" id="qz" aria-live="polite"></div>
+  </section>
+
+  <section class="lesson" id="words">
+    <div class="eyebrow">4 / 4</div>
+    <h2>이제 용어를 만나도 낯설지 않아요</h2>
+    <p>앞에서 해 본 일에 이름이 붙은 것뿐이에요. 눌러서 펼쳐 보세요.</p>
+
+    <div class="gloss">
+      <details>
+        <summary><span class="term">토큰</span><span class="one">문장을 자른 작은 조각</span></summary>
+        <div class="body">
+          <p>AI가 글을 읽고 쓰는 가장 작은 단위예요. 글자 하나일 수도, 단어의 일부일 수도 있어요.</p>
+          <p class="real">보통 사용량이나 요금도 토큰 수로 계산해요.</p>
+        </div>
+      </details>
+      <details>
+        <summary><span class="term">컨텍스트 창</span><span class="one">한 번에 펼칠 수 있는 책상</span></summary>
+        <div class="body">
+          <p>AI가 한 번에 볼 수 있는 대화와 자료의 양이에요. 책상이 가득 차면 앞쪽 내용부터 놓치게 돼요.</p>
+          <p class="real">모델마다 크기가 달라요.</p>
+        </div>
+      </details>
+      <details>
+        <summary><span class="term">환각</span><span class="one">그럴듯하지만 사실이 아닌 답</span></summary>
+        <div class="body">
+          <p>다음 말을 자연스럽게 이어 붙이는 데 집중하다 보면, 없는 사실을 만들어 낼 수 있어요.</p>
+          <p class="real">줄이는 방법으로는 자료를 찾아 근거를 붙이게 하는 것이 있어요.</p>
+        </div>
+      </details>
+      <details>
+        <summary><span class="term">RAG</span><span class="one">자료를 찾아 보고 답하기</span></summary>
+        <div class="body">
+          <p>오픈북 시험과 같아요. 질문과 관련된 문서를 먼저 찾아서 AI에게 보여 주고, 그 내용으로 답하게 해요.</p>
+          <p class="real">영어 Retrieval-Augmented Generation의 줄임말이에요. 사내 문서 검색 챗봇에 많이 써요.</p>
+        </div>
+      </details>
+      <details>
+        <summary><span class="term">에이전트</span><span class="one">여러 단계를 스스로 진행하는 AI</span></summary>
+        <div class="body">
+          <p>목표를 받으면 할 일을 나누고, 도구를 쓰고, 결과를 확인하면서 다음 단계로 가요. 끝나면 한 일과 못 한 일을 구분해서 알려 줘야 믿을 수 있어요.</p>
+          <p class="real">파일을 고치거나 서버를 바꾸는 일은 사람의 승인 지점을 두는 경우가 많아요.</p>
+        </div>
+      </details>
+      <details>
+        <summary><span class="term">MCP</span><span class="one">도구를 꽂는 공통 콘센트</span></summary>
+        <div class="body">
+          <p>AI 앱이 여러 도구와 데이터에 같은 방식으로 연결되게 해 주는 규칙이에요. 기기마다 충전기가 달랐던 시절에서 공통 규격으로 바뀐 것과 비슷해요.</p>
+          <p class="real">연결이 되더라도 AI가 무엇이든 할 수 있는 건 아니에요. 각 도구가 허락한 범위 안에서만 움직여요.</p>
+        </div>
+      </details>
+      <details>
+        <summary><span class="term">가드레일</span><span class="one">넘으면 안 되는 안전 울타리</span></summary>
+        <div class="body">
+          <p>민감한 정보를 보여 주지 않고, 권한이 없는 일은 하지 못하게 막는 장치예요. 입력과 출력을 검사하고 도구 실행 권한을 따로 확인해요.</p>
+          <p class="real">부탁하는 문장 하나로 모든 보안을 대신할 수는 없어요.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <p class="foot">공개된 원리를 쉽게 단순화한 설명이에요. 특정 서비스의 비공개 내부 동작을 그대로 보여 주는 것이 아니에요. 화면의 확률과 조각 번호는 이해를 돕기 위한 예시예요.<br><a class="back" href="../">← whatis. 메인으로</a></p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  function $(s, r) { return (r || document).querySelector(s); }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  /* ---------- 1. next-word demo ---------- */
+  var PROMPTS = [
+    { label: "비 오는 날", prompt: "비 오는 날에는", options: [
+      { t: "파전이", p: 30, next: [{ t: "생각나요", p: 45 }, { t: "최고죠", p: 30 }, { t: "맛있어요", p: 15 }] },
+      { t: "우산을", p: 25, next: [{ t: "꼭 챙기세요", p: 50 }, { t: "잃어버리기 쉬워요", p: 20 }, { t: "두 개 가져가요", p: 10 }] },
+      { t: "커피가", p: 15, next: [{ t: "더 맛있어요", p: 40 }, { t: "마시고 싶어져요", p: 35 }, { t: "금방 식어요", p: 10 }] },
+      { t: "집에서", p: 12, next: [{ t: "쉬고 싶어요", p: 50 }, { t: "영화를 봐요", p: 30 }, { t: "빨래가 안 말라요", p: 8 }] }
+    ] },
+    { label: "고양이", prompt: "고양이는 보통", options: [
+      { t: "밤에", p: 26, next: [{ t: "활발해져요", p: 50 }, { t: "눈이 빛나요", p: 25 }, { t: "창밖을 봐요", p: 12 }] },
+      { t: "하루에", p: 22, next: [{ t: "열두 시간 넘게 자요", p: 60 }, { t: "여러 번 털을 핥아요", p: 20 }, { t: "세 번 밥을 먹어요", p: 8 }] },
+      { t: "높은 곳을", p: 18, next: [{ t: "좋아해요", p: 70 }, { t: "찾아 올라가요", p: 20 }, { t: "무서워해요", p: 4 }] },
+      { t: "상자를", p: 10, next: [{ t: "보면 들어가요", p: 55 }, { t: "좋아하는 편이에요", p: 30 }, { t: "싫어해요", p: 3 }] }
+    ] },
+    { label: "코딩", prompt: "코드가 안 돌아갈 때는", options: [
+      { t: "에러 메시지를", p: 34, next: [{ t: "먼저 읽어요", p: 55 }, { t: "그대로 검색해요", p: 25 }, { t: "복사해 둬요", p: 8 }] },
+      { t: "최근에 바꾼 부분을", p: 24, next: [{ t: "되돌려 봐요", p: 45 }, { t: "의심해 봐요", p: 35 }, { t: "비교해 봐요", p: 12 }] },
+      { t: "작은 예제로", p: 16, next: [{ t: "줄여서 확인해요", p: 55 }, { t: "다시 만들어 봐요", p: 25 }, { t: "나눠 봐요", p: 10 }] },
+      { t: "잠깐", p: 8, next: [{ t: "쉬고 오세요", p: 60 }, { t: "산책하세요", p: 25 }, { t: "물을 마셔요", p: 6 }] }
+    ] }
+  ];
+  var TEMPS = [0.4, 1, 2.4];
+  var TLABEL = ["안정적", "보통", "엉뚱함"];
+  var pi = 0, picked = [], tempIdx = 1;
+
+  function adjust(opts) {
+    var w = opts.map(function (o) { return Math.pow(o.p, 1 / TEMPS[tempIdx]); });
+    var s = w.reduce(function (a, b) { return a + b; }, 0);
+    return w.map(function (x) { return x / s; });
+  }
+  function currentOptions() {
+    var P = PROMPTS[pi];
+    if (picked.length === 0) return P.options;
+    var first = P.options.filter(function (o) { return o.t === picked[0]; })[0];
+    return first.next;
+  }
+  function choose(text) {
+    if (picked.length >= 2) return;
+    picked.push(text);
+    renderNP();
+  }
+  function renderNP() {
+    var P = PROMPTS[pi];
+    var done = picked.length >= 2;
+
+    var sent = $("#np-sentence");
+    sent.textContent = "";
+    sent.appendChild(el("span", "np-prompt", P.prompt));
+    picked.forEach(function (t) {
+      sent.appendChild(document.createTextNode(" "));
+      sent.appendChild(el("span", "np-picked", t));
+    });
+    if (done) sent.appendChild(document.createTextNode("."));
+    else sent.appendChild(el("span", "caret"));
+
+    var list = $("#np-list");
+    list.textContent = "";
+    $("#np-done").hidden = !done;
+    $("#np-pick").hidden = done;
+
+    if (!done) {
+      var opts = currentOptions();
+      var probs = adjust(opts);
+      var topI = 0;
+      probs.forEach(function (p, i) { if (p > probs[topI]) topI = i; });
+      opts.forEach(function (o, i) {
+        var b = el("button", "cand" + (i === topI ? " top" : ""));
+        b.type = "button";
+        var bar = el("span", "bar");
+        bar.style.width = (probs[i] * 100).toFixed(1) + "%";
+        var t = el("span", "t", o.t);
+        if (i === topI) t.appendChild(el("span", "badge", "가장 유력"));
+        var pc = el("span", "pc", Math.round(probs[i] * 100) + "%");
+        b.appendChild(bar); b.appendChild(t); b.appendChild(pc);
+        b.addEventListener("click", function () { choose(o.t); });
+        list.appendChild(b);
+      });
+    }
+
+    Array.prototype.forEach.call($("#np-tabs").children, function (btn, i) {
+      btn.setAttribute("aria-pressed", i === pi ? "true" : "false");
+    });
+    $("#np-temp-label").textContent = TLABEL[tempIdx];
+  }
+  function sample() {
+    var opts = currentOptions();
+    var probs = adjust(opts);
+    var r = Math.random(), acc = 0, k = probs.length - 1;
+    for (var i = 0; i < probs.length; i++) {
+      acc += probs[i];
+      if (r <= acc) { k = i; break; }
+    }
+    choose(opts[k].t);
+  }
+  PROMPTS.forEach(function (P, i) {
+    var b = el("button", "tab", P.label);
+    b.type = "button";
+    b.addEventListener("click", function () { pi = i; picked = []; renderNP(); });
+    $("#np-tabs").appendChild(b);
+  });
+  $("#np-temp").addEventListener("input", function (e) { tempIdx = Number(e.target.value); renderNP(); });
+  $("#np-pick").addEventListener("click", sample);
+  $("#np-reset").addEventListener("click", function () { picked = []; renderNP(); });
+  renderNP();
+
+  /* ---------- 2. token demo ---------- */
+  function tokenize(text) {
+    var out = [];
+    text.trim().split(/\s+/).filter(Boolean).forEach(function (w) {
+      var first = true;
+      function push(s) { out.push({ t: s, first: first }); first = false; }
+      if (/^[\x00-\x7f]+$/.test(w)) {
+        for (var i = 0; i < w.length; i += 4) push(w.slice(i, i + 4));
+      } else {
+        var chars = Array.from(w);
+        if (chars.length <= 2) push(w);
+        else for (var j = 0; j < chars.length; j += 2) push(chars.slice(j, j + 2).join(""));
+      }
+    });
+    return out;
+  }
+  function tid(s) {
+    var h = 5381;
+    Array.from(s).forEach(function (c) { h = (((h << 5) + h) + c.codePointAt(0)) >>> 0; });
+    return (h % 49999) + 1;
+  }
+  function renderTok() {
+    var text = $("#tok-in").value;
+    var toks = tokenize(text);
+    var box = $("#tok-out");
+    box.textContent = "";
+    toks.forEach(function (k) {
+      var c = el("span", "chip" + (k.first ? " first" : ""));
+      c.appendChild(el("span", "w", k.t));
+      c.appendChild(el("span", "id", String(tid(k.t))));
+      box.appendChild(c);
+    });
+    var chars = Array.from(text.replace(/\s/g, "")).length;
+    var stat = $("#tok-stat");
+    stat.textContent = "";
+    if (!toks.length) { stat.textContent = "문장을 입력하면 조각이 나타나요."; return; }
+    stat.appendChild(document.createTextNode("글자 "));
+    stat.appendChild(el("b", null, String(chars)));
+    stat.appendChild(document.createTextNode("개가 조각 "));
+    stat.appendChild(el("b", null, String(toks.length)));
+    stat.appendChild(document.createTextNode("개로 나뉘었어요."));
+  }
+  $("#tok-in").addEventListener("input", renderTok);
+  renderTok();
+
+  /* ---------- 3. quiz ---------- */
+  var QS = [
+    { q: "무지개는 왜 생겨?", a: "alone", why: "널리 알려진 과학 지식은 학습한 내용만으로 설명할 수 있어요." },
+    { q: "오늘 서울 날씨 알려줘", a: "search", why: "지금 이 순간의 정보는 학습 자료에 없어요. 실시간으로 조회해야 해요." },
+    { q: "우리 회사 휴가 규정이 어떻게 돼?", a: "search", why: "회사 안에만 있는 문서라 AI가 본 적이 없어요. 문서를 찾아서 읽게 해야 하고, 이 방식이 RAG예요." },
+    { q: "이 이메일을 정중하게 다듬어 줘", a: "alone", why: "붙여 준 글이 있으면 충분해요. 따로 찾을 것도, 실행할 것도 없어요." },
+    { q: "내 서버에 남은 디스크 용량 확인해 줘", a: "act", why: "실제 서버에 명령을 실행해야 해요. 도구와 권한이 있어야 하고, 결과를 보고 판단해요." },
+    { q: "오늘 환율로 예산표를 고쳐 줘", a: "act", why: "환율을 조회하고 파일까지 수정해야 해요. 이렇게 여러 단계를 이어 가는 일이 에이전트의 몫이에요." }
+  ];
+  var CH = [["alone", "혼자 답해도 돼요"], ["search", "찾아봐야 해요"], ["act", "직접 실행해야 해요"]];
+  var qi = 0, score = 0, answered = false;
+
+  function renderQ() {
+    var box = $("#qz");
+    box.textContent = "";
+    var head = el("div", "qz-head");
+    head.appendChild(el("h3", null, "이 질문에는 어떤 도움이 필요할까요?"));
+    if (qi >= QS.length) {
+      head.appendChild(el("span", "qz-count", "결과"));
+      box.appendChild(head);
+      box.appendChild(el("div", "score", score + " / " + QS.length));
+      var msg = score >= 5 ? "아주 잘 구분했어요. 이제 AI가 왜 도구를 붙여 쓰는지 알고 있어요."
+        : score >= 3 ? "절반 이상 맞혔어요. 틀린 문제는 '지금 이 순간의 정보인가, 직접 해야 하는 일인가'를 먼저 떠올려 보세요."
+        : "괜찮아요. 위의 세 단계 그림을 한 번 보고 다시 도전해 보세요.";
+      box.appendChild(el("p", null, msg));
+      var again = el("button", "btn", "다시 풀기");
+      again.type = "button";
+      again.addEventListener("click", function () { qi = 0; score = 0; answered = false; renderQ(); });
+      var row = el("div", "row"); row.appendChild(again);
+      box.appendChild(row);
+      return;
+    }
+    head.appendChild(el("span", "qz-count", (qi + 1) + " / " + QS.length));
+    box.appendChild(head);
+    var Q = QS[qi];
+    box.appendChild(el("div", "qz-q", "“" + Q.q + "”"));
+    var opts = el("div", "qz-opts");
+    var fb = el("div", "fb");
+    var next = el("button", "btn", qi === QS.length - 1 ? "결과 보기" : "다음 질문");
+    next.type = "button";
+    next.hidden = true;
+    next.addEventListener("click", function () { qi++; answered = false; renderQ(); });
+    answered = false;
+    CH.forEach(function (c) {
+      var b = el("button", "opt", c[1]);
+      b.type = "button";
+      b.addEventListener("click", function () {
+        if (answered) return;
+        answered = true;
+        var ok = c[0] === Q.a;
+        if (ok) score++;
+        Array.prototype.forEach.call(opts.children, function (ob, i) {
+          ob.disabled = true;
+          if (CH[i][0] === Q.a) ob.classList.add("right");
+          else if (ob === b) ob.classList.add("wrong");
+        });
+        fb.textContent = "";
+        fb.appendChild(el("b", ok ? "ok" : "no", ok ? "맞아요. " : "아쉬워요. "));
+        fb.appendChild(document.createTextNode(Q.why));
+        next.hidden = false;
+        next.focus();
+      });
+      opts.appendChild(b);
+    });
+    box.appendChild(opts);
+    box.appendChild(fb);
+    var row2 = el("div", "row"); row2.appendChild(next);
+    box.appendChild(row2);
+  }
+  renderQ();
+})();
+</script>
+</body>
+</html>
